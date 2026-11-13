@@ -111,6 +111,9 @@ func _ready() -> void:
 	add_child(shape)
 	model = HeroModel.new()
 	model.name = "Model"
+	model.glb_path = "res://assets/models/quaternius/adventurer.glb"
+	model.hide_meshes = ["Backpack"]
+	model.tints = {"Green": Color("3d5ba9"), "LightGreen": Color("5b6c9e"), "Brown2": Color("4a3426")}
 	add_child(model)
 	stamina = max_stamina
 	health = max_health
@@ -270,17 +273,20 @@ func take_damage(amount: float, knockback: Vector3 = Vector3.ZERO, attacker: Nod
 	if model:
 		model.impulse_squash(0.3)
 	hurt.emit(amount, knockback.normalized())
+	model.play_reaction("hurt")
 	# Only retaliate when the player isn't busy with their own orders or direct control.
 	if auto_retaliate and attacker and is_instance_valid(attacker) and attack_target == null and not _has_move_target and get_move_input().length() < 0.2:
 		attack_target = attacker
 		retaliated.emit(attacker)
 	if health <= 0.0:
+		model.play_reaction("death")
 		died.emit()
 	return true
 
 
 ## Full restore, used on respawn.
 func revive(at: Vector3) -> void:
+	model.play_reaction("revive")
 	global_position = at
 	velocity = Vector3.ZERO
 	health = max_health

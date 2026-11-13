@@ -70,8 +70,266 @@ var _dash_blend: float = 0.0
 var _time: float = 0.0
 
 
+## Imported CC0 character (smooth, rigged and animated, see CREDITS.md). Empty = procedural body.
+var glb_path: String = ""
+## Material name -> colour, to bring imported models into the SMAAK.md palette.
+var tints: Dictionary = {}
+## Mesh names to hide in the imported model (e.g. a backpack).
+var hide_meshes: Array[String] = []
+## Target height of the head bone in metres.
+var head_height: float = 1.62
+var idle_anim: String = "Idle_Sword"
+var _glb: Node3D
+var _anim: AnimationPlayer
+var _cur_anim: String = ""
+var _attack_lock: float = 0.0
+var _prev_action: float = 0.0
+var _base_scale: float = 1.0
+
+
 func _ready() -> void:
-	_build()
+	if glb_path != "":
+		_build_glb()
+	else:
+		_build()
+
+
+func _build_glb() -> void:
+	_glb = (load(glb_path) as PackedScene).instantiate()
+	_glb.rotation.y = PI  # Imported models face +Z; ours face -Z.
+	add_child(_glb)
+	_anim = _glb.find_child("AnimationPlayer", true, false) as AnimationPlayer
+	var skel: Skeleton3D = _glb.find_child("Skeleton3D", true, false) as Skeleton3D
+	for mi: MeshInstance3D in _glb.find_children("*", "MeshInstance3D", true, false):
+		if hide_meshes.has(String(mi.name)):
+			mi.visible = false
+			continue
+		for i: int in mi.mesh.get_surface_count():
+			var m: Material = mi.get_active_material(i)
+			if m is BaseMaterial3D and tints.has(String(m.resource_name)):
+				var d: BaseMaterial3D = (m as BaseMaterial3D).duplicate()
+				d.albedo_color = tints[String(m.resource_name)]
+				mi.set_surface_override_material(i, d)
+	# Normalise height: the head bone ends up at `head_height`.
+	if skel:
+		var hi: int = skel.find_bone("Head")
+		if hi >= 0:
+			var hy: float = (skel.global_transform * skel.get_bone_global_rest(hi)).origin.y - global_position.y
+			if hy > 0.01:
+				_base_scale = head_height / hy * scale.y / maxf(scale.y, 0.001)
+				_glb.scale = Vector3.ONE * _base_scale
+	# Sword in the right hand.
+	sword = Node3D.new()
+	sword_base = Node3D.new()
+	sword_tip = Node3D.new()
+	if with_sword and skel:
+		var att := BoneAttachment3D.new()
+		att.bone_name = "Wrist.R"
+		skel.add_child(att)
+		var holder := Node3D.new()
+		holder.name = "SwordHolder"
+		att.add_child(holder)
+		# Undo the model scale so the sword is built in metres.
+		holder.scale = Vector3.ONE / maxf(skel.global_transform.basis.get_scale().x, 0.0001)
+		holder.position = Vector3(0, 0.0, 0)
+		var sw: Node3D = (load("res://assets/models/quaternius/sword.glb") as PackedScene).instantiate()
+		holder.add_child(sw)
+		sword = holder
+		sw.scale = Vector3.ONE * SWORD_SCALE
+		sw.rotation_degrees = SWORD_ROT
+		sw.position = SWORD_OFFSET
+		holder.add_child(sword_base)
+		holder.add_child(sword_tip)
+		sword_base.position = SWORD_OFFSET + (Basis.from_euler(SWORD_ROT * PI / 180.0) * Vector3(0, 0.25, 0))
+		sword_tip.position = SWORD_OFFSET + (Basis.from_euler(SWORD_ROT * PI / 180.0) * Vector3(0, 1.05, 0))
+	else:
+		add_child(sword)
+		sword.add_child(sword_base)
+		sword.add_child(sword_tip)
+	if armored and skel:
+		_build_gear(skel)
+	_play(idle_anim, 0.0)
+
+
+var _attachments: Dictionary = {}
+
+
+## A holder node following `bone`, in metres (the imported armature is scaled x100).
+func _bone_holder(skel: Skeleton3D, bone: String) -> Node3D:
+	if _attachments.has(bone):
+		return _attachments[bone]
+	var att := BoneAttachment3D.new()
+	att.bone_name = bone
+	skel.add_child(att)
+	var holder := Node3D.new()
+	holder.scale = Vector3.ONE / maxf(skel.global_transform.basis.get_scale().x, 0.0001)
+	att.add_child(holder)
+	_attachments[bone] = holder
+	return holder
+
+
+func _mat(c: Color, rough: float = 0.6, metal: float = 0.0) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.albedo_color = c
+	m.roughness = rough
+	m.metallic = metal
+	return m
+
+
+func _piece(skel: Skeleton3D, bone: String, mesh: Mesh, mat: Material, pos: Vector3, rot_deg: Vector3 = Vector3.ZERO, scl: Vector3 = Vector3.ONE) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	mi.material_override = mat
+	mi.position = pos
+	mi.rotation_degrees = rot_deg
+	mi.scale = scl
+	_bone_holder(skel, bone).add_child(mi)
+	return mi
+
+
+## Warden's gear on the imported body: pauldrons, breastplate, bracers, belt and a cape.
+## Smooth primitives in the palette, attached to bones so they move with the animation.
+func _build_gear(skel: Skeleton3D) -> void:
+	var steel := _mat(Color("b8c0cc"), 0.35, 0.6)
+	var gold := _mat(Color("d9a441"), 0.35, 0.7)
+	var blue := _mat(col_tunic, 0.7)
+	var leather := _mat(Color("5a3b26"), 0.8)
+	var dome := SphereMesh.new()
+	dome.radius = 0.5
+	dome.height = 1.0
+	dome.radial_segments = 24
+	dome.rings = 12
+	var ring := TorusMesh.new()
+	ring.inner_radius = 0.42
+	ring.outer_radius = 0.5
+	ring.rings = 24
+	ring.ring_segments = 8
+	var tube := CylinderMesh.new()
+	tube.top_radius = 0.5
+	tube.bottom_radius = 0.5
+	tube.height = 1.0
+	tube.radial_segments = 16
+	for side: String in ["L", "R"]:
+		var sx: float = 1.0 if side == "L" else -1.0
+		# Layered pauldron with a gold rim.
+		_piece(skel, "UpperArm." + side, dome, steel, Vector3(0, 0.03, 0), Vector3(0, 0, 0), Vector3(0.19, 0.15, 0.19))
+		_piece(skel, "UpperArm." + side, dome, steel, Vector3(0, 0.09, 0), Vector3.ZERO, Vector3(0.15, 0.11, 0.15))
+		_piece(skel, "UpperArm." + side, ring, gold, Vector3(0, 0.0, 0), Vector3.ZERO, Vector3(0.2, 0.3, 0.2))
+		# Bracer.
+		_piece(skel, "LowerArm." + side, tube, leather, Vector3(0, 0.14, 0), Vector3.ZERO, Vector3(0.105, 0.16, 0.105))
+		_piece(skel, "LowerArm." + side, ring, gold, Vector3(0, 0.21, 0), Vector3.ZERO, Vector3(0.11, 0.25, 0.11))
+		# Greaves.
+		_piece(skel, "LowerLeg." + side, tube, steel, Vector3(0, 0.2, 0.02), Vector3.ZERO, Vector3(0.12, 0.26, 0.12))
+	# Breastplate and back plate.
+	_piece(skel, "Chest", dome, steel, Vector3(0, -0.05, 0.07), Vector3.ZERO, Vector3(0.3, 0.3, 0.14))
+	_piece(skel, "Chest", dome, steel, Vector3(0, -0.05, -0.06), Vector3.ZERO, Vector3(0.28, 0.28, 0.12))
+	_piece(skel, "Chest", ring, gold, Vector3(0, 0.07, 0.0), Vector3.ZERO, Vector3(0.27, 0.4, 0.22))
+	# Belt with buckle.
+	_piece(skel, "Hips", ring, leather, Vector3(0, 0.06, 0), Vector3.ZERO, Vector3(0.34, 0.6, 0.27))
+	var buckle := BoxMesh.new()
+	buckle.size = Vector3(0.07, 0.06, 0.02)
+	_piece(skel, "Hips", buckle, gold, Vector3(0, 0.06, 0.135))
+	# Tabard front panel.
+	var panel := BoxMesh.new()
+	panel.size = Vector3(0.2, 0.36, 0.02)
+	_piece(skel, "Hips", panel, blue, Vector3(0, -0.13, 0.12), Vector3(-6, 0, 0))
+	# Cape: a curved cloth sheet from the shoulders.
+	var cloth := _mat(col_cloak, 0.85)
+	cloth.cull_mode = BaseMaterial3D.CULL_DISABLED
+	_piece(skel, "Chest", _cape_mesh(), cloth, Vector3(0, 0.22, -0.13), Vector3(0, 0, 0))
+
+
+func _cape_mesh() -> ArrayMesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var cols: int = 8
+	var rows: int = 8
+	var pts: Array[Vector3] = []
+	for r: int in rows + 1:
+		var v: float = float(r) / rows
+		for c: int in cols + 1:
+			var u: float = float(c) / cols - 0.5
+			var w: float = lerpf(0.36, 0.5, v)
+			var x: float = u * w
+			var z: float = -0.04 - v * v * 0.16 - cos(u * PI) * 0.05 + sin(u * TAU * 2.0) * 0.012 * v
+			pts.append(Vector3(x, -v * 1.05, z))
+	for r: int in rows:
+		for c: int in cols:
+			var a: int = r * (cols + 1) + c
+			var b: int = a + 1
+			var d: int = a + cols + 1
+			var e: int = d + 1
+			for i: int in [a, d, b, b, d, e]:
+				st.add_vertex(pts[i])
+	st.generate_normals()
+	var m: ArrayMesh = st.commit()
+	return m
+
+
+const SWORD_SCALE: float = 0.42
+const SWORD_ROT := Vector3(90.0, 0.0, 0.0)
+const SWORD_OFFSET := Vector3(0.0, 0.09, 0.0)
+
+
+func _play(anim: String, blend: float = 0.15, speed: float = 1.0) -> void:
+	if _anim == null:
+		return
+	var full: String = anim
+	if not _anim.has_animation(full):
+		full = "CharacterArmature|" + anim
+		if not _anim.has_animation(full):
+			return
+	if full == _cur_anim:
+		_anim.speed_scale = speed
+		return
+	_cur_anim = full
+	var a: Animation = _anim.get_animation(full)
+	if not anim.contains("Death") and not anim.contains("Slash") and not anim.contains("Attack") and not anim.contains("Punch"):
+		a.loop_mode = Animation.LOOP_LINEAR
+	_anim.play(full, blend)
+	_anim.speed_scale = speed
+
+
+func _animate_glb(delta: float, speed_ratio: float, dashing: bool) -> void:
+	_attack_lock = maxf(_attack_lock - delta, 0.0)
+	# A new attack: the combat code raises action_weight from ~0 toward 1.
+	if action_weight > 0.45 and _prev_action <= 0.45:
+		_cur_anim = ""
+		_play("Sword_Slash", 0.06, 2.1)
+		_attack_lock = 0.5
+	_prev_action = action_weight
+	if dashing:
+		_play("Roll", 0.08, 1.6)
+	elif _attack_lock <= 0.0:
+		if speed_ratio > 0.72:
+			_play("Run", 0.15, clampf(speed_ratio, 0.8, 1.3))
+		elif speed_ratio > 0.06:
+			_play("Walk", 0.15, clampf(speed_ratio * 1.8, 0.6, 1.4))
+		else:
+			_play(idle_anim, 0.2)
+	# Squash and stretch spring on the whole body.
+	_squash_vel += (-_squash * 120.0 - _squash_vel * 14.0) * delta
+	_squash += _squash_vel * delta
+	var sq: float = clampf(_squash, -0.25, 0.25)
+	_glb.scale = Vector3(_base_scale * (1.0 - sq * 0.4), _base_scale * (1.0 + sq), _base_scale * (1.0 - sq * 0.4))
+
+
+## One-shot reactions for imported models: "hurt", "death", "talk".
+func play_reaction(kind: String) -> void:
+	if _glb == null:
+		return
+	match kind:
+		"hurt":
+			_cur_anim = ""
+			_play("HitRecieve", 0.05, 1.5)
+			_attack_lock = 0.35
+		"death":
+			_play("Death", 0.1)
+			_attack_lock = 999.0
+		"revive":
+			_attack_lock = 0.0
+			_cur_anim = ""
+			_play(idle_anim, 0.1)
 
 
 func _pivot(parent: Node3D, pos: Vector3, pivot_name: String) -> Node3D:
@@ -454,6 +712,9 @@ func _commit_kits() -> void:
 ## Called by the controller every frame.
 ## speed_ratio: 0 idle, ~0.6 walk, 1 sprint. vertical: vertical velocity.
 func animate(delta: float, speed_ratio: float, on_floor: bool, vertical: float, accel_lean: float, dashing: bool) -> void:
+	if _glb != null:
+		_animate_glb(delta, speed_ratio, dashing)
+		return
 	_time += delta
 	var moving: float = clampf(speed_ratio, 0.0, 1.2)
 	_phase = fmod(_phase + delta * lerpf(0.0, 11.0, clampf(moving, 0.0, 1.0)) + delta * 4.0 * moving, TAU)

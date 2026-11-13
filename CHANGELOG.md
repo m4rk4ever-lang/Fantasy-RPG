@@ -1,5 +1,34 @@
 # Changelog
 
+## 13-11-2026 (vierde sessie, met de eigenaar live)
+
+Feedback van de eigenaar: 31 tot 45 fps in Safari, en personages en omgeving zien er blokkerig uit, "geen echte 3D-mesh". Eerst een voorbeelddesign gemaakt en voorgelegd; de eigenaar koos voor de richting met CC0-modellen en verwees naar de anatomie-referentie.
+
+**Gebouwd**
+- **Held als echt 3D-model:** glad, geanimeerd lichaam met echte verhoudingen (Quaternius, CC0), met eigen uitrusting in het palet: gelaagde stalen schouderstukken met goudrand, borst- en rugplaat, armbeschermers, scheenplaten, riem met gesp, blauwe tabard en een cape. Animaties: idle met zwaard, lopen, rennen, zwaardslag, rol, geraakt worden en doodgaan.
+- **Hollowed als echt 3D-model:** geanimeerd lichaam (lopen, rennen, slaan, geraakt, dood) met een eigen shader die het naar asgrijs trekt, een koude blauwe rand en gloeiende Veil-ogen. De Warden-Husk en de Keeper erven dit.
+- **Dorpelingen** gebruiken dezelfde gladde lichamen (met en zonder kap), in hun eigen kleuren.
+- **Prestaties:** schaduwkaart 4096 naar 2048, zachtere schaduwfilter een stap lager, schaduwafstand 90 naar 60 m, gras 14.000 naar 9.000 plukjes.
+
+**Feedback verwerkt**
+- Prestaties in Safari: eerste ronde besparingen. Graag opnieuw meten.
+- Blokkerige personages: vervangen door gladde, geanimeerde modellen. Omgeving (rots, ruïnes, huizen) volgt.
+
+**Screenshots**
+![Overzicht](docs/screenshots/2026-11-13d/01_overzicht.png)
+![Gevecht](docs/screenshots/2026-11-13d/02_gevecht.png)
+![Saltwick](docs/screenshots/2026-11-13d/07_dorpeling.png)
+
+**Zelfcontrole**
+- Diepte: ja | Landmark: Veilspire | Palet: ja | Game of demo: dichter bij game | Zwakste deel: de omgeving oogt nu ruwer dan de personages (gefacetteerde rots, kale ruïneblokken).
+
+**Problemen en beslissingen**
+- GitHub buiten deze repo is voor deze sessie geblokkeerd. De modellen komen uit een npm-pakket met Quaternius-modellen (CC0, licentie in het pakket gecontroleerd). Zie `CREDITS.md`.
+- Quaternius-bomen geprobeerd, maar die oogden donkerder en hoekiger dan de huidige ronde kruinen. Teruggedraaid.
+
+**Volgende run**
+- Omgeving gladder: rots onder de Veilspire, ruïnes en rotsblokken. Kwaliteitsinstelling (V.10) met renderschaal voor Retina-schermen.
+
 ## 13-11-2026 (derde sessie, wekelijkse run)
 
 **Gebouwd (op main)**

@@ -40,6 +40,11 @@ func _ready() -> void:
 	# Outfit variation: "kind" is "", "apron", "hood" or "hat"; "hair_style" picks the hair shape.
 	_model.outfit_kind = outfit.get("kind", "")
 	_model.hair_style = outfit.get("hair_style", 1)
+	# Imported CC0 body (smooth, animated); clothes recoloured to the outfit.
+	_model.glb_path = "res://assets/models/quaternius/%s.glb" % ("hooded_adventurer" if _model.outfit_kind == "hood" or _model.hair_style == 2 else "adventurer")
+	_model.idle_anim = "Idle"
+	_model.hide_meshes = ["Backpack"]
+	_model.tints = {"Green": _model.col_tunic, "LightGreen": _model.col_cloak, "Hair": _model.col_hair, "Brown2": _model.col_leather}
 	add_child(_model)
 	_model.scale = Vector3.ONE * 0.95
 	if not route.is_empty():

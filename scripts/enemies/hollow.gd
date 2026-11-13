@@ -85,6 +85,7 @@ func _ready() -> void:
 	cs.position.y = 0.95
 	add_child(cs)
 	_build_model()
+	_attach_glb()
 
 
 func is_dead() -> bool:
@@ -102,6 +103,105 @@ func _mesh(parent: Node3D, kit: MeshKit, _metal: bool) -> void:
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 	parent.add_child(mi)
 	_flash_meshes.append(mi)
+
+
+## Imported CC0 body (Quaternius zombie, smooth and animated), recoloured into an ashen husk.
+const GLB_PATH := "res://assets/models/quaternius/zombie.glb"
+const GLB_HEIGHT: float = 1.5
+var _glb: Node3D
+var _glb_anim: AnimationPlayer
+var _glb_cur: String = ""
+var _glb_mats: Array[ShaderMaterial] = []
+var _glb_prev_state: int = -1
+
+
+func _attach_glb() -> void:
+	for mi: MeshInstance3D in _model.find_children("*", "MeshInstance3D", true, false):
+		mi.visible = false
+	_glb = (load(GLB_PATH) as PackedScene).instantiate()
+	_glb.rotation.y = PI
+	_model.add_child(_glb)
+	_glb_anim = _glb.find_child("AnimationPlayer", true, false) as AnimationPlayer
+	var shader: Shader = preload("res://shaders/husk_tint.gdshader")
+	for mi: MeshInstance3D in _glb.find_children("*", "MeshInstance3D", true, false):
+		for i: int in mi.mesh.get_surface_count():
+			var src: Material = mi.get_active_material(i)
+			var sm := ShaderMaterial.new()
+			sm.shader = shader
+			if src is BaseMaterial3D:
+				sm.set_shader_parameter("albedo_tex", (src as BaseMaterial3D).albedo_texture)
+			mi.set_surface_override_material(i, sm)
+			_glb_mats.append(sm)
+	var skel: Skeleton3D = _glb.find_child("Skeleton3D", true, false) as Skeleton3D
+	if skel:
+		var hi: int = skel.find_bone("Head")
+		if hi >= 0:
+			var hy: float = (skel.global_transform * skel.get_bone_global_rest(hi)).origin.y - _model.global_position.y
+			if hy > 0.01:
+				_glb.scale = Vector3.ONE * (GLB_HEIGHT * 0.86 / hy)
+		# Glowing Veil eyes on the head bone.
+		var att := BoneAttachment3D.new()
+		att.bone_name = "Head"
+		skel.add_child(att)
+		var holder := Node3D.new()
+		holder.scale = Vector3.ONE / maxf(skel.global_transform.basis.get_scale().x, 0.0001)
+		att.add_child(holder)
+		for sx: float in [-0.045, 0.045]:
+			var e := MeshInstance3D.new()
+			var sp := SphereMesh.new()
+			sp.radius = 0.022
+			sp.height = 0.044
+			e.mesh = sp
+			e.material_override = _eye_mat
+			e.position = Vector3(sx, 0.09, 0.1)
+			holder.add_child(e)
+	_glb_play("Idle")
+
+
+func _glb_play(anim: String, blend: float = 0.15, speed: float = 1.0, restart: bool = false) -> void:
+	if _glb_anim == null:
+		return
+	var full: String = "CharacterArmature|" + anim
+	if not _glb_anim.has_animation(full):
+		full = anim
+		if not _glb_anim.has_animation(full):
+			return
+	if full == _glb_cur and not restart:
+		_glb_anim.speed_scale = speed
+		return
+	_glb_cur = full
+	var a: Animation = _glb_anim.get_animation(full)
+	a.loop_mode = Animation.LOOP_NONE if (anim == "Death" or anim == "Punch" or anim == "HitReact") else Animation.LOOP_LINEAR
+	_glb_anim.play(full, blend)
+	_glb_anim.speed_scale = speed
+	if restart:
+		_glb_anim.seek(0.0, true)
+
+
+func _animate_glb(speed: float) -> void:
+	var entered: bool = state != _glb_prev_state
+	_glb_prev_state = state
+	match state:
+		State.WINDUP:
+			if entered:
+				_glb_play("Punch", 0.1, 0.55 / maxf(windup_time, 0.2), true)
+		State.ATTACK, State.RECOVER:
+			pass
+		State.STAGGER:
+			if entered:
+				_glb_play("HitReact", 0.05, 1.4, true)
+		State.DEAD:
+			if entered:
+				_glb_play("Death", 0.1)
+		_:
+			if speed > move_speed * 0.6:
+				_glb_play("Run", 0.2, 1.0)
+			elif speed > 0.15:
+				_glb_play("Walk", 0.2, clampf(speed / 1.4, 0.6, 1.5))
+			else:
+				_glb_play("Idle", 0.25)
+	for sm: ShaderMaterial in _glb_mats:
+		sm.set_shader_parameter("flash", _flash * 0.8)
 
 
 func _build_model() -> void:
@@ -489,6 +589,8 @@ func _face_toward(dir: Vector3, delta: float, rate: float) -> void:
 func _animate(delta: float, speed: float) -> void:
 	# Model faces +Z in local space after this rotation (front of the face is -Z, so add PI).
 	_model.rotation.y = _facing + PI
+	if _glb != null:
+		_animate_glb(speed)
 	_phase += delta * (2.0 + speed * 2.2)
 	var s: float = sin(_phase)
 	var amp: float = clampf(speed / move_speed, 0.0, 1.0)

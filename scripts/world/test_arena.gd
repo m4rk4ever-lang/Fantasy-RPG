@@ -144,7 +144,7 @@ func _build_environment() -> void:
 	sun.shadow_bias = 0.04
 	sun.shadow_normal_bias = 1.2
 	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
-	sun.directional_shadow_max_distance = 90.0
+	sun.directional_shadow_max_distance = 60.0
 	sun.shadow_blur = 1.2
 	add_child(sun)
 
@@ -703,7 +703,7 @@ func _scatter_grass() -> void:
 	rng.seed = 909
 	var xforms: Array[Transform3D] = []
 	var tries: int = 0
-	while xforms.size() < 14000 and tries < 40000:
+	while xforms.size() < 9000 and tries < 30000:
 		tries += 1
 		var r: float = sqrt(rng.randf()) * 62.0
 		var a: float = rng.randf() * TAU
