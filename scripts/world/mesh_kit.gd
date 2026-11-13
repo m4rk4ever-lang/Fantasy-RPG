@@ -144,6 +144,27 @@ func wedge(xf: Transform3D, size: Vector3, col: Color) -> void:
 	_tri(xf, tip, e, a, col)  # left
 
 
+## Free quad from four corners, counter-clockwise seen from the front (capes, rags, shutters).
+## `double_sided` also emits the back face (slightly darker unless `back_col` is given).
+func quad(xf: Transform3D, a: Vector3, b: Vector3, c: Vector3, d: Vector3, col: Color, double_sided: bool = false, back_col: Color = Color(0, 0, 0, 0)) -> void:
+	_quad(xf, a, b, c, d, col)
+	if double_sided:
+		var bc: Color = back_col if back_col.a > 0.0 else col.darkened(0.18)
+		_quad(xf, d, c, b, a, bc)
+
+
+## Free triangle, counter-clockwise seen from the front. Optionally double-sided.
+func tri(xf: Transform3D, a: Vector3, b: Vector3, c: Vector3, col: Color, double_sided: bool = false) -> void:
+	_tri(xf, a, c, b, col)
+	if double_sided:
+		_tri(xf, a, b, c, col.darkened(0.18))
+
+
+## Number of triangles added so far (polygon budget checks).
+func tri_count() -> int:
+	return _count
+
+
 func is_empty() -> bool:
 	return _count == 0
 

@@ -159,6 +159,12 @@ func _ready() -> void:
 		hud.show_banner("The Keeper falls", "Relight the beacon"))
 	undercroft.beacon_lit.connect(_on_beacon_lit)
 	_load_save.call_deferred()
+	# --- Audio (V.8): procedural sound, ambience and music; see scripts/audio/ ---
+	var audio := AudioDirector.new()
+	audio.name = "AudioDirector"
+	add_child(audio)
+	audio.setup(player, arena)
+	# --- End audio ---
 
 
 func _on_player_dashed() -> void:

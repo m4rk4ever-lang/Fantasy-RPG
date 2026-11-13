@@ -380,6 +380,32 @@ func _run() -> void:
 	SaveGame.delete()
 	_check(not SaveGame.exists(), "new game erases the save")
 	_main.set("use_save", false)
+	# Audio (V.8): director, buses and the procedural sound bank.
+	var audio: AudioDirector = _main.get_node_or_null("AudioDirector")
+	_check(audio != null, "audio director exists")
+	if audio != null:
+		var buses_ok: bool = true
+		for bus: String in ["Master", "Music", "SFX", "Ambience"]:
+			buses_ok = buses_ok and AudioServer.get_bus_index(bus) != -1
+		_check(buses_ok, "audio buses Master, Music, SFX and Ambience exist")
+		var bank_ok: bool = audio.bank != null and audio.bank.streams.size() >= 20 and audio.bank.pad_chords.size() == 4
+		if bank_ok:
+			for id: String in audio.bank.streams:
+				bank_ok = bank_ok and (audio.bank.streams[id] as AudioStreamWAV).data.size() > 200
+		_check(bank_ok, "sound bank generated %d non-empty streams in %d ms" % [audio.bank.streams.size(), audio.bank.generation_ms])
+		var combat_wav: AudioStreamWAV = audio.bank.get_stream("combat")
+		_check(combat_wav != null and combat_wav.loop_mode == AudioStreamWAV.LOOP_FORWARD and combat_wav.loop_end > 0, "music loops have loop points")
+		var played: int = audio.sfx_played
+		audio.play("hit")
+		audio.play_at("hollow_death", player.global_position)
+		audio.play("no_such_sound")
+		await _frames(3)
+		_check(audio.sfx_played == played + 2, "playing hit sounds does not error")
+		# Combat layer: an engaged Hollowed nearby raises the mix, and it falls away after.
+		var mix0: float = audio.combat_mix
+		audio.set("_combat_hold", 2.0)
+		await _frames(60)
+		_check(audio.combat_mix > mix0 + 0.3, "combat music fades in (mix %.2f)" % audio.combat_mix)
 
 	# Frame time indication (headless, physics only).
 	var t0: int = Time.get_ticks_usec()
