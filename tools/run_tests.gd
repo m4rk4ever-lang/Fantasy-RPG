@@ -85,19 +85,23 @@ func _run() -> void:
 	await _frames(60)
 	_check(player.is_on_floor(), "hero back on the ground")
 
-	# Dash: fast burst, costs stamina, grants i-frames.
+	# Run toggle (no dodge): running is faster and drains stamina; toggled off you walk.
+	player.set_run(true)
 	var st0: float = player.stamina
 	var p0: Vector3 = player.global_position
-	var ok: bool = player.try_dash()
-	_check(ok, "dash starts")
-	_check(player.is_invulnerable(), "dash grants i-frames")
-	_check(not player.take_damage(10.0), "damage ignored during i-frames")
-	await _frames(12)
-	var dash_dist: float = Vector2(player.global_position.x - p0.x, player.global_position.z - p0.z).length()
-	_check(dash_dist > 2.5, "dash covers distance (%.2f m)" % dash_dist)
-	_check(player.stamina < st0, "dash spends stamina")
+	player.debug_move_input = Vector2(0, 1)
+	await _frames(60)
+	var run_dist: float = Vector2(player.global_position.x - p0.x, player.global_position.z - p0.z).length()
+	_check(player.stamina < st0, "running drains stamina")
+	player.set_run(false)
+	var p1: Vector3 = player.global_position
+	await _frames(60)
+	var walk_dist: float = Vector2(player.global_position.x - p1.x, player.global_position.z - p1.z).length()
+	player.debug_move_input = Vector2.ZERO
+	_check(run_dist > walk_dist * 1.3, "running is faster than walking (%.1f vs %.1f m)" % [run_dist, walk_dist])
+	player.set_run(true)
 	await _frames(40)
-	_check(player.take_damage(10.0), "damage applies outside i-frames")
+	_check(player.take_damage(10.0), "damage applies")
 	_check(is_equal_approx(player.health, player.max_health - 10.0), "health reduced by damage")
 
 	# Stamina regenerates.
@@ -177,8 +181,9 @@ func _run() -> void:
 	await _frames(5)
 	player.set_move_target(shore_start + sea * 40.0)
 	await _frames(240)
-	var ground_here: float = arena_t.height_at(player.global_position.x, player.global_position.z)
-	_check(ground_here > TestArena.WATER_LEVEL, "hero stops at the water's edge (ground %.2f)" % ground_here)
+	# Either stopped on the beach or walked out onto a pier: never standing in the water.
+	var feet: float = player.global_position.y
+	_check(feet > TestArena.WATER_LEVEL + 0.3, "hero never ends up in the water (feet at %.2f)" % feet)
 	player.clear_orders()
 	player.global_position = PLAYER_SPAWN_FOR_TESTS
 	await _frames(30)
@@ -232,8 +237,8 @@ func _run() -> void:
 	player.combat.request_heavy()
 	await _frames(5)
 	_check(player.combat.is_busy(), "heavy attack starts")
-	player.try_dash()
-	_check(not player.combat.is_busy(), "dodge cancels attack")
+	await _frames(60)
+	_check(not player.combat.is_busy(), "heavy attack finishes")
 	Engine.time_scale = 1.0
 
 	# Loot: a killed Hollowed drops a pouch; walking over it fills the backpack.
@@ -243,6 +248,38 @@ func _run() -> void:
 	_main.call("_drop_loot", player.global_position + player.get_facing_vector() * 0.5)
 	await _frames(5)
 	_check(inv.count_of("veil_dust") > dust0 and inv.coins > coins0, "loot pouch is picked up (dust %d, coins %d)" % [inv.count_of("veil_dust"), inv.coins])
+
+	# Fences block, and clicking Brenna from the vale walks through the gate and around houses.
+	var arena_f: TestArena = _main.get("arena")
+	var sea_f := Vector3(TestArena.SEA_DIR.x, 0, TestArena.SEA_DIR.y)
+	var along_f := Vector3(-TestArena.SEA_DIR.y, 0, TestArena.SEA_DIR.x)
+	var before_fence: Vector3 = sea_f * 6.0 + along_f * -17.0
+	before_fence.y = arena_f.height_at(before_fence.x, before_fence.z) + 0.3
+	player.global_position = before_fence
+	player.velocity = Vector3.ZERO
+	await _frames(5)
+	var beyond: Vector3 = sea_f * 14.0 + along_f * -17.0
+	player.set_move_target(beyond)
+	await _frames(70)
+	var s_now: float = Vector3(player.global_position.x, 0, player.global_position.z).dot(sea_f)
+	_check(s_now < 10.0, "fence blocks walking through it (s %.1f)" % s_now)
+	player.clear_orders()
+	var start_vale: Vector3 = Vector3(0.0, 0.0, 6.0)
+	start_vale.y = arena_f.height_at(0.0, 6.0) + 0.3
+	player.global_position = start_vale
+	await _frames(5)
+	var reached: Array[bool] = [false]
+	var on_talk := func(_n: Node3D) -> void: reached[0] = true
+	player.talk_reached.connect(on_talk)
+	player.set_talk_target(arena_f.village.brenna)
+	for _w: int in 90:
+		await _frames(10)
+		if reached[0]:
+			break
+	_check(reached[0], "click-walk from the vale reaches Brenna (gate, around houses)")
+	player.talk_reached.disconnect(on_talk)
+	var dlg0: DialogueWindow = _main.get("dialogue")
+	dlg0.close()
 
 	# Quest: talk to Brenna, accept, bring 5 Veil Dust, get rewards.
 	var arena_q: TestArena = _main.get("arena")

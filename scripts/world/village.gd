@@ -279,6 +279,7 @@ func _pier_short(t: float) -> void:
 func _barrel(at: Vector3) -> void:
 	var xf := Transform3D(Basis(Vector3.UP, _rng.randf() * TAU), at + Vector3(0, 0.45, 0))
 	_kit.cylinder(xf, 0.36, 0.36, 0.9, 10, COL_PLANK)
+	_collider(xf, Vector3(0.7, 0.9, 0.7))
 	for y: float in [-0.3, 0.3]:
 		_kit.cylinder(xf * Transform3D(Basis(), Vector3(0, y, 0)), 0.38, 0.38, 0.07, 10, COL_STONE_DARK)
 
@@ -286,6 +287,7 @@ func _barrel(at: Vector3) -> void:
 func _crate(at: Vector3, size: float) -> void:
 	var xf := Transform3D(Basis(Vector3.UP, _rng.randf() * TAU), at + Vector3(0, size * 0.5, 0))
 	_kit.box(xf, Vector3.ONE * size, COL_PLANK)
+	_collider(xf, Vector3.ONE * size)
 	_kit.box(xf, Vector3(size + 0.04, size * 0.2, size + 0.04), COL_PLANK_DARK)
 
 
@@ -307,6 +309,7 @@ func _props() -> void:
 		var xf := Transform3D(_facing_sea(), base)
 		for x: float in [-1.6, 1.6]:
 			_kit.box(xf * Transform3D(Basis(), Vector3(x, 0.9, 0)), Vector3(0.12, 1.8, 0.12), COL_TIMBER)
+		_collider(xf * Transform3D(Basis(), Vector3(0, 0.9, 0)), Vector3(3.4, 1.8, 0.3))
 		_kit.box(xf * Transform3D(Basis(), Vector3(0, 1.75, 0)), Vector3(3.4, 0.1, 0.1), COL_TIMBER)
 		for f: int in 6:
 			_kit.box(xf * Transform3D(Basis(), Vector3(-1.25 + f * 0.5, 1.35, 0)), Vector3(0.14, 0.7, 0.05), Color("9fa8b8"))
@@ -315,7 +318,12 @@ func _props() -> void:
 		var fp: Vector3 = _spot(10.0, -26.0 + k * 3.0)
 		var fx := Transform3D(_facing_sea(), fp)
 		_kit.box(fx * Transform3D(Basis(), Vector3(0, 0.55, 0)), Vector3(0.14, 1.1, 0.14), COL_TIMBER)
-		if k < 17:
+		_collider(fx * Transform3D(Basis(), Vector3(0, 0.55, 0)), Vector3(0.2, 1.1, 0.2))
+		# Gate: segments 9 and 10 stay open where the path from the vale comes in.
+		if k == 9 or k == 11:
+			_kit.box(fx * Transform3D(Basis(), Vector3(0, 0.9, 0)), Vector3(0.22, 1.8, 0.22), COL_TIMBER)
+			_kit.box(fx * Transform3D(Basis(), Vector3(0, 1.85, 0)), Vector3(0.34, 0.12, 0.34), COL_STONE)
+		if k < 17 and k != 9 and k != 10:
 			var nxt: Vector3 = _spot(10.0, -26.0 + (k + 1) * 3.0)
 			var midp: Vector3 = (fp + nxt) * 0.5
 			var dir: Vector3 = nxt - fp
@@ -324,11 +332,14 @@ func _props() -> void:
 			var rail := Transform3D(Basis.from_euler(Vector3(pitch, yaw, 0)), midp)
 			for ry: float in [0.45, 0.85]:
 				_kit.box(rail * Transform3D(Basis(), Vector3(0, ry, 0)), Vector3(0.08, 0.1, dir.length()), COL_PLANK_DARK)
+			# Fences block walking (no clipping through them).
+			_collider(rail * Transform3D(Basis(), Vector3(0, 0.6, 0)), Vector3(0.25, 1.2, dir.length() + 0.15))
 	# Lantern posts along the path.
 	for t2: float in [-16.0, -4.5, 7.5, 19.0]:
 		var lp: Vector3 = _spot(20.5, t2)
 		var lx := Transform3D(_facing_sea(), lp)
 		_kit.box(lx * Transform3D(Basis(), Vector3(0, 1.2, 0)), Vector3(0.16, 2.4, 0.16), COL_TIMBER)
+		_collider(lx * Transform3D(Basis(), Vector3(0, 1.2, 0)), Vector3(0.3, 2.4, 0.3))
 		_kit.box(lx * Transform3D(Basis(), Vector3(0, 2.45, 0)), Vector3(0.45, 0.08, 0.45), COL_STONE_DARK)
 		_glow_kit.box(lx * Transform3D(Basis(), Vector3(0, 2.2, 0)), Vector3(0.28, 0.4, 0.28), Color("ffcf8a"))
 

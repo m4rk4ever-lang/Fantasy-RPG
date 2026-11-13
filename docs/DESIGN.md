@@ -69,8 +69,7 @@ Het hoofdpersonage draagt koningsblauw (tunic), leisteenblauw (cape) en licht st
 | Skills | 1, 2, 3, 4 (of klik op de balk) | Y, RB, LB, Back |
 | Camera draaien | middelste muisknop slepen of pijltjes | rechterstick |
 | Zoomen | scrollwiel of + en - | - |
-| Sprinten | Shift | linkerstick indrukken |
-| Ontwijken (dash) | Spatie / rechtermuis / Alt / C | B of A |
+| Rennen aan/uit | Shift of Spatie, of de knop Run | linkerstick of B |
 | Dichtstbijzijnde doelwit | Q | rechterstick indrukken |
 | Pauze | Esc / P | Start |
 
@@ -158,3 +157,9 @@ Hollowed Wardens: de Wardens die the Veil als eersten raakte. Ze dragen nog de g
 - **Rugzak:** `Inventory`, 28 vakjes zoals RuneScape, stapelbare items, coins apart. Venster met I of de knop. Klik op eten om het op te eten (Salted Fish: +20 health).
 - **Dialoog:** `DialogueWindow` met spreker, tekst en tot 4 antwoorden (klik of 1-4). Klik op een NPC (goudkleurige naam) om erheen te lopen en te praten.
 - **Quests:** `QuestLog` met staten none, active en done. Eerste quest: **Ashes on the Shore** van **Brenna Gale**, havenmeester van Saltwick: breng 5 Veil Dust. Beloning 150 XP, 50 coins en 3 Salted Fish. Daarna opent **The Dark Spire** (het licht van de Veilspire is uit), uit te werken in V.6. Questlog met L, tracker rechtsboven.
+
+## Bewegen (13-11-2026)
+
+- **Geen ontwijken** (eigenaar: "dat kan bij RuneScape/WoW combat ook niet"). Verdedigen doe je met skills (Second Wind, Unbroken) en positie. Surge Strike blijft een aanval met korte onkwetsbaarheid.
+- **Rennen is een schakelaar** (Shift, Spatie, knop "Run" naast de health-orb). Rennen kost stamina (4 per seconde), lopen of stilstaan laadt die op. Bij 0 loop je tot er weer stamina is.
+- **Padvinding:** `NavGrid` maakt bij de start een raster van 1,25 m (in ongeveer 0,1 s). Een vakje is geblokkeerd bij een collider op lichaamshoogte, water zonder steiger of een te steile helling. Klikopdrachten volgen het A*-pad, het laatste stuk gaat recht.

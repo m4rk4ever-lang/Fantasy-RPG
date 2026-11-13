@@ -10,6 +10,7 @@ var hud: Hud
 var fx: CombatFx
 var lock_on: LockOn
 var clicks: ClickController
+var nav: NavGrid
 var dialogue: DialogueWindow
 var brenna_talk: BrennaDialogue
 var ambience: Ambience
@@ -29,6 +30,10 @@ func _ready() -> void:
 	add_child(player)
 	player.global_position = PLAYER_SPAWN + Vector3.UP * (arena.height_at(PLAYER_SPAWN.x, PLAYER_SPAWN.z) + 0.1)
 	player.walkable_check = _is_walkable
+	nav = NavGrid.new()
+	nav.name = "NavGrid"
+	add_child(nav)
+	_build_nav.call_deferred()
 
 	camera_rig = CameraRig.new()
 	camera_rig.name = "CameraRig"
@@ -71,6 +76,8 @@ func _ready() -> void:
 	player.combat.skill_used.connect(_on_skill_used)
 	player.retaliated.connect(func(attacker: Node3D) -> void: lock_on.set_target(attacker))
 	player.auto_retaliate_changed.connect(hud.set_retaliate)
+	player.run_changed.connect(hud.set_run)
+	hud.run_clicked.connect(func() -> void: player.set_run(not player.run_enabled))
 	# --- Progression and skill tree ---
 	var tree_window := SkillTreeWindow.new()
 	tree_window.name = "SkillTree"
@@ -277,3 +284,13 @@ func _on_talk_reached(npc: Node3D) -> void:
 		brenna_talk.start()
 	elif npc is Villager and not (npc as Villager).lines.is_empty():
 		hud.toast((npc as Villager).lines[0])
+
+
+## Physics needs one frame to register the static colliders before the grid can be probed.
+func _build_nav() -> void:
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	var t0: int = Time.get_ticks_msec()
+	nav.build(arena)
+	player.nav = nav
+	print("NavGrid built in %d ms" % (Time.get_ticks_msec() - t0))

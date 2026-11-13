@@ -13,6 +13,9 @@ var health_orb: Orb
 signal retaliate_clicked
 signal skills_clicked
 signal backpack_clicked
+signal run_clicked
+var _run_button: Button
+var _run_style: StyleBoxFlat
 var _backpack_button: Button
 var _toasts: VBoxContainer
 var _tracker: Label
@@ -79,7 +82,7 @@ func _ready() -> void:
 	root.add_child(_fps_label)
 
 	_hint = Label.new()
-	_hint.text = "WASD move · Click monster to attack · 1-4 skills · Space/RMB dodge · Middle mouse / arrows rotate · Scroll zoom · R auto retaliate · K skills · I backpack · L quests · Esc pause"
+	_hint.text = "WASD move · Click monster to attack · 1-4 skills · Shift/Space run on/off · Middle mouse / arrows rotate · Scroll zoom · R auto retaliate · K skills · I backpack · L quests · Esc pause"
 	_hint.anchor_left = 0.5
 	_hint.anchor_right = 0.5
 	_hint.offset_left = -560
@@ -200,6 +203,28 @@ func _ready() -> void:
 	_toasts.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(_toasts)
 
+	# Run toggle next to the health orb (RuneScape run orb).
+	_run_button = Button.new()
+	_run_button.focus_mode = Control.FOCUS_NONE
+	_run_button.anchor_top = 1.0
+	_run_button.anchor_bottom = 1.0
+	_run_button.offset_left = 140
+	_run_button.offset_right = 230
+	_run_button.offset_top = -120
+	_run_button.offset_bottom = -84
+	_run_button.tooltip_text = "Run (Shift or Space): faster, but uses stamina. With no stamina you walk until it refills."
+	_run_style = StyleBoxFlat.new()
+	_run_style.bg_color = COL_BACK
+	_run_style.set_border_width_all(2)
+	_run_style.set_corner_radius_all(16)
+	for st4: String in ["normal", "hover", "pressed"]:
+		_run_button.add_theme_stylebox_override(st4, _run_style)
+	_run_button.add_theme_color_override("font_color", COL_FRAME)
+	_run_button.add_theme_font_size_override("font_size", 14)
+	_run_button.pressed.connect(func() -> void: run_clicked.emit())
+	root.add_child(_run_button)
+	set_run(true)
+
 	_tracker = Label.new()
 	_tracker.anchor_left = 1.0
 	_tracker.anchor_right = 1.0
@@ -312,6 +337,11 @@ func show_banner(text: String, sub: String = "") -> void:
 	tw.tween_property(_banner, "modulate:a", 1.0, 0.35)
 	tw.tween_interval(2.2)
 	tw.tween_property(_banner, "modulate:a", 0.0, 0.8)
+
+
+func set_run(on: bool) -> void:
+	_run_button.text = "Run: %s" % ("ON" if on else "OFF")
+	_run_style.border_color = Color("4cb46a") if on else Color("8e8a7e")
 
 
 func set_retaliate(on: bool) -> void:

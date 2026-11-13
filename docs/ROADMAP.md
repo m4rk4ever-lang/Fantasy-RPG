@@ -20,7 +20,9 @@ Blokken van ongeveer 60 minuten. De bouwagent pakt elke run het eerste niet-afge
 Doel: één gebied waarin de hele kernloop speelbaar is: praten, quest aannemen, vechten met skills, belonen, sterker worden, opslaan.
 
 - [x] V.1 Mobs met aggro-afstand en leash: ze volgen je niet eindeloos, lopen terug en genezen.
-- [x] V.2 Looproutes afbakenen: niet de zee in, wel over steigers.
+- [x] V.2 Looproutes afbakenen: niet de zee in, wel over steigers. Hekken en dorpsspullen hebben botsing, het hek heeft een poort.
+- [x] V.2b Padvinding voor klik-om-te-lopen (raster met A*, 1,25 m, om huizen, hekken, rotsen en water heen).
+- [x] V.2c Rennen aan/uit (RuneScape), ontwijken geschrapt (eigenaar 13-11-2026).
 - [ ] V.3 Klassen en skilltree: keuze-issue over opzet (welke klassen, hoe de boom eruitziet, hoe skills op de balk komen). Dan eerste klasse uitwerken.
 - [ ] V.4 Stats, XP en levels, loot van Hollowed, eenvoudige inventaris.
 - [x] V.5 Dialoogsysteem, eerste quest "Ashes on the Shore" bij Brenna Gale in Saltwick, questlog (L) en tracker in beeld.
@@ -43,8 +45,8 @@ Doel: één gebied waarin de hele kernloop speelbaar is: praten, quest aannemen,
 - [x] **1.7 RuneScape-besturing (feedback).** Camera draait niet zelf (middelste muisknop, pijltjes), zoomen met scrollwiel, klik op monster om te lopen en aan te vallen, klik op de grond om te lopen, skills 1-4 met cooldowns en skillbalk, auto retaliate (R).
 - [x] **1.8 Prestaties gevecht (feedback).** Effecten in pools, materialen voorverwarmd, zachtere hitstop, bomen en dorp samengevoegd.
 - [x] **1.9 Low-poly anatomie (feedback).** Held, dorpelingen en Hollowed als gefacetteerde lichamen met echte verhoudingen. Rijkere uitrusting.
-- [ ] **1.6b Afwerking kern.** Ontwijk-nabeeld, betere idle-pose, gamepad-test.
-- [ ] **1.10 Skills uitbreiden.** Skill-effecten per skill (Whirlwind-spoor, Surge-streep, groene heal-gloed), adrenaline of resource zoals in RuneScape (eerst keuze-issue).
+- [ ] **1.6b Afwerking kern (later, eigenaar 13-11-2026).** Betere idle-pose, gamepad-test. Ontwijken is geschrapt.
+- [ ] **1.10 Skills uitbreiden (later, eigenaar 13-11-2026).** Skill-effecten per skill (Whirlwind-spoor, Surge-streep, groene heal-gloed), adrenaline of resource zoals in RuneScape (eerst keuze-issue).
 
 ## Fase 2: open wereld (episch en helder)
 

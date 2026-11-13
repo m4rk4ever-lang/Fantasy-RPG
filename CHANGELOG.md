@@ -19,6 +19,9 @@ Feedback van de eigenaar verwerkt: besturing in RuneScape-stijl, haperingen bij 
 - **Loot en rugzak:** Hollowed laten een buidel met coins, Veil Dust en soms zeldzamere spullen vallen. Rugzak van 28 vakjes (I), eten geneest.
 - **Eerste quest met dialoog:** klik op Brenna Gale in Saltwick. Quest "Ashes on the Shore" (5 Veil Dust), met droge humor, beloning in XP, coins en vis. Daarna wijst ze je naar de gedoofde Veilspire. Questlog (L) en tracker rechtsboven.
 - **Questlog met duidelijke stappen (feedback):** het verhaal staat in hoofdstukken, elke quest heeft stappen (✓ gedaan, ▸ huidige, ○ nog te doen), de tracker toont je huidige verhaalstap en "!" en "?" hangen boven questgevers.
+- **Geen clipping meer door hekken en spullen:** hekken, tonnen, kisten, rekken en palen hebben botsing. Het dorpshek heeft een poort.
+- **Padvinding:** klik je ergens, dan loopt de held om huizen, hekken, rotsen en water heen (A* op een raster van 1,25 m, opgebouwd in ongeveer 0,1 s).
+- **Rennen aan/uit, geen ontwijken (eigenaar):** Shift, Spatie of de knop "Run". Rennen kost stamina, lopen laadt op. Ontwijken is uit het spel.
 - **UI-ontwerp:** nieuw document `docs/UI.md` met stijlregels, schermindeling en de verfijnde versie van alle HUD-onderdelen (vraag van de eigenaar). De eerste stappen zijn gebouwd: een health-orb met golvende vloeistof en een stamina-boog, en een radiale cooldown op de skillbalk.
 - **Alles Engels in het spel:** in-game tekst was al Engels. Nu zijn ook alle namen officieel Engels (Saltwick, Warden's Vale, the Veil, the Hollowed, the Saltbound enzovoort), met een namenlijst in `docs/DESIGN.md`. Bij het binnenlopen van een gebied verschijnt de naam in beeld.
 - **Roadmap:** nieuwe koers. Eerst een verticale slice van het eerste gebied (klassen en skilltree, XP en loot, quest met dialoog, opslaan, geluid, modellen bijschaven), pas daarna de wereld uitbreiden.
@@ -56,6 +59,7 @@ Feedback van de eigenaar verwerkt: besturing in RuneScape-stijl, haperingen bij 
 - Onder **Sfeer per gebied** eventueel de kust en Havenhythe als referentie toevoegen.
 - Onder **Toon**: "Serieus en episch, met af en toe een grap" in plaats van "weinig humor".
 - Onder **Gevecht**: "Geen springen; de held stapt zelf over kleine randen."
+- Onder **Gevecht**: de regel "Ontwijken moet altijd kunnen en aanvallen onderbreken" vervangen door "Geen ontwijken, zoals RuneScape en WoW. Rennen is een schakelaar."
 
 **Problemen en beslissingen**
 - Gevecht in RuneScape-stijl botst met SMAAK.md ("combo's, veel beweging"). Gevraagd aan de eigenaar en gekozen voor hybride: klik en skills, met behoud van ontwijken en combo's.

@@ -15,8 +15,7 @@ De Crown of Seven Heavens is gebroken. Uit de scheuren in de lucht kruipt de Slu
 | Skills | 1, 2, 3, 4 (of klik op de balk) | Y, RB, LB, Back |
 | Camera draaien | middelste muisknop slepen of pijltjes | rechterstick |
 | Zoomen | scrollwiel of + en - | - |
-| Sprinten | Shift | linkerstick indrukken |
-| Ontwijken | Spatie / rechtermuis / Alt / C | B of A |
+| Rennen aan/uit | Shift of Spatie, of de knop Run | linkerstick of B |
 | Dichtstbijzijnde doelwit | Q | rechterstick indrukken |
 | Skilltree en trouw | K | D-pad omlaag |
 | Rugzak | I | D-pad links |

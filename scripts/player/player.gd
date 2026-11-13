@@ -16,6 +16,7 @@ signal retaliated(attacker: Node3D)
 signal auto_retaliate_changed(on: bool)
 ## Reached an NPC the player clicked: open the conversation.
 signal talk_reached(npc: Node3D)
+signal run_changed(on: bool)
 
 @export var walk_speed: float = 6.5
 @export var sprint_speed: float = 10.5
@@ -35,9 +36,9 @@ signal talk_reached(npc: Node3D)
 @export var dash_iframes: float = 0.28
 @export var dash_cost: float = 18.0
 @export var max_stamina: float = 100.0
-@export var stamina_regen: float = 40.0
+@export var stamina_regen: float = 14.0
 @export var stamina_regen_delay: float = 0.45
-@export var sprint_drain: float = 10.0
+@export var sprint_drain: float = 4.0
 @export var max_health: float = 100.0
 
 ## Set by tests or AI to drive movement without real input. Ignored when zero.
@@ -65,9 +66,17 @@ var lock_target: Node3D
 var attack_target: Node3D
 ## RuneScape-style: when idle and hit by a monster, target it and fight back.
 var auto_retaliate: bool = true
+## Run toggle (RuneScape run orb): running drains stamina; at zero the hero walks until it refills.
+var run_enabled: bool = true
 ## Distance at which auto-attacks start.
 @export var auto_attack_range: float = 2.1
 var talk_target: Node3D
+## Pathfinding grid for click orders (set by the game root). Null = walk straight.
+var nav: NavGrid
+var _path := PackedVector3Array()
+var _path_i: int = 0
+var _path_goal: Vector3 = Vector3.ZERO
+var _repath_timer: float = 0.0
 var _move_target: Vector3 = Vector3.ZERO
 var _has_move_target: bool = false
 
@@ -165,8 +174,8 @@ func _camera_relative(input: Vector2) -> Vector3:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("dodge"):
-		try_dash()
+	if event.is_action_pressed("toggle_run"):
+		set_run(not run_enabled)
 	elif event.is_action_pressed("toggle_retaliate"):
 		set_auto_retaliate(not auto_retaliate)
 	elif event.is_action_pressed("attack_light"):
@@ -241,6 +250,11 @@ func heal(amount: float) -> void:
 	health_changed.emit(health, max_health)
 
 
+func set_run(on: bool) -> void:
+	run_enabled = on
+	run_changed.emit(on)
+
+
 func set_auto_retaliate(on: bool) -> void:
 	auto_retaliate = on
 	auto_retaliate_changed.emit(on)
@@ -299,7 +313,7 @@ func _physics_process(delta: float) -> void:
 	else:
 		_coyote -= delta
 
-	is_sprinting = Input.is_action_pressed("sprint") and wish.length() > 0.2 and stamina > 0.0 and on_floor
+	is_sprinting = run_enabled and wish.length() > 0.2 and stamina > 0.0 and on_floor
 	if is_sprinting:
 		stamina = maxf(stamina - sprint_drain * delta, 0.0)
 		_regen_wait = 0.2
@@ -386,7 +400,44 @@ func _physics_process(delta: float) -> void:
 
 
 ## Movement wanted by click orders: walk to a clicked point, or chase and auto-attack a monster.
+## Click orders follow a path from the NavGrid (around houses, fences, water), RuneScape style.
+## The last stretch to the target is steered directly.
 func _order_wish() -> Vector3:
+	var w: Vector3 = _order_wish_raw()
+	if w.length_squared() < 0.0001 or nav == null:
+		_path = PackedVector3Array()
+		return w
+	var goal: Vector3 = _order_goal()
+	var flat := Vector3(global_position.x, 0, global_position.z)
+	var goal_flat := Vector3(goal.x, 0, goal.z)
+	if flat.distance_to(goal_flat) < 2.5:
+		return w
+	_repath_timer -= get_physics_process_delta_time()
+	if _path.is_empty() or _path_goal.distance_to(goal_flat) > 1.5 or _repath_timer <= 0.0:
+		_path = nav.find_path(global_position, goal)
+		_path_i = 0
+		_path_goal = goal_flat
+		_repath_timer = 0.6
+	while _path_i < _path.size() - 1 and flat.distance_to(Vector3(_path[_path_i].x, 0, _path[_path_i].z)) < 0.8:
+		_path_i += 1
+	if _path_i >= _path.size():
+		return w
+	var wp: Vector3 = _path[_path_i]
+	var d := Vector3(wp.x - flat.x, 0, wp.z - flat.z)
+	if d.length() < 0.05:
+		return w
+	return d.normalized() * w.length()
+
+
+func _order_goal() -> Vector3:
+	if talk_target and is_instance_valid(talk_target):
+		return talk_target.global_position
+	if attack_target and is_instance_valid(attack_target):
+		return attack_target.global_position
+	return _move_target
+
+
+func _order_wish_raw() -> Vector3:
 	if talk_target and is_instance_valid(talk_target):
 		var tt: Vector3 = talk_target.global_position - global_position
 		tt.y = 0.0

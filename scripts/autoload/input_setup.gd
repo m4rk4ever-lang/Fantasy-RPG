@@ -15,8 +15,8 @@ func _ready() -> void:
 	_add_action("look_right", [_key(KEY_RIGHT), _axis(JOY_AXIS_RIGHT_X, 1.0)])
 	_add_action("look_up", [_key(KEY_UP), _axis(JOY_AXIS_RIGHT_Y, -1.0)])
 	_add_action("look_down", [_key(KEY_DOWN), _axis(JOY_AXIS_RIGHT_Y, 1.0)])
-	_add_action("sprint", [_key(KEY_SHIFT), _button(JOY_BUTTON_LEFT_STICK)])
-	_add_action("dodge", [_key(KEY_SPACE), _key(KEY_ALT), _key(KEY_C), _mouse(MOUSE_BUTTON_RIGHT), _button(JOY_BUTTON_B), _button(JOY_BUTTON_A)])
+	# Run is a toggle (RuneScape style). No dodge: like RuneScape and WoW (owner, 13-11-2026).
+	_add_action("toggle_run", [_key(KEY_SHIFT), _key(KEY_SPACE), _button(JOY_BUTTON_LEFT_STICK), _button(JOY_BUTTON_B)])
 	_add_action("attack_light", [_key(KEY_J), _button(JOY_BUTTON_X)])
 	_add_action("click", [_mouse(MOUSE_BUTTON_LEFT)])
 	_add_action("skill_1", [_key(KEY_1), _key(KEY_E), _button(JOY_BUTTON_Y)])
