@@ -103,9 +103,12 @@ func _ready() -> void:
 	add_child(dialogue)
 	brenna_talk = BrennaDialogue.new(dialogue, player.quests, player.progression, hud)
 	player.talk_reached.connect(_on_talk_reached)
-	var update_tracker := func() -> void: hud.set_tracker(player.quests.tracker_text())
+	var update_tracker := func() -> void:
+		hud.set_tracker(player.quests.tracker_text())
+		arena.village.brenna.set_marker(player.quests.giver_marker())
 	player.quests.changed.connect(update_tracker)
 	player.inventory.changed.connect(update_tracker)
+	update_tracker.call_deferred()
 	hud.retaliate_clicked.connect(func() -> void: player.set_auto_retaliate(not player.auto_retaliate))
 	for i: int in _enemy_spawns.size():
 		_spawn_enemy(i)

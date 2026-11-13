@@ -39,6 +39,11 @@ func _run() -> void:
 		_finish()
 		return
 	_check(player.is_on_floor(), "player stands on the ground after spawn")
+	var ql0: QuestLog = player.quests
+	_check(ql0.state(QuestLog.STORY_QUEST) == "active", "main story starts active")
+	_check("Saltwick" in ql0.current_step(QuestLog.STORY_QUEST), "first story step points to Saltwick")
+	_check("Story:" in ql0.tracker_text(), "tracker shows the story step")
+	_check(ql0.giver_marker() == "!", "Brenna shows a ! marker")
 	var enemies: Array[Node] = get_nodes_in_group(&"enemies")
 	_check(enemies.size() >= 1, "enemies spawned (%d)" % enemies.size())
 	# Park the enemies so movement tests are deterministic.
@@ -261,6 +266,7 @@ func _run() -> void:
 	var c0: int = inv.coins
 	(_main.get("brenna_talk") as BrennaDialogue).start()
 	_check(ql.state("ashes_on_the_shore") == "done", "quest completes at Brenna")
+	_check("Veilspire" in ql.current_step(QuestLog.STORY_QUEST), "story moves on to the Veilspire")
 	_check(inv.coins >= c0 + 50 and inv.count_of("salted_fish") >= 3, "quest rewards coins and fish")
 	_check(player.progression.xp + player.progression.level * 10000 > lvl_xp, "quest rewards XP")
 	dlg.close()

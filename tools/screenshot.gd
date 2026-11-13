@@ -173,6 +173,12 @@ func _run() -> void:
 	await _save("09_quest.png")
 	dlg.close()
 	(main.get_node("Backpack") as InventoryWindow).toggle()
+	player.quests.set_flag("met_brenna")
+	var qlw: QuestLogWindow = main.get_node("QuestLog")
+	qlw.toggle()
+	await _wait(6)
+	await _save("10_questlog.png")
+	qlw.toggle()
 
 	# 5. Dusk over the valley: day-night cycle.
 	dn.time_of_day = 19.2

@@ -203,11 +203,12 @@ func _ready() -> void:
 	_tracker = Label.new()
 	_tracker.anchor_left = 1.0
 	_tracker.anchor_right = 1.0
-	_tracker.offset_left = -360
+	_tracker.offset_left = -470
+	_tracker.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_tracker.offset_right = -24
 	_tracker.offset_top = 40
 	_tracker.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_tracker.add_theme_font_size_override("font_size", 15)
+	_tracker.add_theme_font_size_override("font_size", 14)
 	_tracker.add_theme_color_override("font_color", Color("f2d48a"))
 	_tracker.add_theme_color_override("font_outline_color", Color(0.12, 0.13, 0.16, 0.9))
 	_tracker.add_theme_constant_override("outline_size", 5)

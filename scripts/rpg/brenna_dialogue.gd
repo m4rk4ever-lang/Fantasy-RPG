@@ -18,6 +18,7 @@ func _init(w: DialogueWindow, q: QuestLog, p: Progression, h: Hud) -> void:
 
 
 func start() -> void:
+	quests.set_flag("met_brenna")
 	match quests.state("ashes_on_the_shore"):
 		"none":
 			_greet()

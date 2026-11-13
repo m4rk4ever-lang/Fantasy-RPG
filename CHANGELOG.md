@@ -18,6 +18,7 @@ Feedback van de eigenaar verwerkt: besturing in RuneScape-stijl, haperingen bij 
 - **Klassen en skilltree (keuze-issue #1):** de eigenaar koos A met Priest en Warlock erbij, en C los. Er zijn nu 5 klassen (Vanguard, Ranger, Arcanist, Priest, Warlock). Vanguard is speelbaar met een boom van 3 takken (Blade, Bulwark, Momentum). XP per verslagen Hollowed, levels, 1 skillpunt per level. Skills op de balk worden pas bruikbaar als je ze in de boom vrijspeelt (Cleave heb je vanaf het begin). Karaktervenster met **K** of de knop rechtsonder, met daarin ook je trouw aan een factie (geen invloed op je klasse). XP-balk en level-up-melding in de HUD.
 - **Loot en rugzak:** Hollowed laten een buidel met coins, Veil Dust en soms zeldzamere spullen vallen. Rugzak van 28 vakjes (I), eten geneest.
 - **Eerste quest met dialoog:** klik op Brenna Gale in Saltwick. Quest "Ashes on the Shore" (5 Veil Dust), met droge humor, beloning in XP, coins en vis. Daarna wijst ze je naar de gedoofde Veilspire. Questlog (L) en tracker rechtsboven.
+- **Questlog met duidelijke stappen (feedback):** het verhaal staat in hoofdstukken, elke quest heeft stappen (✓ gedaan, ▸ huidige, ○ nog te doen), de tracker toont je huidige verhaalstap en "!" en "?" hangen boven questgevers.
 - **UI-ontwerp:** nieuw document `docs/UI.md` met stijlregels, schermindeling en de verfijnde versie van alle HUD-onderdelen (vraag van de eigenaar). De eerste stappen zijn gebouwd: een health-orb met golvende vloeistof en een stamina-boog, en een radiale cooldown op de skillbalk.
 - **Alles Engels in het spel:** in-game tekst was al Engels. Nu zijn ook alle namen officieel Engels (Saltwick, Warden's Vale, the Veil, the Hollowed, the Saltbound enzovoort), met een namenlijst in `docs/DESIGN.md`. Bij het binnenlopen van een gebied verschijnt de naam in beeld.
 - **Roadmap:** nieuwe koers. Eerst een verticale slice van het eerste gebied (klassen en skilltree, XP en loot, quest met dialoog, opslaan, geluid, modellen bijschaven), pas daarna de wereld uitbreiden.
@@ -41,6 +42,7 @@ Feedback van de eigenaar verwerkt: besturing in RuneScape-stijl, haperingen bij 
 ![Dorpeling met een grap](docs/screenshots/2026-11-13b/07_dorpeling.png)
 ![Skilltree](docs/screenshots/2026-11-13b/08_skilltree.png)
 ![Quest bij Brenna](docs/screenshots/2026-11-13b/09_quest.png)
+![Questlog](docs/screenshots/2026-11-13b/10_questlog.png)
 
 **Zelfcontrole**
 - Diepte: ja, sterk in het dorpsbeeld (steiger, huizen, heuvels, bergen). | Landmark: Veilspire en de zwevende kroonscherf. | Palet: ja. Koningsblauwe daken, steenkleurige muren, hemelblauw water. Gras van dichtbij is nog wat fel. | Game of demo: game. Het dorp en de avond zien eruit als een spel. | Zwakste deel: het gras dichtbij (fel en egaal) en de bergring overdag.

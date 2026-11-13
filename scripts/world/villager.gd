@@ -13,6 +13,7 @@ var lines: Array[String] = []
 var display_name: String = ""
 var face_dir: Vector3 = Vector3.ZERO
 var _tag: Label3D
+var _marker: Label3D
 
 var _label: Label3D
 var _line_timer: float = 0.0
@@ -102,6 +103,8 @@ func _process(delta: float) -> void:
 
 
 func _update_bark(delta: float) -> void:
+	if _marker and _marker.visible:
+		_marker.position.y = 2.75 + sin(Time.get_ticks_msec() * 0.004) * 0.08
 	if lines.is_empty():
 		return
 	var hero: Node3D = get_tree().get_first_node_in_group(&"player") as Node3D
@@ -116,3 +119,20 @@ func _update_bark(delta: float) -> void:
 		_line_index += 1
 		_line_timer = 7.0
 	_label.visible = _line_timer > 1.5  # Short pause between lines.
+
+
+## Quest marker above the head: "!" (new quest) or "?" (ready to hand in). Empty hides it.
+func set_marker(text: String) -> void:
+	if _marker == null:
+		_marker = Label3D.new()
+		_marker.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		_marker.position.y = 2.75
+		_marker.font_size = 96
+		_marker.pixel_size = 0.005
+		_marker.outline_size = 14
+		_marker.modulate = Color("f2c14e")
+		_marker.outline_modulate = Color(0.12, 0.13, 0.16, 0.9)
+		_marker.no_depth_test = true
+		add_child(_marker)
+	_marker.text = text
+	_marker.visible = text != ""
