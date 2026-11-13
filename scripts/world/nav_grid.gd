@@ -94,5 +94,10 @@ func find_path(from: Vector3, to: Vector3) -> PackedVector3Array:
 	return out
 
 
+## The grid only covers the overworld valley (not the Undercroft far below).
+func covers(p: Vector3) -> bool:
+	return absf(p.x) < HALF_EXTENT and absf(p.z) < HALF_EXTENT and p.y > -50.0
+
+
 func is_blocked(p: Vector3) -> bool:
 	return ready_built and _astar.is_point_solid(world_to_cell(p))

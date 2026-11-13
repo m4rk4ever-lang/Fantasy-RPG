@@ -183,6 +183,44 @@ func _run() -> void:
 	await _save("10_questlog.png")
 	qlw.toggle()
 
+	# 5f. The Undercroft door at the foot of the crag.
+	var door_out: Vector3 = arena.undercroft_door_outside
+	player.global_position = door_out + Vector3.UP * 0.2
+	await _wait(6)
+	var to_door: Vector3 = (arena.undercroft_door.global_position - door_out).normalized()
+	cam.fov = 58.0
+	cam.global_position = door_out - to_door * 6.0 + Vector3.UP * 3.0 + to_door.cross(Vector3.UP) * 3.0
+	cam.look_at(arena.undercroft_door.global_position + Vector3.UP * 2.0)
+	await _wait(6)
+	await _save("13_deur.png")
+
+	# 5g. Inside the Undercroft: Hall of Wardens and the Lightless Keeper.
+	player.quests.start("the_dark_spire")
+	main.call("_enter_undercroft")
+	for f2: Node in get_nodes_in_group(&"enemies"):
+		if (f2 as Node3D).global_position.y < -100.0:
+			f2.process_mode = Node.PROCESS_MODE_DISABLED
+	var uc: Undercroft = main.get("undercroft")
+	var o: Vector3 = Undercroft.ORIGIN
+	player.global_position = o + Vector3(0, 0.3, -28)
+	player.face_direction(Vector3.FORWARD)
+	player.health = player.max_health
+	await _wait(30)
+	cam.fov = 62.0
+	cam.global_position = o + Vector3(-1.0, 3.6, -21.0)
+	cam.look_at(o + Vector3(0, 1.4, -38))
+	await _wait(6)
+	await _save("11_undercroft.png")
+	player.global_position = o + Vector3(0, 0.3, -70)
+	await _wait(6)
+	cam.global_position = o + Vector3(-4.0, 3.2, -66.0)
+	cam.look_at(o + Vector3(0, 2.0, -80))
+	await _wait(6)
+	await _save("12_keeper.png")
+	main.call("_exit_undercroft")
+	dn.running = false
+	await _wait(4)
+
 	# 5. Dusk over the valley: day-night cycle.
 	dn.time_of_day = 19.2
 	dn.apply()

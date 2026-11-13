@@ -7,6 +7,8 @@ extends CharacterBody3D
 signal health_changed(value: float, max_value: float)
 signal died(enemy: Hollow)
 signal attacked(enemy: Hollow)
+## Bosses only: fired once when health drops below half.
+signal phase_two(enemy: Hollow)
 
 enum State { IDLE, CHASE, WINDUP, ATTACK, RECOVER, STAGGER, DEAD, RETURN }
 
@@ -18,6 +20,11 @@ const COL_EYE := Color("bfe6ff")
 
 @export var display_name: String = "Hollowed Warden"
 @export var level: int = 2
+## Bosses: stagger only every N hits (poise), knockback reduced, phase two at 50% health.
+@export var is_boss: bool = false
+@export var stagger_every: int = 1
+var _hits_taken: int = 0
+var _phase_two_done: bool = false
 @export var max_health: float = 60.0
 @export var move_speed: float = 4.2
 @export var aggro_range: float = 13.0
@@ -224,12 +231,22 @@ func take_hit(damage: float, knockback: Vector3, _hit_pos: Vector3) -> void:
 	health = maxf(health - damage, 0.0)
 	health_changed.emit(health, max_health)
 	_flash = 1.0
-	_knock = knockback
+	_knock = knockback * (0.25 if is_boss else 1.0)
 	_knock.y = 0.0
 	if health <= 0.0:
 		_die(knockback)
 		return
-	# Forgiving combat: every hit staggers and interrupts the enemy's attack.
+	if is_boss and not _phase_two_done and health < max_health * 0.5:
+		_phase_two_done = true
+		windup_time *= 0.75
+		move_speed *= 1.25
+		phase_two.emit(self)
+	_hits_taken += 1
+	if _hits_taken % maxi(stagger_every, 1) != 0:
+		if state == State.IDLE:
+			_enter(State.CHASE)
+		return
+	# Forgiving combat: hits stagger and interrupt the enemy's attack.
 	_enter(State.STAGGER)
 	_cooldown = maxf(_cooldown, 0.5)
 	if knockback.length() > 0.1:

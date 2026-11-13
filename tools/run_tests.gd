@@ -341,6 +341,30 @@ func _run() -> void:
 			count_cleave += 1
 	_check(count_cleave == 1, "a skill is never on the bar twice")
 
+	# Dungeon: the Undercroft. Sealed before the quest, open after; Keeper drops, beacon ends Chapter I.
+	var q_d: QuestLog = player.quests
+	_main.call("_try_enter_undercroft")
+	if q_d.state("the_dark_spire") == "none":
+		_check(not bool(_main.get("in_dungeon")), "Undercroft is sealed before The Dark Spire")
+		q_d.start("the_dark_spire")
+		_main.call("_try_enter_undercroft")
+	_check(bool(_main.get("in_dungeon")) and player.global_position.y < -100.0, "entering the Undercroft teleports the hero below")
+	_check("Defeat" in q_d.current_step("the_dark_spire"), "quest step moves to the Keeper")
+	var uc: Undercroft = _main.get("undercroft")
+	await _frames(10)
+	_check(uc.boss != null and uc.boss.is_boss, "the Lightless Keeper waits in the Beacon Chamber")
+	_check(player.is_on_floor(), "hero stands on the Undercroft floor")
+	uc.boss.take_hit(9999.0, Vector3.ZERO, uc.boss.global_position)
+	await _frames(5)
+	_check(q_d.has_flag("keeper_defeated") and uc.brazier.enabled, "Keeper defeated, brazier can be lit")
+	uc.brazier.global_position = player.global_position
+	player.set_talk_target(uc.brazier)
+	await _frames(10)
+	_check(q_d.state("the_dark_spire") == "done" and q_d.state(QuestLog.STORY_QUEST) == "done", "relighting the beacon completes Chapter I")
+	_main.call("_exit_undercroft")
+	await _frames(10)
+	_check(not bool(_main.get("in_dungeon")) and player.global_position.y > -10.0, "leaving the Undercroft returns to the crag")
+
 	# Save and load round trip.
 	_main.set("use_save", true)
 	player.progression.add_xp(300)

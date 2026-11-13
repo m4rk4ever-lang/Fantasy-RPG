@@ -29,7 +29,8 @@ Doel: één gebied waarin de hele kernloop speelbaar is: praten, quest aannemen,
 - [ ] V.4 Stats, XP en levels, loot van Hollowed, eenvoudige inventaris.
 - [x] V.5 Dialoogsysteem, eerste quest "Ashes on the Shore" bij Brenna Gale in Saltwick, questlog (L) en tracker in beeld.
 - [x] V.1b Level cap 60, XP-curve in WoW-stijl, monster-XP geschaald op levelverschil, monsterlevel in de doelwitbalk.
-- [ ] V.6 Pad naar de Veilspire. De toren wordt de **eerste kleine dungeon** (3 verdiepingen, eindbaas), eind van hoofdstuk I. Heiligdom met obelisken.
+- [x] V.6 Eerste kleine dungeon: **Undercroft of the Veilspire** (deur aan de voet van de rots). Drie ruimtes en twee gangen, fakkels, 4 Hollowed (level 3) en eindbaas **Aldric, the Lightless Keeper** (level 5, poise, fase 2 met extra vijanden). Baken aansteken sluit hoofdstuk I af, waarna het licht boven de Veilspire weer brandt.
+- [ ] V.6b Pad omhoog naar de Veilspire en het torenterras. Heiligdom met obelisken.
 - [ ] V.13 Keuze-issue: raids solo met NPC-metgezellen, solo-geschaald of later echte multiplayer.
 - [x] V.7 Opslaan en laden: automatisch elke 20 s en bij het sluiten van het tabblad, "Save game" en "New game" in het pauzemenu. Bewaart level, skills, trouw, rugzak, quests, actiebalk, rennen, auto retaliate en positie.
 - [ ] V.8 Geluid: voetstappen, zwaard, treffers, golven, meeuwen, eenvoudige muziek.

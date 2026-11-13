@@ -401,7 +401,7 @@ func _physics_process(delta: float) -> void:
 ## The last stretch to the target is steered directly.
 func _order_wish() -> Vector3:
 	var w: Vector3 = _order_wish_raw()
-	if w.length_squared() < 0.0001 or nav == null:
+	if w.length_squared() < 0.0001 or nav == null or not nav.covers(global_position):
 		_path = PackedVector3Array()
 		return w
 	var goal: Vector3 = _order_goal()

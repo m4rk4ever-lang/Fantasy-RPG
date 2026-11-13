@@ -31,6 +31,9 @@ var sky_material: ShaderMaterial
 var moon: DirectionalLight3D
 var day_night: DayNight
 var village: Village
+var undercroft_door: Interactable
+var undercroft_door_outside: Vector3
+var beacon_light: OmniLight3D
 
 
 func _ready() -> void:
@@ -365,6 +368,51 @@ func _build_crag() -> void:
 	var cs := CollisionShape3D.new()
 	cs.shape = mesh.create_trimesh_shape()
 	body.add_child(cs)
+
+	# Door into the Undercroft, at the foot of the crag on the valley side.
+	var to_vale := Vector2(-CLIFF_CENTER.x, -CLIFF_CENTER.y).normalized()
+	var door_ang: float = atan2(to_vale.y, to_vale.x)
+	var door_r: float = _crag_radius(0, door_ang) * 0.93
+	var door_pos := Vector3(CLIFF_CENTER.x + cos(door_ang) * door_r, 0, CLIFF_CENTER.y + sin(door_ang) * door_r)
+	door_pos.y = height_at(door_pos.x, door_pos.z)
+	var door_basis := Basis(Vector3.UP, atan2(to_vale.x, to_vale.y))
+	var dk := MeshKit.new()
+	var frame := Color("b9b3a3")
+	for sx: float in [-1.7, 1.7]:
+		dk.box(Transform3D(door_basis, door_pos + door_basis * Vector3(sx, 1.9, 0.0)), Vector3(0.8, 3.8, 1.2), frame)
+	dk.box(Transform3D(door_basis, door_pos + door_basis * Vector3(0, 4.0, 0.0)), Vector3(4.6, 0.8, 1.3), frame)
+	dk.box(Transform3D(door_basis, door_pos + door_basis * Vector3(0, 1.8, -0.35)), Vector3(2.6, 3.6, 0.4), Color("1e2125"))
+	dk.box(Transform3D(door_basis, door_pos + door_basis * Vector3(0, 0.08, 1.2)), Vector3(4.0, 0.16, 2.0), frame)
+	var dmi := MeshInstance3D.new()
+	dmi.mesh = dk.commit()
+	dmi.material_override = MeshKit.vertex_color_material(0.9)
+	add_child(dmi)
+	var rune := MeshInstance3D.new()
+	var rq := QuadMesh.new()
+	rq.size = Vector2(0.8, 0.8)
+	rune.mesh = rq
+	var rmat := StandardMaterial3D.new()
+	rmat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	rmat.albedo_color = Color("6ec3f0")
+	rmat.albedo_texture = CombatFx.soft_dot()
+	rmat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	rmat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	rune.material_override = rmat
+	rune.transform = Transform3D(door_basis, door_pos + door_basis * Vector3(0, 4.0, 0.7))
+	add_child(rune)
+	undercroft_door = Interactable.new()
+	undercroft_door.display_name = "Undercroft of the Veilspire"
+	add_child(undercroft_door)
+	undercroft_door.global_position = door_pos + door_basis * Vector3(0, 0, 1.6)
+	undercroft_door_outside = door_pos + door_basis * Vector3(0, 0.3, 3.5)
+
+	# Beacon on top of the Veilspire: dark until the Keeper falls.
+	beacon_light = OmniLight3D.new()
+	beacon_light.light_color = Color("ffd08a")
+	beacon_light.light_energy = 0.0
+	beacon_light.omni_range = 30.0
+	add_child(beacon_light)
+	beacon_light.global_position = Vector3(CLIFF_CENTER.x, CRAG_TOP + 44.0, CLIFF_CENTER.y)
 
 	# Fallen boulders around the foot of the crag.
 	var rng := RandomNumberGenerator.new()
@@ -721,3 +769,35 @@ func _build_water() -> void:
 	far.position = Vector3(0, WATER_LEVEL - 0.25, 0)
 	far.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(far)
+
+
+## Relit beacon: a bright star above the Veilspire's roof, visible from the whole vale.
+func light_beacon() -> void:
+	beacon_light.light_energy = 6.0
+	var orb := MeshInstance3D.new()
+	var sm := SphereMesh.new()
+	sm.radius = 1.4
+	sm.height = 2.8
+	orb.mesh = sm
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.albedo_color = Color(1.0, 0.9, 0.65)
+	orb.material_override = m
+	orb.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(orb)
+	orb.global_position = beacon_light.global_position
+	var halo := MeshInstance3D.new()
+	var hq := QuadMesh.new()
+	hq.size = Vector2(14, 14)
+	halo.mesh = hq
+	var hm := StandardMaterial3D.new()
+	hm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	hm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	hm.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	hm.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	hm.albedo_color = Color(1.0, 0.82, 0.5, 0.8)
+	hm.albedo_texture = CombatFx.soft_dot()
+	halo.material_override = hm
+	halo.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(halo)
+	halo.global_position = beacon_light.global_position

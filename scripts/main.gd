@@ -16,6 +16,10 @@ var fx: CombatFx
 var lock_on: LockOn
 var clicks: ClickController
 var nav: NavGrid
+var undercroft: Undercroft
+var in_dungeon: bool = false
+var _overworld_env: Dictionary = {}
+var _undercroft_spawned: bool = false
 var dialogue: DialogueWindow
 var brenna_talk: BrennaDialogue
 var ambience: Ambience
@@ -144,6 +148,16 @@ func _ready() -> void:
 		if _save():
 			hud.toast("Game saved."))
 	# --- End pause menu ---
+
+	# --- Undercroft (first dungeon) ---
+	undercroft = Undercroft.new()
+	undercroft.name = "Undercroft"
+	add_child(undercroft)
+	undercroft.build()
+	undercroft.boss_defeated.connect(func() -> void:
+		player.quests.set_flag("keeper_defeated")
+		hud.show_banner("The Keeper falls", "Relight the beacon"))
+	undercroft.beacon_lit.connect(_on_beacon_lit)
 	_load_save.call_deferred()
 
 
@@ -233,9 +247,11 @@ func _process(delta: float) -> void:
 		_save()
 	# Area names (English in-game names).
 	var area: String = "Saltwick" if arena.sea_distance(player.global_position.x, player.global_position.z) > 12.0 else "Warden's Vale"
+	if in_dungeon:
+		area = "Undercroft of the Veilspire"
 	if area != _area:
 		_area = area
-		hud.show_banner(area, "Fishing village of the Saltbound" if area == "Saltwick" else "Beneath the first Veilspire")
+		hud.show_banner(area, "Fishing village of the Saltbound" if area == "Saltwick" else ("Dungeon · Level 3-5" if in_dungeon else "Beneath the first Veilspire"))
 	var night: float = arena.day_night.night_factor
 	if absf(night - _last_night) > 0.02:
 		_last_night = night
@@ -253,6 +269,8 @@ func _process(delta: float) -> void:
 
 ## Land is walkable; water only where a structure (pier) carries you.
 func _is_walkable(from: Vector3, to: Vector3) -> bool:
+	if from.y < -100.0:
+		return true  # Inside the Undercroft: walls handle everything.
 	if arena.height_at(to.x, to.z) > TestArena.WATER_LEVEL + 0.35:
 		return true
 	var space := get_world_3d().direct_space_state
@@ -273,7 +291,8 @@ func _drop_loot(at: Vector3) -> void:
 	var drop := LootDrop.new()
 	drop.items = items
 	add_child(drop)
-	drop.global_position = Vector3(at.x, arena.height_at(at.x, at.z) + 0.05, at.z)
+	var gy: float = at.y - 0.25 if at.y < -100.0 else arena.height_at(at.x, at.z) + 0.05
+	drop.global_position = Vector3(at.x, gy, at.z)
 	drop.picked_up.connect(_on_loot_picked)
 
 
@@ -297,7 +316,14 @@ func _on_item_used(id: String) -> void:
 
 
 func _on_talk_reached(npc: Node3D) -> void:
-	if npc == arena.village.brenna:
+	if npc == arena.undercroft_door:
+		_try_enter_undercroft()
+	elif npc == undercroft.exit_portal:
+		_exit_undercroft()
+	elif npc == undercroft.brazier:
+		if undercroft.brazier.enabled:
+			undercroft.light_beacon()
+	elif npc == arena.village.brenna:
 		brenna_talk.start()
 	elif npc is Villager and not (npc as Villager).lines.is_empty():
 		hud.toast((npc as Villager).lines[0])
@@ -382,3 +408,92 @@ func _load_save() -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST or what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_APPLICATION_FOCUS_OUT:
 		_save()
+
+
+func _try_enter_undercroft() -> void:
+	var q: QuestLog = player.quests
+	if q.state("the_dark_spire") == "none":
+		hud.toast("A cold draft seeps from the sealed door. Perhaps someone in Saltwick knows more.")
+		return
+	if q.state("the_dark_spire") == "done":
+		hud.toast("The Undercroft is quiet now. The beacon burns above.")
+	_enter_undercroft()
+
+
+func _enter_undercroft() -> void:
+	in_dungeon = true
+	player.clear_orders()
+	lock_on.set_target(null)
+	player.global_position = undercroft.entrance_point
+	player.velocity = Vector3.ZERO
+	player.face_direction(Vector3.FORWARD)
+	camera_rig.set_angles(0.0, deg_to_rad(-26.0))
+	camera_rig.global_position = player.global_position + Vector3.UP * camera_rig.height_offset
+	player.quests.set_flag("entered_undercroft")
+	# Dungeon lighting: dark and grim (SMAAK.md), the torches do the work.
+	var env: Environment = arena.environment
+	_overworld_env = {"running": arena.day_night.running}
+	arena.day_night.running = false
+	arena.sun.visible = false
+	arena.moon.visible = false
+	env.background_mode = Environment.BG_COLOR
+	env.background_color = Color("1e2125")
+	env.ambient_light_color = Color("6a675c")
+	env.ambient_light_energy = 0.8
+	env.fog_light_color = Color("1e2125")
+	env.fog_density = 0.02
+	env.fog_height_density = 0.0
+	env.glow_intensity = 0.15
+	ambience.visible = false
+	if not _undercroft_spawned and player.quests.state("the_dark_spire") != "done":
+		_undercroft_spawned = true
+		for h: Hollow in undercroft.spawn_enemies(player):
+			h.died.connect(_on_dungeon_enemy_died)
+			if h.is_boss:
+				h.phase_two.connect(_on_boss_phase_two)
+
+
+func _on_dungeon_enemy_died(en: Hollow) -> void:
+	var gained: int = Progression.kill_xp(en.level, player.progression.level) * (4 if en.is_boss else 1)
+	player.progression.add_xp(gained)
+	hud.toast("+%d XP" % gained)
+	camera_rig.add_trauma(0.35)
+	_drop_loot(en.global_position)
+
+
+func _on_boss_phase_two(b: Hollow) -> void:
+	hud.show_banner("Aldric calls the Hollowed", "")
+	for k: int in 2:
+		var add := Hollow.new()
+		add.level = 3
+		add.max_health = 50.0
+		add.attack_damage = 10.0
+		undercroft.add_child(add)
+		add.global_position = b.global_position + Vector3(-4.0 + 8.0 * k, 0.3, 4.0)
+		add.home = add.global_position
+		add.target = player
+		add.died.connect(_on_dungeon_enemy_died)
+
+
+func _exit_undercroft() -> void:
+	in_dungeon = false
+	player.clear_orders()
+	lock_on.set_target(null)
+	player.global_position = arena.undercroft_door_outside
+	player.velocity = Vector3.ZERO
+	camera_rig.global_position = player.global_position + Vector3.UP * camera_rig.height_offset
+	var env: Environment = arena.environment
+	env.background_mode = Environment.BG_SKY
+	env.fog_density = 0.0012
+	env.fog_height_density = 0.0015
+	env.glow_intensity = 0.5
+	arena.day_night.running = bool(_overworld_env.get("running", true))
+	arena.day_night.apply()
+	ambience.visible = true
+
+
+func _on_beacon_lit() -> void:
+	var q: Dictionary = player.quests.finish("the_dark_spire")
+	player.progression.add_xp(int(q.get("reward_xp", 0)))
+	arena.light_beacon()
+	hud.show_banner("Chapter I complete", "The Veilspire burns again")

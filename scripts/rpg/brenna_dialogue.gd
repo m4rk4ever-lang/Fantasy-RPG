@@ -77,7 +77,7 @@ func _turn_in() -> void:
 func _after() -> void:
 	if quests.state("the_dark_spire") == "none":
 		quests.start("the_dark_spire")
-	window.show_line(SPEAKER, "Now? Look up. The Veilspire's light went out three nights ago. The Wardens kept it burning for a thousand years. If anyone should find out why, it's you. The path up the crag isn't finished, mind. Neither is half of Saltwick.", [["I'll see what I can do.", _bye]])
+	window.show_line(SPEAKER, "Now? Look up. The Veilspire's light went out three nights ago. The Wardens kept it burning for a thousand years. If anyone should find out why, it's you. There's an old door at the foot of the crag, the Undercroft. Nobody who went in came out chatty.", [["I'll see what I can do.", _bye]])
 
 
 func _bye() -> void:

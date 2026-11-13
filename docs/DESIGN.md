@@ -184,3 +184,11 @@ Hollowed Wardens: de Wardens die the Veil als eersten raakte. Ze dragen nog de g
 ## Opslaan (13-11-2026)
 
 `SaveGame` schrijft JSON naar `user://savegame.json` (in de browser: IndexedDB). Automatisch elke 20 s, bij het sluiten of wegklikken van het tabblad en via "Save game". Laden gebeurt bij de start. "New game" wist de save. Versieveld `version` = 1: verandert het formaat, dan wordt een oude save genegeerd.
+
+## Eerste dungeon: Undercroft of the Veilspire (13-11-2026)
+
+- Ingang: deur met rune aan de voet van de rots (dalkant). Verzegeld tot Brenna je over de Veilspire vertelt.
+- Ligt los van de wereld (x 400, y -200). Bij binnenkomst gaat de verlichting om naar het kerkerpalet uit `SMAAK.md`: donkere achtergrond, aarde-ambient, dichte donkere mist en fakkels in vuurkleur (8 echte lichten, flikkerend).
+- Opbouw: Entry hall → gang → Hall of Wardens (zuilen, 3 Hollowed) → gang (1 Hollowed) → Beacon Chamber met **Aldric, the Lightless Keeper**: level 5, 420 health, raakt hard, wankelt pas na 4 treffers. Op 50% health roept hij 2 extra Hollowed en wordt hij sneller. Een koud bleek licht maakt hem in het donker leesbaar.
+- Na zijn val kun je het baken aansteken: dat rondt **The Dark Spire** en **hoofdstuk I** af (450 XP, 120 coins), en boven de Veilspire brandt weer een licht dat je in het hele dal ziet.
+- Padvinding werkt alleen in de buitenwereld. In de kerker loop je rechtstreeks, met brede gangen.

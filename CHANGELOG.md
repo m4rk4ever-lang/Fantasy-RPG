@@ -25,6 +25,7 @@ Feedback van de eigenaar verwerkt: besturing in RuneScape-stijl, haperingen bij 
 - **Spelstructuur (eigenaar):** RPG met MMORPG-gevoel, open wereld, deels lineaire questlijn met dungeons en raids onderweg. Levelen in WoW-stijl met **level cap 60**, een steilere XP-curve en monster-XP die afhangt van het levelverschil. Monsters hebben een level, dat in de doelwitbalk staat. Uitgewerkt in `docs/DESIGN.md` met gebieden per levelbereik. De Veilspire wordt de eerste kleine dungeon.
 - **Actiebalk met 8 vakken (feedback):** toetsen 1 tot 8. Sleep skills uit de skilltree (K) of eten uit de rugzak (I) erop, sleep tussen vakken om te wisselen, rechtsklik om te legen. Eten op de balk toont hoeveel je er nog hebt. Klaar voor potions zodra die er zijn.
 - **Opslaan en laden:** de voortgang wordt elke 20 seconden en bij het wegklikken van het tabblad automatisch opgeslagen in de browser. In het pauzemenu staan "Save game" en "New game (erase save)". Bewaard worden level, skills, trouw, rugzak, quests, actiebalk, instellingen en positie.
+- **Eerste dungeon: Undercroft of the Veilspire.** De deur ligt aan de voet van de rots. Binnen is het donker en grimmig, met fakkels, Hollowed en eindbaas Aldric, the Lightless Keeper (fase 2: roept extra Hollowed op). Met het baken aansteken sluit je hoofdstuk I af en brandt het licht boven de Veilspire weer.
 - **UI-ontwerp:** nieuw document `docs/UI.md` met stijlregels, schermindeling en de verfijnde versie van alle HUD-onderdelen (vraag van de eigenaar). De eerste stappen zijn gebouwd: een health-orb met golvende vloeistof en een stamina-boog, en een radiale cooldown op de skillbalk.
 - **Alles Engels in het spel:** in-game tekst was al Engels. Nu zijn ook alle namen officieel Engels (Saltwick, Warden's Vale, the Veil, the Hollowed, the Saltbound enzovoort), met een namenlijst in `docs/DESIGN.md`. Bij het binnenlopen van een gebied verschijnt de naam in beeld.
 - **Roadmap:** nieuwe koers. Eerst een verticale slice van het eerste gebied (klassen en skilltree, XP en loot, quest met dialoog, opslaan, geluid, modellen bijschaven), pas daarna de wereld uitbreiden.
@@ -49,6 +50,9 @@ Feedback van de eigenaar verwerkt: besturing in RuneScape-stijl, haperingen bij 
 ![Skilltree](docs/screenshots/2026-11-13b/08_skilltree.png)
 ![Quest bij Brenna](docs/screenshots/2026-11-13b/09_quest.png)
 ![Questlog](docs/screenshots/2026-11-13b/10_questlog.png)
+![Undercroft](docs/screenshots/2026-11-13b/11_undercroft.png)
+![The Lightless Keeper](docs/screenshots/2026-11-13b/12_keeper.png)
+![Deur naar de Undercroft](docs/screenshots/2026-11-13b/13_deur.png)
 
 **Zelfcontrole**
 - Diepte: ja, sterk in het dorpsbeeld (steiger, huizen, heuvels, bergen). | Landmark: Veilspire en de zwevende kroonscherf. | Palet: ja. Koningsblauwe daken, steenkleurige muren, hemelblauw water. Gras van dichtbij is nog wat fel. | Game of demo: game. Het dorp en de avond zien eruit als een spel. | Zwakste deel: het gras dichtbij (fel en egaal) en de bergring overdag.
@@ -73,7 +77,7 @@ Feedback van de eigenaar verwerkt: besturing in RuneScape-stijl, haperingen bij 
 
 **Volgende run**
 - Bevestiging van de eigenaar over de prestaties. Zo nodig: schaduwen en grasdichtheid achter een kwaliteitsinstelling.
-- Verticale slice V.6: pad naar de Veilspire en de quest "The Dark Spire". Daarna V.7 (opslaan en laden) en V.4c (uitrusting).
+- V.4c uitrusting (zichtbaar op de held), V.6b pad naar het torenterras, V.8 geluid. Keuze-issues: resource per klasse (V.12) en raids (V.13).
 
 ## 13-11-2026
 

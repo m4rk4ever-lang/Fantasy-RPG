@@ -25,6 +25,7 @@ const QUESTS: Dictionary = {
 		"name": "The Dark Spire", "main": true, "chapter": "Chapter I: The Last Warden",
 		"giver": "Brenna Gale, Harbourmaster of Saltwick",
 		"summary": "The light of the Veilspire above the vale went out three nights ago. The Wardens kept it burning for a thousand years. Find out why.",
+		"reward_xp": 450, "reward_coins": 120,
 	},
 }
 
@@ -104,7 +105,9 @@ func steps(id: String) -> Array:
 		"the_dark_spire":
 			return [
 				{"text": "Hear Brenna out about the Veilspire.", "done": state(id) != "none"},
-				{"text": "Climb the crag to the Veilspire. (The path is not open yet. Coming soon.)", "done": false},
+				{"text": "Enter the Undercroft through the door at the foot of the Veilspire's crag.", "done": has_flag("entered_undercroft")},
+				{"text": "Defeat Aldric, the Lightless Keeper, in the Beacon Chamber.", "done": has_flag("keeper_defeated")},
+				{"text": "Relight the beacon.", "done": state(id) == "done"},
 			]
 	return []
 
@@ -130,6 +133,19 @@ func tracker_text() -> String:
 
 
 ## Marker over a quest giver: "!" new quest, "?" ready to hand in, "" nothing.
+func finish(id: String) -> Dictionary:
+	if state(id) != "active":
+		return {}
+	var q: Dictionary = QUESTS[id]
+	if inventory:
+		inventory.add("coins", int(q.get("reward_coins", 0)))
+	states[id] = "done"
+	if id == "the_dark_spire":
+		states[STORY_QUEST] = "done"
+	changed.emit()
+	return q
+
+
 func giver_marker() -> String:
 	if can_complete("ashes_on_the_shore"):
 		return "?"
