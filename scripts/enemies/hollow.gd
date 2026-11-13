@@ -8,7 +8,7 @@ signal health_changed(value: float, max_value: float)
 signal died(enemy: Hollow)
 signal attacked(enemy: Hollow)
 
-enum State { IDLE, CHASE, WINDUP, ATTACK, RECOVER, STAGGER, DEAD }
+enum State { IDLE, CHASE, WINDUP, ATTACK, RECOVER, STAGGER, DEAD, RETURN }
 
 const COL_BODY := Color("353a42")
 const COL_DARK := Color("1e2125")
@@ -20,6 +20,8 @@ const COL_EYE := Color("bfe6ff")
 @export var max_health: float = 60.0
 @export var move_speed: float = 4.2
 @export var aggro_range: float = 13.0
+## Leash: a Hollow never chases further than this from its home. Then it walks back and heals.
+@export var leash_range: float = 16.0
 @export var attack_range: float = 2.1
 @export var attack_damage: float = 14.0
 @export var windup_time: float = 0.62
@@ -287,8 +289,11 @@ func _physics_process(delta: float) -> void:
 			if target_alive and dist < aggro_range:
 				_enter(State.CHASE)
 		State.CHASE:
-			if not target_alive or dist > aggro_range * 1.6:
+			var from_home: float = Vector2(global_position.x - home.x, global_position.z - home.z).length()
+			if not target_alive:
 				_enter(State.IDLE)
+			elif from_home > leash_range or dist > aggro_range * 1.4:
+				_enter(State.RETURN)
 			elif dist > attack_range * 0.85:
 				hv = to_target.normalized() * move_speed
 				_face_toward(to_target, delta, 8.0)
@@ -321,6 +326,18 @@ func _physics_process(delta: float) -> void:
 			_knock = _knock.move_toward(Vector3.ZERO, 30.0 * delta)
 			if _t >= 0.38:
 				_enter(State.CHASE)
+		State.RETURN:
+			# Walk home, ignore the player, regenerate (RuneScape-style reset).
+			var to_home: Vector3 = home - global_position
+			to_home.y = 0.0
+			if to_home.length() < 1.2:
+				_enter(State.IDLE)
+			else:
+				hv = to_home.normalized() * move_speed * 1.2
+				_face_toward(to_home, delta, 8.0)
+			if health < max_health:
+				health = minf(health + max_health * 0.5 * delta, max_health)
+				health_changed.emit(health, max_health)
 		State.DEAD:
 			hv = _knock
 			_knock = _knock.move_toward(Vector3.ZERO, 12.0 * delta)

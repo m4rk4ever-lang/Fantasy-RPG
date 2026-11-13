@@ -25,6 +25,7 @@ func _ready() -> void:
 	player.name = "Player"
 	add_child(player)
 	player.global_position = PLAYER_SPAWN + Vector3.UP * (arena.height_at(PLAYER_SPAWN.x, PLAYER_SPAWN.z) + 0.1)
+	player.walkable_check = _is_walkable
 
 	camera_rig = CameraRig.new()
 	camera_rig.name = "CameraRig"
@@ -175,3 +176,13 @@ func _process(delta: float) -> void:
 			fx.dust(player.global_position, 0.15)
 	else:
 		_step_timer = 0.0
+
+
+## Land is walkable; water only where a structure (pier) carries you.
+func _is_walkable(from: Vector3, to: Vector3) -> bool:
+	if arena.height_at(to.x, to.z) > TestArena.WATER_LEVEL + 0.35:
+		return true
+	var space := get_world_3d().direct_space_state
+	var q := PhysicsRayQueryParameters3D.create(Vector3(to.x, from.y + 1.0, to.z), Vector3(to.x, from.y - 1.5, to.z), 1)
+	var hit: Dictionary = space.intersect_ray(q)
+	return not hit.is_empty() and (hit["position"] as Vector3).y > TestArena.WATER_LEVEL + 0.4

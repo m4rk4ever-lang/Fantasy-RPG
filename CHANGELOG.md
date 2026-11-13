@@ -13,12 +13,16 @@ Feedback van de eigenaar verwerkt: besturing in RuneScape-stijl, haperingen bij 
 - **Wereld:** de vallei loopt uit op een baai met zee, golven, schuimranden en strand. Vissersdorp Zoutwijk (Havenhythe als richting): vakwerkhuizen op stenen voeten, steigers met lantaarn, deinende boten, rook, vissenrekken, meeuwen, drie dorpelingen die rondlopen. Stuifmeel en vlinders overdag, vuurvliegjes 's nachts. Een zwevende scherf van de Kroon met runenringen boven de vallei.
 - **Geen springen meer:** paste niet bij klik-om-te-lopen. De held stapt zelf over randen tot 0,5 m. Spatie is nu ontwijken. Springblokken bij de arena vervangen door een trap naar een uitkijkplatform.
 - **Humor:** dorpelingen zeggen droge zinnen als je dichtbij staat. Het verhaal blijft episch.
+- **Leash voor mobs:** Leeghulzen worden agressief binnen 13 m en jagen niet verder dan 16 m van hun thuisplek. Daarna lopen ze terug en genezen ze.
+- **Niet in het water:** je stopt aan de waterlijn en kunt niet van de steiger af. Steigers blijven beloopbaar.
+- **Roadmap:** nieuwe koers. Eerst een verticale slice van het eerste gebied (klassen en skilltree, XP en loot, quest met dialoog, opslaan, geluid, modellen bijschaven), pas daarna de wereld uitbreiden.
 - **Personages:** held, dorpelingen en Leeghulzen opnieuw opgebouwd als gefacetteerde low-poly lichamen met echte verhoudingen (naar de anatomie-referentie). Held met kuras met goudrand, gelaagde schouderstukken, tabard, cape met franje en een sierlijk zwaard met gloeiende steen. Leeghulzen mager en gebogen, met gescheurde gewaden en klauwen.
 
 **Feedback verwerkt**
 - `feedback/` (tekstbestand 1): framedrops, RuneScape-camera met zoom, klikgevecht met skills, lore met goden en facties, omgeving statisch en niet mooi, Havenhythe. Zie `feedback/verwerkt/2026-11-13-feedback.md`.
 - `feedback/` (beelden): anatomie, sfeer, uitrusting. Zie `feedback/verwerkt/2026-11-13-beelden.md`.
 - `feedback/` (tekstbestand 2): auto retaliate, springen eruit, humor toegestaan. Zie `feedback/verwerkt/2026-11-13-auto-retaliate.md`.
+- `feedback/feedback` (richting): leash, water blokkeren, eerst eerste gebied af, klassen en skilltree later, modellen later bijschaven. Zie `feedback/verwerkt/2026-11-13-richting.md`.
 
 **Speel het:** https://m4rk4ever-lang.github.io/Fantasy-RPG/
 
@@ -53,8 +57,7 @@ Feedback van de eigenaar verwerkt: besturing in RuneScape-stijl, haperingen bij 
 
 **Volgende run**
 - Bevestiging van de eigenaar over de prestaties. Zo nodig: schaduwen en grasdichtheid achter een kwaliteitsinstelling.
-- Pad naar de Veilspire, rivier met kapotte brug, heiligdom met obelisken.
-- Skill-effecten per skill. Keuze-issue: adrenaline of een andere resource zoals in RuneScape.
+- Verticale slice V.3: keuze-issue over klassen en skilltree, daarna V.4 (XP, levels, loot).
 
 ## 13-11-2026
 

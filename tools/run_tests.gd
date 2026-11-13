@@ -1,4 +1,6 @@
 extends SceneTree
+
+const PLAYER_SPAWN_FOR_TESTS := Vector3(0.0, 1.6, 6.0)
 ## Headless smoke tests. Run: godot --headless -s tools/run_tests.gd
 ## Exits with code 0 on success, 1 on any failure.
 
@@ -159,6 +161,39 @@ func _run() -> void:
 	foe3.queue_free()
 	player.attack_target = null
 	await _frames(5)
+
+	# The sea is off limits: walking toward the bay stops at the shoreline.
+	var arena_t: TestArena = _main.get("arena")
+	var sea := Vector3(TestArena.SEA_DIR.x, 0, TestArena.SEA_DIR.y)
+	var shore_start: Vector3 = sea * (TestArena.SHORE_S - 12.0) + Vector3(-TestArena.SEA_DIR.y, 0, TestArena.SEA_DIR.x) * 6.0
+	shore_start.y = arena_t.height_at(shore_start.x, shore_start.z) + 0.2
+	player.global_position = shore_start
+	player.velocity = Vector3.ZERO
+	await _frames(5)
+	player.set_move_target(shore_start + sea * 40.0)
+	await _frames(240)
+	var ground_here: float = arena_t.height_at(player.global_position.x, player.global_position.z)
+	_check(ground_here > TestArena.WATER_LEVEL, "hero stops at the water's edge (ground %.2f)" % ground_here)
+	player.clear_orders()
+	player.global_position = PLAYER_SPAWN_FOR_TESTS
+	await _frames(30)
+
+	# Leash: a Hollow lured far from home walks back and heals.
+	var lure := Hollow.new()
+	root.add_child(lure)
+	lure.global_position = player.global_position + Vector3(4.0, 0.2, 0.0)
+	lure.home = lure.global_position + Vector3(40.0, 0.0, 0.0)
+	lure.target = player
+	lure.attack_damage = 0.0
+	await _frames(5)
+	lure.health = 20.0
+	lure.state = Hollow.State.CHASE
+	await _frames(20)
+	_check(lure.state == Hollow.State.RETURN, "Hollow beyond its leash returns home")
+	await _frames(60)
+	_check(lure.health > 20.0, "returning Hollow regenerates")
+	lure.queue_free()
+	await _frames(2)
 
 	# Skills: use, then cooldown blocks reuse.
 	await _frames(30)

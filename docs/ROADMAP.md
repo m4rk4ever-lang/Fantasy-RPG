@@ -11,6 +11,25 @@ Blokken van ongeveer 60 minuten. De bouwagent pakt elke run het eerste niet-afge
 - **Pad naar de Veilspire.** De rots heeft nu richels, maar je kunt er nog niet op. Een pad of trap langs de richels omhoog.
 - **Bergring overdag** is te vlak grijs-wit. Meer leisteenblauw in de flanken, scherpere sneeuwgrens.
 
+## Koers (feedback eigenaar 13-11-2026)
+
+**Eerst het eerste gebied en de grote stappen af, dan pas de wereld uitbouwen.** Geen nieuwe gebieden, chunk-streaming of extra landmarks tot de verticale slice hieronder klaar is. Zo verbranden we geen tijd aan wereld terwijl het concept nog niet vaststaat.
+
+## Verticale slice: Wachtersvallei en Zoutwijk (nu)
+
+Doel: één gebied waarin de hele kernloop speelbaar is: praten, quest aannemen, vechten met skills, belonen, sterker worden, opslaan.
+
+- [x] V.1 Mobs met aggro-afstand en leash: ze volgen je niet eindeloos, lopen terug en genezen.
+- [x] V.2 Looproutes afbakenen: niet de zee in, wel over steigers.
+- [ ] V.3 Klassen en skilltree: keuze-issue over opzet (welke klassen, hoe de boom eruitziet, hoe skills op de balk komen). Dan eerste klasse uitwerken.
+- [ ] V.4 Stats, XP en levels, loot van Leeghulzen, eenvoudige inventaris.
+- [ ] V.5 Dialoogsysteem en eerste NPC-quest in Zoutwijk (met een vleugje humor), quest-log.
+- [ ] V.6 Pad naar de Veilspire, toren als eerste questdoel. Heiligdom met obelisken.
+- [ ] V.7 Opslaan en laden.
+- [ ] V.8 Geluid: voetstappen, zwaard, treffers, golven, meeuwen, eenvoudige muziek.
+- [ ] V.9 Modellen bijschaven: meer detail in held, Leeghuls en huizen (RuneScape 3 is inmiddels gedetailleerd). Eventueel passende CC0-modellen zoeken.
+- [ ] V.10 Prestaties en kwaliteitsinstelling (laag, midden, hoog).
+
 ## Fase 1: speelbare kern (snel en vloeiend)
 
 - [x] **1.1 Fundament.** Projectstructuur, CI naar GitHub Pages, testgebied met belichting en mist, third-person controller (lopen, sprinten, springen met coyote time, dash met i-frames), SpringArm-camera (muis en gamepad, FOV bij sprinten), procedureel personage met loopcyclus, minimale HUD, rooktests en screenshotscript.
@@ -27,7 +46,7 @@ Blokken van ongeveer 60 minuten. De bouwagent pakt elke run het eerste niet-afge
 
 ## Fase 2: open wereld (episch en helder)
 
-- [ ] 2.1 Terrein in chunks met streaming en LOD, groter dan de testvallei.
+- [ ] 2.1 Terrein in chunks met streaming en LOD, groter dan de testvallei. **Pas na de verticale slice.**
 - [x] 2.2a Gras met wind (MultiMesh, 14.000 plukjes rond de arena, vervaagt op afstand).
 - [ ] 2.2b Terreinshader verfijnen (paden, rotsrichels). Klif onder de toren is al vervangen door een gefacetteerde rots met grasrichels.
 - [x] 2.3a Zee in de baai met golven, schuimranden en strand (diepte per vertex, geen depth texture).
@@ -35,13 +54,14 @@ Blokken van ongeveer 60 minuten. De bouwagent pakt elke run het eerste niet-afge
 - [x] 2.4 Hemel met wolken (eigen sky-shader), dag-nachtcyclus van 16 minuten met maan en sterren, mist en ambient per tijdstip.
 - [x] 2.5a Vissersdorp Zoutwijk aan de baai: vakwerkhuizen, steigers, boten, rook, meeuwen, dorpelingen. Zwevende kroonscherf boven de vallei.
 - [ ] 2.5b Pad omhoog naar de Veilspire, interieur van de toren. Heiligdom met obelisken (Ascendanten).
-- [ ] 2.5c Tweede gebied met monumentale architectuur en gloeiende runen (sfeerreferentie eigenaar 13-11-2026): bijvoorbeeld een smidsestad van de Asheer.
+- [ ] 2.5c **Pas na de verticale slice.** Tweede gebied met monumentale architectuur en gloeiende runen (sfeerreferentie eigenaar 13-11-2026): bijvoorbeeld een smidsestad van de Asheer.
 - [ ] 2.6 Snelle verplaatsing: glijden (glider) of klimmen.
 - [x] 2.7a Leven rond de speler: stuifmeel overdag, vuurvliegjes 's nachts, vlinders.
 - [ ] 2.7b Vallende bladeren bij bomen, vogels in het bos, dieren (herten, konijnen).
 
 ## Fase 3: RPG-systemen en character creator
 
+- [ ] 3.0 Klassen en skilltree: zie V.3.
 - [ ] 3.1 Keuze-issue: opzet character creator.
 - [ ] 3.2 Character creator: lichaamsvorm, gezicht, haar, kleuren, klasse.
 - [ ] 3.3 Stats, XP en levels.

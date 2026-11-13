@@ -41,6 +41,8 @@ signal auto_retaliate_changed(on: bool)
 ## Set by tests or AI to drive movement without real input. Ignored when zero.
 var debug_move_input: Vector2 = Vector2.ZERO
 var camera_basis_source: Node3D
+## Optional world rule: Callable(from: Vector3, to: Vector3) -> bool. False blocks the move (e.g. water).
+var walkable_check: Callable
 
 var stamina: float = 100.0
 var health: float = 100.0
@@ -323,6 +325,7 @@ func _physics_process(delta: float) -> void:
 		if model:
 			model.impulse_squash(-0.35)
 
+	_block_unwalkable(delta)
 	var pre_move_h := Vector3(velocity.x, 0, velocity.z)
 	move_and_slide()
 	# Auto step-up: blocked by a low ledge while walking on the ground -> climb it.
@@ -397,6 +400,25 @@ func _update_model(delta: float) -> void:
 	var accel_lean: float = clampf(accel.dot(fwd) / 60.0, -0.6, 0.6)
 	var ratio: float = hvel.length() / sprint_speed * 1.15
 	model.animate(delta, ratio if is_on_floor() else 0.4, is_on_floor(), velocity.y, accel_lean, is_dashing)
+
+
+## Stop at the water's edge (and pier sides). Slides along the edge when only one axis is blocked.
+func _block_unwalkable(delta: float) -> void:
+	if not walkable_check.is_valid():
+		return
+	var h := Vector3(velocity.x, 0, velocity.z)
+	if h.length() < 0.01:
+		return
+	var look: float = maxf(0.45, h.length() * delta * 2.0)
+	var from: Vector3 = global_position
+	if walkable_check.call(from, from + h.normalized() * look):
+		return
+	var ok_x: bool = absf(h.x) > 0.01 and walkable_check.call(from, from + Vector3(signf(h.x) * look, 0, 0))
+	var ok_z: bool = absf(h.z) > 0.01 and walkable_check.call(from, from + Vector3(0, 0, signf(h.z) * look))
+	velocity.x = h.x if ok_x else 0.0
+	velocity.z = h.z if ok_z else 0.0
+	if not ok_x and not ok_z and _has_move_target:
+		_has_move_target = false  # Clicked into the sea: stop at the shore.
 
 
 func _try_step(h_motion: Vector3) -> bool:
