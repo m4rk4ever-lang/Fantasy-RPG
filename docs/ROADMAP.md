@@ -31,7 +31,7 @@ Doel: één gebied waarin de hele kernloop speelbaar is: praten, quest aannemen,
 - [x] V.1b Level cap 60, XP-curve in WoW-stijl, monster-XP geschaald op levelverschil, monsterlevel in de doelwitbalk.
 - [ ] V.6 Pad naar de Veilspire. De toren wordt de **eerste kleine dungeon** (3 verdiepingen, eindbaas), eind van hoofdstuk I. Heiligdom met obelisken.
 - [ ] V.13 Keuze-issue: raids solo met NPC-metgezellen, solo-geschaald of later echte multiplayer.
-- [ ] V.7 Opslaan en laden.
+- [x] V.7 Opslaan en laden: automatisch elke 20 s en bij het sluiten van het tabblad, "Save game" en "New game" in het pauzemenu. Bewaart level, skills, trouw, rugzak, quests, actiebalk, rennen, auto retaliate en positie.
 - [ ] V.8 Geluid: voetstappen, zwaard, treffers, golven, meeuwen, eenvoudige muziek.
 - [ ] V.9 Modellen bijschaven: meer detail in held, Hollowed en huizen (RuneScape 3 is inmiddels gedetailleerd). Eventueel passende CC0-modellen zoeken.
 - [ ] V.10 Prestaties en kwaliteitsinstelling (laag, midden, hoog).

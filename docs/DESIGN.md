@@ -180,3 +180,7 @@ Hollowed Wardens: de Wardens die the Veil als eersten raakte. Ze dragen nog de g
 - **Geen ontwijken** (eigenaar: "dat kan bij RuneScape/WoW combat ook niet"). Verdedigen doe je met skills (Second Wind, Unbroken) en positie. Surge Strike blijft een aanval met korte onkwetsbaarheid.
 - **Rennen is een schakelaar** (Shift, Spatie, knop "Run" naast de health-orb). Rennen kost stamina (4 per seconde), lopen of stilstaan laadt die op. Bij 0 loop je tot er weer stamina is.
 - **Padvinding:** `NavGrid` maakt bij de start een raster van 1,25 m (in ongeveer 0,1 s). Een vakje is geblokkeerd bij een collider op lichaamshoogte, water zonder steiger of een te steile helling. Klikopdrachten volgen het A*-pad, het laatste stuk gaat recht.
+
+## Opslaan (13-11-2026)
+
+`SaveGame` schrijft JSON naar `user://savegame.json` (in de browser: IndexedDB). Automatisch elke 20 s, bij het sluiten of wegklikken van het tabblad en via "Save game". Laden gebeurt bij de start. "New game" wist de save. Versieveld `version` = 1: verandert het formaat, dan wordt een oude save genegeerd.

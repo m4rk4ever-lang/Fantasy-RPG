@@ -2,6 +2,11 @@ extends Node3D
 ## Game root: assembles world, player, camera and UI, and wires their signals.
 
 const PLAYER_SPAWN := Vector3(0.0, 0.0, 6.0)
+const AUTOSAVE_SECONDS: float = 20.0
+
+## Tests and screenshots switch saving off so they always start fresh.
+var use_save: bool = true
+var _autosave_timer: float = AUTOSAVE_SECONDS
 
 var arena: TestArena
 var player: Player
@@ -135,7 +140,11 @@ func _ready() -> void:
 	pause_menu.stick_sensitivity = camera_rig.stick_sensitivity
 	add_child(pause_menu)
 	pause_menu.sensitivity_changed.connect(_on_sensitivity_changed)
+	pause_menu.save_requested.connect(func() -> void:
+		if _save():
+			hud.toast("Game saved."))
 	# --- End pause menu ---
+	_load_save.call_deferred()
 
 
 func _on_player_dashed() -> void:
@@ -218,6 +227,10 @@ func _on_skill_used(id: String) -> void:
 
 
 func _process(delta: float) -> void:
+	_autosave_timer -= delta
+	if _autosave_timer <= 0.0:
+		_autosave_timer = AUTOSAVE_SECONDS
+		_save()
 	# Area names (English in-game names).
 	var area: String = "Saltwick" if arena.sea_distance(player.global_position.x, player.global_position.z) > 12.0 else "Warden's Vale"
 	if area != _area:
@@ -346,3 +359,26 @@ func _update_action_bar() -> void:
 				var n: int = player.inventory.count_of(e["id"])
 				hud.action_bar.set_count(i, n)
 				hud.action_bar.set_usable(i, n > 0)
+
+
+func _save() -> bool:
+	if not use_save:
+		return false
+	return SaveGame.save(player, hud.action_bar)
+
+
+## Load after the world, nav grid and UI exist. Called deferred from _ready.
+func _load_save() -> void:
+	if not use_save:
+		return
+	var data: Dictionary = SaveGame.read()
+	if data.is_empty():
+		return
+	SaveGame.apply(data, player, hud.action_bar)
+	player._apply_progression()
+	hud.toast("Welcome back, Warden.")
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST or what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+		_save()

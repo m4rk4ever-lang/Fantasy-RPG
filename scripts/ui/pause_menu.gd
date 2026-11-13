@@ -3,6 +3,7 @@ extends CanvasLayer
 ## Pause menu: resume, controls list, restart and sensitivity sliders.
 
 signal sensitivity_changed(mouse: float, stick: float)
+signal save_requested
 
 const COL_PANEL := Color(0.12, 0.13, 0.16, 0.85)
 const COL_STONE := Color("e6e1d3")
@@ -85,7 +86,11 @@ func _build_ui() -> void:
 	_controls_button.pressed.connect(_on_controls_pressed)
 	box.add_child(_controls_button)
 
-	var restart_button := _make_button("Restart")
+	var save_button := _make_button("Save game")
+	save_button.pressed.connect(func() -> void: save_requested.emit())
+	box.add_child(save_button)
+
+	var restart_button := _make_button("New game (erase save)")
 	restart_button.pressed.connect(_on_restart_pressed)
 	box.add_child(restart_button)
 
@@ -225,6 +230,7 @@ func _on_controls_pressed() -> void:
 
 
 func _on_restart_pressed() -> void:
+	SaveGame.delete()
 	_open = false
 	get_tree().paused = false
 	get_tree().reload_current_scene()

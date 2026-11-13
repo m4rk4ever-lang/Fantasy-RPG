@@ -30,6 +30,7 @@ func _run() -> void:
 	var packed: PackedScene = load("res://scenes/main.tscn")
 	_check(packed != null, "main scene loads")
 	_main = packed.instantiate()
+	_main.set("use_save", false)
 	root.add_child(_main)
 	await _frames(30)
 
@@ -339,6 +340,22 @@ func _run() -> void:
 		if e.get("id", "") == "cleave":
 			count_cleave += 1
 	_check(count_cleave == 1, "a skill is never on the bar twice")
+
+	# Save and load round trip.
+	_main.set("use_save", true)
+	player.progression.add_xp(300)
+	var lvl_s: int = player.progression.level
+	var coins_s: int = player.inventory.coins
+	_check(SaveGame.save(player, bar), "game saves")
+	var data_s: Dictionary = SaveGame.read()
+	_check(int(data_s["progression"]["level"]) == lvl_s, "save holds the level")
+	player.inventory.coins = 0
+	player.progression.level = 1
+	SaveGame.apply(data_s, player, bar)
+	_check(player.progression.level == lvl_s and player.inventory.coins == coins_s, "load restores level and coins")
+	SaveGame.delete()
+	_check(not SaveGame.exists(), "new game erases the save")
+	_main.set("use_save", false)
 
 	# Frame time indication (headless, physics only).
 	var t0: int = Time.get_ticks_usec()

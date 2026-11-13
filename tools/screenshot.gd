@@ -29,6 +29,7 @@ func _save(file_name: String) -> void:
 
 func _run() -> void:
 	var main: Node = (load("res://scenes/main.tscn") as PackedScene).instantiate()
+	main.set("use_save", false)
 	root.add_child(main)
 	await _wait(10)
 	var player: Player = main.get_node("Player")
