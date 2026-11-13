@@ -518,6 +518,13 @@ func _run() -> void:
 	Quality.apply(q_arena, 2)
 	_check(q_arena.get_viewport().scaling_3d_scale == 1.0, "High quality renders at full scale")
 
+	# Fury (V.12): costs gate skills, spending lowers it.
+	var pc: PlayerCombat = player.combat
+	pc.fury = 0.0
+	_check(pc.fury < PlayerCombat.FURY_COST["whirlwind"] and not pc.is_skill_usable("whirlwind") or not pc.is_skill_unlocked("whirlwind"), "Whirlwind needs Fury")
+	pc.add_fury(100.0)
+	_check(is_equal_approx(pc.fury, PlayerCombat.MAX_FURY), "Fury caps at its maximum")
+
 	# Frame time indication (headless, physics only).
 	var t0: int = Time.get_ticks_usec()
 	await _frames(60)

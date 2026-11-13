@@ -9,6 +9,7 @@ Blokken van ongeveer 60 minuten. De bouwagent pakt elke run het eerste niet-afge
 - **Geluid beluisteren** en mix bijstellen (V.8 en V.9 staan op main).
 
 - **Prestaties meten in de browser** na de kwaliteitsinstelling (eigenaar). Haalt Medium geen 60 fps: verder met LOD en het samenvoegen van rotsen en ruïnes.
+- **RuneScape 3-stijl doorzetten** (feedback 13-11-2026): held met gevormde harnasplaten en textuur in plaats van bollen, dennen van takkaarten, huizen met afgeronde daken en textuur, rotsen met textuur.
 - **Omgeving gladder** (feedback 13-11-2026): rots onder de Veilspire, ruïnes, rotsblokken en huizen in dezelfde gladde stijl als de nieuwe personages.
 
 - **Bergring overdag** is te vlak grijs-wit. Meer leisteenblauw in de flanken, scherpere sneeuwgrens.
@@ -34,13 +35,13 @@ Doel: één gebied waarin de hele kernloop speelbaar is: praten, quest aannemen,
 - [x] V.6 Eerste kleine dungeon: **Undercroft of the Veilspire** (deur aan de voet van de rots). Drie ruimtes en twee gangen, fakkels, 4 Hollowed (level 3) en eindbaas **Aldric, the Lightless Keeper** (level 5, poise, fase 2 met extra vijanden). Baken aansteken sluit hoofdstuk I af, waarna het licht boven de Veilspire weer brandt.
 - [x] V.6a The Warden's Stair naar de verzegelde deur boven, met optionele Hall of the First Oath.
 - [ ] V.6c Torenterras. Heiligdom met obelisken.
-- [ ] V.13 Keuze-issue: raids solo met NPC-metgezellen, solo-geschaald of later echte multiplayer.
+- [x] V.13 Keuze raids (eigenaar): later echte multiplayer. Apart plannen na de singleplayer-slice.
 - [x] V.7 Opslaan en laden: automatisch elke 20 s en bij het sluiten van het tabblad, "Save game" en "New game" in het pauzemenu. Bewaart level, skills, trouw, rugzak, quests, actiebalk, rennen, auto retaliate en positie.
 - [x] V.8 Geluid: voetstappen, zwaard, treffers, golven, meeuwen, eenvoudige muziek.
 - [x] V.9 Modellen bijschaven: meer detail in held, Hollowed en huizen (RuneScape 3 is inmiddels gedetailleerd). Eventueel passende CC0-modellen zoeken.
 - [x] V.10 Prestaties en kwaliteitsinstelling (laag, midden, hoog).
 - [x] V.11 UI-afwerking volgens `docs/UI.md`: orbs voor health en resource, gebogen skillbalk met radiale cooldown, skilltree als echte boom, itemiconen, portretten.
-- [ ] V.12 Keuze-issue: resource per klasse (Fury, Focus, Mana, Faith, Corruption of anders).
+- [x] V.12 Resource per klasse (eigenaar: eigen resource per klasse). Fury voor de Vanguard gebouwd; Focus, Mana, Faith en Corruption volgen met hun klasse.
 
 ## Fase 1: speelbare kern (snel en vloeiend)
 

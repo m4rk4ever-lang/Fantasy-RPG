@@ -291,5 +291,13 @@ func light_beacon() -> void:
 
 func _process(delta: float) -> void:
 	_time += delta
-	for i: int in _lights.size():
+	# Only the three torches nearest the camera cast real light: the Compatibility renderer draws an
+	# extra pass per light per mesh, and Safari's WebGL gave up with all of them on (owner, 13-11-2026).
+	var cam: Camera3D = get_viewport().get_camera_3d()
+	var ref: Vector3 = cam.global_position if cam else ORIGIN
+	var order: Array = range(_lights.size())
+	order.sort_custom(func(a: int, b: int) -> bool: return _lights[a].global_position.distance_squared_to(ref) < _lights[b].global_position.distance_squared_to(ref))
+	for k: int in order.size():
+		var i: int = order[k]
+		_lights[i].visible = k < 3
 		_lights[i].light_energy = 2.8 + sin(_time * 9.0 + i * 1.7) * 0.25 + sin(_time * 23.0 + i) * 0.12

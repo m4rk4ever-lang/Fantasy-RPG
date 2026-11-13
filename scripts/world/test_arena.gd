@@ -127,8 +127,8 @@ func _build_environment() -> void:
 	environment.fog_height = 8.0
 	environment.fog_height_density = 0.0015
 	environment.adjustment_enabled = true
-	environment.adjustment_saturation = 1.08
-	environment.adjustment_contrast = 1.1
+	environment.adjustment_saturation = 1.16
+	environment.adjustment_contrast = 1.05
 
 	var we := WorldEnvironment.new()
 	we.name = "WorldEnvironment"
@@ -194,6 +194,13 @@ func _build_terrain() -> void:
 	terrain_material = ShaderMaterial.new()
 	terrain_material.shader = preload("res://shaders/terrain.gdshader")
 	terrain_material.set_shader_parameter("snow_height", 70.0)
+	# Worn paths: Saltwick gate to the vale, on to the ruins and to the foot of the Veilspire's crag.
+	var segs: Array[Vector4] = [
+		Vector4(27.0, 21.0, 14.0, 10.0), Vector4(14.0, 10.0, 3.0, 2.0), Vector4(3.0, 2.0, -3.0, -12.0),
+		Vector4(3.0, 2.0, 4.0, -30.0), Vector4(4.0, -30.0, 4.0, -52.0), Vector4(4.0, -52.0, 6.0, -60.0),
+	]
+	terrain_material.set_shader_parameter("path_segs", segs)
+	terrain_material.set_shader_parameter("path_count", segs.size())
 	terrain_material.set_shader_parameter("sand_height", 0.9)
 	terrain_material.set_shader_parameter("rock_slope", 0.6)
 	terrain_material.set_shader_parameter("strata_freq", 0.7)
@@ -334,7 +341,6 @@ func _build_crag() -> void:
 		pts.append(row)
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	st.set_smooth_group(0xFFFFFFFF)
 	for k: int in rings - 1:
 		for i: int in seg:
 			var j: int = (i + 1) % seg
@@ -351,7 +357,8 @@ func _build_crag() -> void:
 		var j: int = (i + 1) % seg
 		for v: Vector3 in [centre, top[i], top[j]]:
 			st.add_vertex(v)
-	st.generate_normals()  # Vertices are not shared, so normals are per-face (flat).
+	st.index()  # Merge shared vertices: smooth, rounded rock instead of facets.
+	st.generate_normals()
 	var mesh: ArrayMesh = st.commit()
 
 	var mat := ShaderMaterial.new()
@@ -434,8 +441,8 @@ func _build_crag() -> void:
 		var sm := SphereMesh.new()
 		sm.radius = rad
 		sm.height = rad * 1.5
-		sm.radial_segments = 6
-		sm.rings = 3
+		sm.radial_segments = 14
+		sm.rings = 7
 		var sh := SphereShape3D.new()
 		sh.radius = rad * 0.7
 		_add_static(self, sm, rock_mat, Transform3D(Basis(Vector3(rng.randf(), 1, rng.randf()).normalized(), rng.randf() * TAU).scaled(Vector3(1.2, rng.randf_range(0.6, 1.0), 1.0)), p), sh)
@@ -493,15 +500,17 @@ func _build_ruins() -> void:
 		var h: float = heights[i]
 		var box := BoxShape3D.new()
 		box.size = Vector3(1.4, h, 1.4)
-		var bm := BoxMesh.new()
-		bm.size = Vector3(1.4, h, 1.4)
-		_add_static(root, bm, stone, Transform3D(Basis(Vector3.UP, i * 0.3), p + Vector3(0, h * 0.5, 0)), box)
+		# Round fluted column with a stepped base and capital (smooth, weathered), instead of a box.
+		var shaft := _cyl(0.58, 0.66, h - 0.6, 20)
+		_add_static(root, shaft, stone, Transform3D(Basis(Vector3.UP, i * 0.3), p + Vector3(0, h * 0.5, 0)), box)
+		_add_static(root, _cyl(0.85, 0.92, 0.35, 20), stone, Transform3D(Basis(), p + Vector3(0, 0.17, 0)))
+		_add_static(root, _cyl(0.74, 0.84, 0.2, 20), stone, Transform3D(Basis(), p + Vector3(0, 0.45, 0)))
+		_add_static(root, _cyl(0.84, 0.66, 0.3, 20), stone, Transform3D(Basis(), p + Vector3(0, h - 0.15, 0)))
 		var cap := BoxMesh.new()
 		cap.size = Vector3(1.8, 0.4, 1.8)
 		_add_static(root, cap, stone, Transform3D(Basis(Vector3.UP, i * 0.3), p + Vector3(0, h + 0.2, 0)))
-		var moss_m := BoxMesh.new()
-		moss_m.size = Vector3(1.85, 0.12, 1.85)
-		_add_static(root, moss_m, moss, Transform3D(Basis(Vector3.UP, i * 0.3), p + Vector3(0, h + 0.45, 0)))
+		var moss_m := _cyl(0.95, 0.95, 0.1, 20)
+		_add_static(root, moss_m, moss, Transform3D(Basis(Vector3.UP, i * 0.3), p + Vector3(0, h + 0.42, 0)))
 	# A lintel across the first two pillars forms an arch.
 	var lintel := BoxMesh.new()
 	lintel.size = Vector3(1.4, 0.8, 9.0)
@@ -595,14 +604,11 @@ func _scatter_trees() -> void:
 	leaf_pine.set_shader_parameter("height_ref", 7.0)
 
 	var trunk := _cyl(0.22, 0.32, 3.0, 8)
-	var crown := SphereMesh.new()
-	crown.radius = 1.9
-	crown.height = 3.4
-	crown.radial_segments = 10
-	crown.rings = 6
-	var cone_a := _cyl(0.0, 2.2, 3.4, 9)
-	var cone_b := _cyl(0.0, 1.7, 2.9, 9)
-	var cone_c := _cyl(0.0, 1.2, 2.3, 9)
+	var crown: ArrayMesh = leaf_crown_mesh(2.1, 1.75, 90, 11)
+	leaf_round = leaf_material(Color("6fbf55"), Color("1b5232"))
+	var cone_a := _cyl(0.0, 2.2, 3.4, 18)
+	var cone_b := _cyl(0.0, 1.7, 2.9, 18)
+	var cone_c := _cyl(0.0, 1.2, 2.3, 18)
 
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 2024
@@ -669,6 +675,78 @@ func _scatter_trees() -> void:
 		mmi.multimesh = mm
 		mmi.material_override = entry[2]
 		root.add_child(mmi)
+
+
+static var _leaf_tex: ImageTexture
+
+
+## A card texture with a clump of leaves (white, alpha-cut). Generated once.
+static func leaf_texture() -> ImageTexture:
+	if _leaf_tex:
+		return _leaf_tex
+	var n: int = 128
+	var img := Image.create(n, n, true, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 77
+	for k: int in 22:
+		var c := Vector2(rng.randf_range(22, 106), rng.randf_range(22, 106))
+		var ang: float = rng.randf() * TAU
+		var ax := Vector2(cos(ang), sin(ang))
+		var ay := Vector2(-ax.y, ax.x)
+		var ln: float = rng.randf_range(13, 20)
+		var wd: float = ln * 0.45
+		var tone: float = rng.randf_range(0.55, 1.0)
+		for y: int in range(int(c.y - ln), int(c.y + ln) + 1):
+			for x: int in range(int(c.x - ln), int(c.x + ln) + 1):
+				if x < 0 or y < 0 or x >= n or y >= n:
+					continue
+				var d := Vector2(x, y) - c
+				var u: float = d.dot(ax) / ln
+				var v: float = d.dot(ay) / (wd * (1.0 - absf(u) * 0.6))
+				if u * u + v * v <= 1.0:
+					var vein: float = 1.0 - 0.25 * exp(-v * v * 30.0)
+					img.set_pixel(x, y, Color(tone * vein, tone * vein, tone * vein, 1.0))
+	img.generate_mipmaps()
+	_leaf_tex = ImageTexture.create_from_image(img)
+	return _leaf_tex
+
+
+static func leaf_material(light: Color, dark: Color) -> ShaderMaterial:
+	var m := ShaderMaterial.new()
+	m.shader = preload("res://shaders/leaf_cards.gdshader")
+	m.set_shader_parameter("leaf_tex", leaf_texture())
+	m.set_shader_parameter("light_color", light)
+	m.set_shader_parameter("dark_color", dark)
+	return m
+
+
+## A crown of leaf cards inside an ellipsoid. Normals point out from the centre (soft volume shading),
+## vertex colour red = how sunlit the card sits (top and outside bright, inside dark).
+static func leaf_crown_mesh(radius: float, height_radius: float, cards: int, seed: int) -> ArrayMesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed
+	for i: int in cards:
+		var dir := Vector3(rng.randf_range(-1, 1), rng.randf_range(-0.8, 1), rng.randf_range(-1, 1)).normalized()
+		var depth: float = pow(rng.randf(), 0.5)
+		var p := Vector3(dir.x * radius, dir.y * height_radius, dir.z * radius) * (0.35 + 0.65 * depth)
+		var size: float = rng.randf_range(1.4, 2.0)
+		var nrm: Vector3 = Vector3(p.x / radius, p.y / height_radius, p.z / radius).normalized()
+		var tangent: Vector3 = nrm.cross(Vector3(rng.randf_range(-1, 1), rng.randf_range(-1, 1), rng.randf_range(-1, 1)).normalized()).normalized()
+		if tangent.length_squared() < 0.01:
+			tangent = Vector3.RIGHT
+		var bit: Vector3 = nrm.cross(tangent).normalized()
+		var sun: float = clampf(0.25 + 0.5 * depth + 0.35 * nrm.y, 0.0, 1.0)
+		var corners: Array[Vector3] = [p + (-tangent - bit) * size * 0.5, p + (tangent - bit) * size * 0.5, p + (tangent + bit) * size * 0.5, p + (-tangent + bit) * size * 0.5]
+		var uvs: Array[Vector2] = [Vector2(0, 1), Vector2(1, 1), Vector2(1, 0), Vector2(0, 0)]
+		for k: int in [0, 1, 2, 0, 2, 3]:
+			st.set_color(Color(sun, 0, 0))
+			st.set_uv(uvs[k])
+			st.set_normal(Vector3(corners[k].x / radius, corners[k].y / height_radius, corners[k].z / radius).normalized())
+			st.add_vertex(corners[k])
+	return st.commit()
 
 
 func _grass_tuft_mesh() -> ArrayMesh:

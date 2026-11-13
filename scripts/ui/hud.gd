@@ -22,6 +22,7 @@ var _tracker: Label
 var xp_bar: XpBar
 var target_bar: TargetBar
 var portrait: Portrait
+var resource_orb: Orb
 var _tracker_panel: PanelContainer
 var _target_level: Label
 var _banner: Label
@@ -218,8 +219,8 @@ func _ready() -> void:
 	_run_button.focus_mode = Control.FOCUS_NONE
 	_run_button.anchor_top = 1.0
 	_run_button.anchor_bottom = 1.0
-	_run_button.offset_left = 140
-	_run_button.offset_right = 230
+	_run_button.offset_left = 226
+	_run_button.offset_right = 316
 	_run_button.offset_top = -120
 	_run_button.offset_bottom = -84
 	_run_button.tooltip_text = "Run (Shift or Space): faster, but uses stamina. With no stamina you walk until it refills."
@@ -235,12 +236,25 @@ func _ready() -> void:
 	root.add_child(_run_button)
 	set_run(true)
 
+	# Class resource orb (V.12): Fury for the Vanguard.
+	resource_orb = Orb.new()
+	resource_orb.liquid = Color("d9a441")
+	resource_orb.anchor_top = 1.0
+	resource_orb.anchor_bottom = 1.0
+	resource_orb.offset_left = 134
+	resource_orb.offset_right = 214
+	resource_orb.offset_top = -124
+	resource_orb.offset_bottom = -44
+	resource_orb.value = 0.0
+	resource_orb.tooltip_text = "Fury: builds with every hit, fades out of combat. Surge Strike and Whirlwind spend it."
+	root.add_child(resource_orb)
+
 	# Hero portrait next to the health orb.
 	portrait = Portrait.new("hero", 46.0)
 	portrait.anchor_top = 1.0
 	portrait.anchor_bottom = 1.0
-	portrait.offset_left = 140
-	portrait.offset_right = 186
+	portrait.offset_left = 226
+	portrait.offset_right = 272
 	portrait.offset_top = -80
 	portrait.offset_bottom = -34
 	root.add_child(portrait)
@@ -314,6 +328,12 @@ func set_health(value: float, max_value: float) -> void:
 	_health_bar.value = value
 	health_orb.value = value
 	health_orb.max_value = max_value
+
+
+func set_resource(value: float, max_value: float) -> void:
+	if resource_orb:
+		resource_orb.value = value
+		resource_orb.max_value = max_value
 
 
 func set_stamina(value: float, max_value: float) -> void:

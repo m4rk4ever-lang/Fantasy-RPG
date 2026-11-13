@@ -17,6 +17,14 @@ uniform float detail_scale = 0.08;
 uniform float strata_freq = 1.6;
 uniform float strata_amount = 0.45;
 
+// Dirt paths: up to 8 segments (xz start, xz end), painted where the walker would go.
+uniform vec4 path_segs[8];
+uniform int path_count = 0;
+uniform float path_width = 1.6;
+uniform vec3 path_color : source_color = vec3(0.66, 0.55, 0.38);
+uniform vec3 path_edge : source_color = vec3(0.48, 0.52, 0.30);
+uniform float flowers = 1.0;
+
 varying vec3 world_pos;
 varying vec3 world_nrm;
 
@@ -59,6 +67,37 @@ void fragment() {
 	vec3 grass = mix(grass_color, grass_dark, n * 0.7);
 	grass = mix(grass, grass_dry, patches * 0.45);
 	grass *= 0.92 + n2 * 0.16;
+	// Painterly brush strokes: stretched noise in two directions, a warm sunlit mottle on top.
+	float stroke = vnoise(world_pos.xz * vec2(0.9, 5.5) + n * 3.0) * 0.5 + vnoise(world_pos.xz * vec2(5.0, 1.1) - n * 2.0) * 0.5;
+	grass *= 0.93 + stroke * 0.14;
+	float mottle = smoothstep(0.55, 0.8, fbm(world_pos.xz * 0.045 + 31.0));
+	grass = mix(grass, grass * vec3(1.12, 1.1, 0.86), mottle * 0.6);
+	// Flowers: tiny specks of white, yellow and violet on the flats.
+	vec2 fc = floor(world_pos.xz * 2.2);
+	float fh = hash(fc);
+	if (flowers > 0.5 && fh > 0.972) {
+		vec2 fp = fract(world_pos.xz * 2.2) - 0.5 + (vec2(hash(fc + 3.1), hash(fc + 7.7)) - 0.5) * 0.5;
+		float fd = smoothstep(0.16, 0.1, length(fp));
+		vec3 fcol = fh > 0.99 ? vec3(0.62, 0.52, 0.86) : (fh > 0.981 ? vec3(0.98, 0.86, 0.35) : vec3(0.97, 0.96, 0.92));
+		grass = mix(grass, fcol, fd * (1.0 - patches * 0.5));
+	}
+	// Dirt paths with a soft worn edge.
+	float pd = 1e5;
+	for (int i = 0; i < 8; i++) {
+		if (i >= path_count) {
+			break;
+		}
+		vec2 a = path_segs[i].xy;
+		vec2 b = path_segs[i].zw;
+		vec2 ab = b - a;
+		float t = clamp(dot(world_pos.xz - a, ab) / max(dot(ab, ab), 0.001), 0.0, 1.0);
+		pd = min(pd, length(world_pos.xz - (a + ab * t)));
+	}
+	float wob = (fbm(world_pos.xz * 0.6) - 0.5) * 0.9;
+	float path_w = 1.0 - smoothstep(path_width * 0.55, path_width, pd + wob);
+	float edge_w = 1.0 - smoothstep(path_width, path_width * 1.6, pd + wob);
+	grass = mix(grass, path_edge, edge_w * 0.5);
+	grass = mix(grass, path_color * (0.88 + n2 * 0.2), path_w);
 
 	// Horizontal strata on rock read as cliffs from far away.
 	float strata = sin(world_pos.y * strata_freq + n * 6.0) * 0.5 + 0.5;

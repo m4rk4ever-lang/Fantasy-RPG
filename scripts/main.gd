@@ -60,6 +60,8 @@ func _ready() -> void:
 	player.health_changed.connect(hud.set_health)
 	hud.set_stamina(player.stamina, player.max_stamina)
 	hud.set_health(player.health, player.max_health)
+	player.combat.fury_changed.connect(hud.set_resource)
+	hud.set_resource(0.0, PlayerCombat.MAX_FURY)
 
 	player.dashed.connect(_on_player_dashed)
 	player.landed.connect(_on_player_landed)
@@ -353,6 +355,22 @@ func _build_nav() -> void:
 	nav.build(arena)
 	player.nav = nav
 	print("NavGrid built in %d ms" % (Time.get_ticks_msec() - t0))
+	_debug_url_hook()
+
+
+## Test hook for the web build: ?test=undercroft walks straight into the Undercroft (used by tools/web_check.mjs).
+func _debug_url_hook() -> void:
+	if not OS.has_feature("web"):
+		return
+	var q: Variant = JavaScriptBridge.eval("window.location.search", true)
+	if typeof(q) == TYPE_STRING and String(q).contains("test=undercroft"):
+		use_save = false
+		player.quests.start("the_dark_spire")
+		await get_tree().create_timer(1.0).timeout
+		print("TEST: entering Undercroft")
+		_try_enter_undercroft()
+		await get_tree().create_timer(4.0).timeout
+		print("TEST: inside at ", player.global_position)
 
 
 ## Action-bar entry for a combat skill (also used by drag-and-drop from the skill tree).

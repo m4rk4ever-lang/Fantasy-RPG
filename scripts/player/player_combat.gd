@@ -72,12 +72,31 @@ const ATTACKS: Dictionary = {
 
 ## Ability bar. Attack-type skills start an entry of ATTACKS; "second_wind" is a self-heal.
 const SKILLS: Array[Dictionary] = [
-	{"id": "cleave", "attack": "heavy", "name": "Cleave", "description": "Two-handed slam. Shockwave hits everything around the impact.", "key_label": "1", "cooldown": 5.0, "color": Color("d9552e")},
-	{"id": "surge", "attack": "surge", "name": "Surge Strike", "description": "Dash to your target and cut through it. Needs a target within 10 m.", "key_label": "2", "cooldown": 8.0, "color": Color("3d5ba9")},
-	{"id": "whirlwind", "attack": "whirlwind", "name": "Whirlwind", "description": "Spin twice, striking every enemy around you.", "key_label": "3", "cooldown": 10.0, "color": Color("5b6c9e")},
+	{"id": "cleave", "attack": "heavy", "name": "Cleave", "description": "Two-handed slam. Shockwave hits everything around the impact. Builds Fury.", "key_label": "1", "cooldown": 5.0, "color": Color("d9552e")},
+	{"id": "surge", "attack": "surge", "name": "Surge Strike", "description": "Dash to your target and cut through it. Needs a target within 10 m. Costs 30 Fury.", "key_label": "2", "cooldown": 8.0, "color": Color("3d5ba9")},
+	{"id": "whirlwind", "attack": "whirlwind", "name": "Whirlwind", "description": "Spin twice, striking every enemy around you. Costs 40 Fury.", "key_label": "3", "cooldown": 10.0, "color": Color("5b6c9e")},
 	{"id": "second_wind", "attack": "", "name": "Second Wind", "description": "Restore 35 health and all stamina.", "key_label": "4", "cooldown": 30.0, "color": Color("4cb46a")},
 ]
 const SURGE_RANGE: float = 10.0
+## Vanguard class resource (owner's choice 13-11-2026, V.12): Fury builds on hits and fades out of combat.
+const MAX_FURY: float = 100.0
+const FURY_COST: Dictionary = {"surge": 30.0, "whirlwind": 40.0}
+const FURY_PER_HIT: float = 9.0
+const FURY_PER_SKILL_HIT: float = 3.0
+const FURY_DECAY: float = 7.0
+const FURY_HOLD: float = 6.0
+signal fury_changed(value: float, max_value: float)
+var fury: float = 0.0
+var _fury_idle: float = 0.0
+
+
+func add_fury(amount: float) -> void:
+	var before: float = fury
+	fury = clampf(fury + amount, 0.0, MAX_FURY)
+	if amount > 0.0:
+		_fury_idle = 0.0
+	if not is_equal_approx(before, fury):
+		fury_changed.emit(fury, MAX_FURY)
 
 signal skill_used(id: String)
 
@@ -126,6 +145,8 @@ func is_skill_unlocked(id: String) -> bool:
 func is_skill_usable(id: String) -> bool:
 	if not is_skill_unlocked(id) or get_cooldown(id) > 0.0:
 		return false
+	if fury < float(FURY_COST.get(id, 0.0)):
+		return false
 	if id == "surge":
 		var t: Node3D = _skill_target()
 		return t != null
@@ -154,6 +175,7 @@ func use_skill(id: String) -> bool:
 		cancel()
 		_start(atk)
 	_cooldowns[id] = float(sk["cooldown"]) * maxf(0.3, 1.0 + player.progression.stat("cooldown_mult"))
+	add_fury(-float(FURY_COST.get(id, 0.0)))
 	skill_used.emit(id)
 	return true
 
@@ -264,6 +286,9 @@ func _aim_at_best_target() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	_fury_idle += delta
+	if _fury_idle > FURY_HOLD and fury > 0.0:
+		add_fury(-FURY_DECAY * delta)
 	for k: String in _cooldowns.keys():
 		_cooldowns[k] = (_cooldowns[k] as float) - delta
 	if current.has("spin") and (phase == Phase.ACTIVE):
@@ -382,6 +407,8 @@ func _detect_hits() -> void:
 		var hit_pos: Vector3 = en.global_position + Vector3.UP * 1.1 - dir * 0.35
 		if en.has_method("take_hit"):
 			en.call("take_hit", _damage_against(en), dir * current["knockback"], hit_pos)
+		var is_skill_hit: bool = SKILLS.any(func(x: Dictionary) -> bool: return x["attack"] == current_name)
+		add_fury(FURY_PER_SKILL_HIT if is_skill_hit else FURY_PER_HIT)
 		hit_landed.emit(en, hit_pos, current)
 
 

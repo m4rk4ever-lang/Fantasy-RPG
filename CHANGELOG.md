@@ -13,6 +13,11 @@ Feedback van de eigenaar: 31 tot 45 fps in Safari, en personages en omgeving zie
 - **Uitwijken voor obstakels** waar geen padraster is (kerkers) en op de laatste meters naar een doel.
 - **Dorpelingen lopen echt** (loopanimatie op tempo) in plaats van te schuiven.
 - **Roadmap opgeschoond:** afgeronde blokken afgevinkt na het samenvoegen van de twee sessies.
+- **Richting RuneScape 3, eerste stap in de startvallei:** boomkruinen van bladkaarten met zachte volumeschaduw en wind, schilderachtig gras met penseelstreken en bloemetjes, zandpaden van Saltwick naar de ruïnes en de klif, gladde rots onder de Veilspire, ronde zuilen met voet en kapiteel in plaats van blokken, gladde rotsblokken, iets warmere kleuren.
+- **Fury (V.12, keuze eigenaar):** de Vanguard bouwt Fury op met elke treffer; Surge Strike kost 30 en Whirlwind 40. Fury zakt na 6 s buiten gevecht. Tweede orb naast health.
+- **Keuze raids (V.13, eigenaar):** later echte multiplayer. Eerst singleplayer af; raids worden apart gepland.
+- **Crash in Safari bij de Undercroft:** in Chromium niet te reproduceren. Waarschijnlijke oorzaak: elf fakkellichten op één grote mesh (een extra render-pass per licht). Nu geven alleen de drie dichtstbijzijnde fakkels echt licht. Graag opnieuw testen.
+- **Foutmeldingen van de health-orb** (polygoon kon niet getekend worden bij bijna lege orb) opgelost.
 
 **Feedback verwerkt**
 - Prestaties in Safari: eerste ronde besparingen. Graag opnieuw meten.

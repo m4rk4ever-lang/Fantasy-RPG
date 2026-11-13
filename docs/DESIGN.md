@@ -192,3 +192,9 @@ Hollowed Wardens: de Wardens die the Veil als eersten raakte. Ze dragen nog de g
 - Opbouw: Entry hall → gang → Hall of Wardens (zuilen, 3 Hollowed) → gang (1 Hollowed) → Beacon Chamber met **Aldric, the Lightless Keeper**: level 5, 420 health, raakt hard, wankelt pas na 4 treffers. Op 50% health roept hij 2 extra Hollowed en wordt hij sneller. Een koud bleek licht maakt hem in het donker leesbaar.
 - Na zijn val kun je het baken aansteken: dat rondt **The Dark Spire** en **hoofdstuk I** af (450 XP, 120 coins), en boven de Veilspire brandt weer een licht dat je in het hele dal ziet.
 - Padvinding werkt alleen in de buitenwereld. In de kerker loop je rechtstreeks, met brede gangen.
+
+## Keuzes eigenaar (13-11-2026, vierde sessie)
+
+- **Resource per klasse:** eigen resource per klasse. Vanguard: Fury (bouwt op door treffers, zakt buiten gevecht, Surge Strike 30, Whirlwind 40). Ranger Focus, Arcanist Mana, Priest Faith, Warlock Corruption volgen.
+- **Raids:** later echte multiplayer. Tot die tijd geen raids; eerst de singleplayer-slice af.
+- **Grafische richting:** dichter naar de gladde stijl van RuneScape 3. Personages zijn geanimeerde CC0-modellen (Quaternius) met eigen uitrusting; omgeving gladde vormen, bladkaarten, schilderachtige terreinshader.

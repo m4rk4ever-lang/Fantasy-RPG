@@ -55,8 +55,13 @@ func _draw() -> void:
 		poly.append(Vector2(x3, c.y + dy3))
 	for i4: int in range(n, -1, -1):
 		poly.append(surface[i4])
-	if _shown > 0.005:
-		draw_colored_polygon(poly, liquid)
+	# Drop near-duplicate points (the wave touches the rim at the edges) and skip shapes that will not triangulate.
+	var clean := PackedVector2Array()
+	for q: Vector2 in poly:
+		if clean.is_empty() or clean[clean.size() - 1].distance_to(q) > 0.3:
+			clean.append(q)
+	if _shown > 0.04 and clean.size() >= 3 and not Geometry2D.triangulate_polygon(clean).is_empty():
+		draw_colored_polygon(clean, liquid)
 		draw_polyline(surface, liquid.lightened(0.35), 1.5, true)
 	# Glass highlight.
 	draw_arc(c + Vector2(-r * 0.2, -r * 0.25), r * 0.55, PI * 1.1, PI * 1.6, 16, Color(1, 1, 1, 0.18), 3.0, true)
