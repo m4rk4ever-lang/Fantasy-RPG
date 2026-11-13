@@ -195,11 +195,27 @@ func _run() -> void:
 	lure.queue_free()
 	await _frames(2)
 
+	# Progression: skills start locked, XP gives levels and points, the tree enforces its order.
+	var prog: Progression = player.progression
+	_check(prog.is_skill_unlocked("cleave"), "Cleave is unlocked from the start")
+	_check(not player.combat.use_skill("whirlwind"), "locked skill cannot be used")
+	_check(not prog.can_rank_up("whirlwind"), "Whirlwind needs Keen Edge first")
+	var lvl0: int = prog.level
+	prog.add_xp(1000)
+	_check(prog.level > lvl0 and prog.skill_points > 1, "XP gives levels and skill points (level %d, %d points)" % [prog.level, prog.skill_points])
+	_check(prog.rank_up("keen_edge"), "rank up Keen Edge")
+	_check(is_equal_approx(prog.stat("damage_mult"), 0.08), "Keen Edge adds 8% damage")
+	_check(prog.rank_up("whirlwind"), "unlock Whirlwind after Keen Edge")
+	_check(prog.rank_up("second_wind"), "unlock Second Wind")
+	var mh0: float = player.max_health
+	prog.rank_up("iron_skin")
+	_check(player.max_health > mh0, "Iron Skin raises max health")
+
 	# Skills: use, then cooldown blocks reuse.
 	await _frames(30)
 	_check(player.combat.use_skill("whirlwind"), "skill Whirlwind activates")
 	_check(not player.combat.use_skill("whirlwind"), "skill is on cooldown after use")
-	_check(player.combat.get_cooldown("whirlwind") > 9.0, "cooldown runs (%.1f s)" % player.combat.get_cooldown("whirlwind"))
+	_check(player.combat.get_cooldown("whirlwind") > 8.0, "cooldown runs (%.1f s)" % player.combat.get_cooldown("whirlwind"))
 	await _frames(60)
 	player.take_damage(30.0)
 	await _frames(50)

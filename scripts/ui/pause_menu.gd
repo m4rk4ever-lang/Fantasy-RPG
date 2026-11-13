@@ -19,6 +19,7 @@ const CONTROLS: Array[Array] = [
 	["Sprint", "Shift", "L3"],
 	["Dodge", "Space, right mouse, Alt or C", "B or A"],
 	["Target nearest", "Q", "R3"],
+	["Skill tree and allegiance", "K", "D-pad down"],
 	["Auto retaliate on/off", "R or click the button", "D-pad up"],
 	["Pause", "Esc or P", "Start"],
 ]

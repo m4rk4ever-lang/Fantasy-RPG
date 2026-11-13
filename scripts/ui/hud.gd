@@ -10,6 +10,11 @@ const COL_BACK := Color(0.12, 0.13, 0.16, 0.65)
 var skill_bar: SkillBar
 ## Emitted when the player clicks the auto-retaliate button.
 signal retaliate_clicked
+signal skills_clicked
+var _xp_bar: ProgressBar
+var _level_label: Label
+var _banner: Label
+var _skills_button: Button
 var _retaliate_button: Button
 var _retaliate_style: StyleBoxFlat
 var _health_bar: ProgressBar
@@ -43,6 +48,18 @@ func _ready() -> void:
 	_stamina_bar = _make_bar(COL_STAMINA, Vector2(220, 10))
 	box.add_child(_health_bar)
 	box.add_child(_stamina_bar)
+	var xp_row := HBoxContainer.new()
+	xp_row.add_theme_constant_override("separation", 8)
+	box.add_child(xp_row)
+	_level_label = Label.new()
+	_level_label.add_theme_color_override("font_color", COL_FRAME)
+	_level_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.6))
+	_level_label.add_theme_constant_override("outline_size", 4)
+	_level_label.add_theme_font_size_override("font_size", 13)
+	xp_row.add_child(_level_label)
+	_xp_bar = _make_bar(Color("d9a441"), Vector2(240, 7))
+	_xp_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	xp_row.add_child(_xp_bar)
 
 	_fps_label = Label.new()
 	_fps_label.anchor_left = 1.0
@@ -54,7 +71,7 @@ func _ready() -> void:
 	root.add_child(_fps_label)
 
 	_hint = Label.new()
-	_hint.text = "WASD move · Click monster to attack · 1-4 skills · Space/RMB dodge · Middle mouse / arrows rotate · Scroll zoom · R auto retaliate · Esc pause"
+	_hint.text = "WASD move · Click monster to attack · 1-4 skills · Space/RMB dodge · Middle mouse / arrows rotate · Scroll zoom · R auto retaliate · K skill tree · Esc pause"
 	_hint.anchor_left = 0.5
 	_hint.anchor_right = 0.5
 	_hint.offset_left = -560
@@ -125,6 +142,42 @@ func _ready() -> void:
 	root.add_child(_retaliate_button)
 	set_retaliate(true)
 
+	_skills_button = Button.new()
+	_skills_button.focus_mode = Control.FOCUS_NONE
+	_skills_button.anchor_left = 1.0
+	_skills_button.anchor_right = 1.0
+	_skills_button.anchor_top = 1.0
+	_skills_button.anchor_bottom = 1.0
+	_skills_button.offset_left = -208
+	_skills_button.offset_right = -24
+	_skills_button.offset_top = -140
+	_skills_button.offset_bottom = -92
+	var sk_style: StyleBoxFlat = _retaliate_style.duplicate()
+	sk_style.border_color = Color("d9a441")
+	for st2: String in ["normal", "hover", "pressed"]:
+		_skills_button.add_theme_stylebox_override(st2, sk_style)
+	_skills_button.add_theme_color_override("font_color", COL_FRAME)
+	_skills_button.add_theme_font_size_override("font_size", 14)
+	_skills_button.text = "Skill tree  [K]"
+	_skills_button.pressed.connect(func() -> void: skills_clicked.emit())
+	root.add_child(_skills_button)
+
+	_banner = Label.new()
+	_banner.anchor_left = 0.5
+	_banner.anchor_right = 0.5
+	_banner.anchor_top = 0.3
+	_banner.anchor_bottom = 0.3
+	_banner.offset_left = -400
+	_banner.offset_right = 400
+	_banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_banner.add_theme_font_size_override("font_size", 40)
+	_banner.add_theme_color_override("font_color", Color("f2d48a"))
+	_banner.add_theme_color_override("font_outline_color", Color(0.12, 0.13, 0.16, 0.9))
+	_banner.add_theme_constant_override("outline_size", 10)
+	_banner.modulate.a = 0.0
+	_banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(_banner)
+
 	_flash_rect = ColorRect.new()
 	_flash_rect.color = Color(COL_HEALTH, 0.0)
 	_flash_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -161,6 +214,26 @@ func set_health(value: float, max_value: float) -> void:
 func set_stamina(value: float, max_value: float) -> void:
 	_stamina_bar.max_value = max_value
 	_stamina_bar.value = value
+
+
+func set_xp(xp: int, xp_to_next: int, level: int) -> void:
+	_xp_bar.max_value = xp_to_next
+	_xp_bar.value = xp
+	_level_label.text = "Lv %d" % level
+
+
+func set_skill_points(points: int) -> void:
+	_skills_button.text = "Skill tree  [K]" if points <= 0 else "Skill tree  [K]   +%d" % points
+
+
+## Big centered message that fades (level up, area names).
+func show_banner(text: String, sub: String = "") -> void:
+	_banner.text = text if sub == "" else "%s\n%s" % [text, sub]
+	var tw := create_tween()
+	_banner.modulate.a = 0.0
+	tw.tween_property(_banner, "modulate:a", 1.0, 0.35)
+	tw.tween_interval(2.2)
+	tw.tween_property(_banner, "modulate:a", 0.0, 0.8)
 
 
 func set_retaliate(on: bool) -> void:

@@ -12,6 +12,7 @@ var lock_on: LockOn
 var clicks: ClickController
 var ambience: Ambience
 var _last_night: float = -1.0
+var _area: String = ""
 var _step_timer: float = 0.0
 var _enemy_spawns: Array[Vector3] = [Vector3(-6.0, 0.0, -10.0), Vector3(7.0, 0.0, -14.0), Vector3(-1.0, 0.0, -24.0)]
 
@@ -68,6 +69,21 @@ func _ready() -> void:
 	player.combat.skill_used.connect(_on_skill_used)
 	player.retaliated.connect(func(attacker: Node3D) -> void: lock_on.set_target(attacker))
 	player.auto_retaliate_changed.connect(hud.set_retaliate)
+	# --- Progression and skill tree ---
+	var tree_window := SkillTreeWindow.new()
+	tree_window.name = "SkillTree"
+	add_child(tree_window)
+	tree_window.setup(player.progression)
+	hud.skills_clicked.connect(tree_window.toggle)
+	var prog: Progression = player.progression
+	prog.xp_changed.connect(hud.set_xp)
+	prog.xp_changed.connect(func(_x: int, _n: int, _l: int) -> void: hud.set_skill_points(prog.skill_points))
+	prog.ranks_changed.connect(func() -> void: hud.set_skill_points(prog.skill_points))
+	prog.leveled_up.connect(func(lvl: int) -> void:
+		hud.show_banner("Level %d" % lvl, "A skill point awaits. Press K.")
+		fx.impact(player.global_position + Vector3.UP * 1.2, Vector3.UP, 1.4))
+	hud.set_xp(prog.xp, prog.xp_to_next(), prog.level)
+	hud.set_skill_points(prog.skill_points)
 	hud.retaliate_clicked.connect(func() -> void: player.set_auto_retaliate(not player.auto_retaliate))
 	for i: int in _enemy_spawns.size():
 		_spawn_enemy(i)
@@ -118,6 +134,7 @@ func _spawn_enemy(index: int) -> void:
 
 
 func _on_enemy_died(index: int) -> void:
+	player.progression.add_xp(40)
 	camera_rig.add_trauma(0.35)
 	fx.hitstop(0.12)
 	# Training valley: the Hollowed reform after a while.
@@ -160,6 +177,11 @@ func _on_skill_used(id: String) -> void:
 
 
 func _process(delta: float) -> void:
+	# Area names (English in-game names).
+	var area: String = "Saltwick" if arena.sea_distance(player.global_position.x, player.global_position.z) > 12.0 else "Warden's Vale"
+	if area != _area:
+		_area = area
+		hud.show_banner(area, "Fishing village of the Saltbound" if area == "Saltwick" else "Beneath the first Veilspire")
 	var night: float = arena.day_night.night_factor
 	if absf(night - _last_night) > 0.02:
 		_last_night = night
@@ -167,7 +189,8 @@ func _process(delta: float) -> void:
 	for sk: Dictionary in PlayerCombat.SKILLS:
 		var id: String = sk["id"]
 		hud.skill_bar.set_cooldown(id, player.combat.get_cooldown(id), sk["cooldown"])
-		hud.skill_bar.set_usable(id, player.combat.get_cooldown(id) > 0.0 or player.combat.is_skill_usable(id))
+		var unlocked: bool = player.combat.is_skill_unlocked(id)
+		hud.skill_bar.set_usable(id, unlocked and (player.combat.get_cooldown(id) > 0.0 or player.combat.is_skill_usable(id)))
 	# Dust puffs from sprint footsteps.
 	if player.is_sprinting and player.is_on_floor():
 		_step_timer -= delta

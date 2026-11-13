@@ -2,7 +2,7 @@
 
 Een episch third-person action-adventure RPG in een high-fantasy wereld. Gemaakt in Godot 4, speelbaar in de browser.
 
-De Kroon van Zeven Hemelen is gebroken. Uit de scheuren in de lucht kruipt de Sluier, een mist die alles laat vergeten wat het was. Als laatste Wachter trek je langs de oude torens op de kliffen om de scherven terug te vinden.
+De Crown of Seven Heavens is gebroken. Uit de scheuren in de lucht kruipt de Sluier, een mist die alles laat vergeten wat het was. Als laatste Wachter trek je langs de oude torens op de kliffen om de scherven terug te vinden.
 
 **Speel het:** https://m4rk4ever-lang.github.io/Fantasy-RPG/
 

@@ -142,6 +142,18 @@ func _run() -> void:
 		await _wait(4)
 		await _save("07_dorpeling.png")
 
+	# 5d. Skill tree window with some progress.
+	var prog: Progression = player.progression
+	prog.add_xp(700)
+	for nid: String in ["keen_edge", "keen_edge", "whirlwind", "second_wind", "surge"]:
+		prog.rank_up(nid)
+	prog.set_allegiance("saltbound")
+	var tree_win: SkillTreeWindow = main.get_node("SkillTree")
+	tree_win.toggle()
+	await _wait(6)
+	await _save("08_skilltree.png")
+	tree_win.toggle()
+
 	# 5. Dusk over the valley: day-night cycle.
 	dn.time_of_day = 19.2
 	dn.apply()

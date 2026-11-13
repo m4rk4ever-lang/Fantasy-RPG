@@ -27,6 +27,7 @@ func _ready() -> void:
 	_add_action("zoom_out", [_mouse(MOUSE_BUTTON_WHEEL_DOWN), _key(KEY_MINUS)])
 	_add_action("lock_on", [_key(KEY_Q), _key(KEY_TAB), _button(JOY_BUTTON_RIGHT_STICK)])
 	_add_action("toggle_retaliate", [_key(KEY_R), _button(JOY_BUTTON_DPAD_UP)])
+	_add_action("skill_tree", [_key(KEY_K), _button(JOY_BUTTON_DPAD_DOWN)])
 	_add_action("pause", [_key(KEY_ESCAPE), _key(KEY_P), _button(JOY_BUTTON_START)])
 
 

@@ -52,6 +52,9 @@ var air_dashes_left: int = 1
 
 var model: HeroModel
 var combat: PlayerCombat
+var progression: Progression
+## Base max health before skill-tree bonuses.
+var base_max_health: float = 100.0
 ## Enemy the hero is locked onto (set by the lock-on system). Null = free.
 var lock_target: Node3D
 ## Monster the hero walks to and auto-attacks (set by clicking it). Null = no auto combat.
@@ -98,6 +101,10 @@ func _ready() -> void:
 	stamina = max_stamina
 	health = max_health
 	_facing = rotation.y
+	progression = Progression.new()
+	progression.name = "Progression"
+	add_child(progression)
+	progression.ranks_changed.connect(_apply_progression)
 	combat = PlayerCombat.new()
 	combat.name = "Combat"
 	add_child(combat)
@@ -175,7 +182,7 @@ func try_dash() -> bool:
 	is_dashing = true
 	_dash_timer = dash_time
 	_iframe_timer = dash_iframes
-	_spend_stamina(dash_cost)
+	_spend_stamina(dash_cost * maxf(0.1, 1.0 + progression.stat("dodge_cost_mult")))
 	_facing = atan2(-_dash_dir.x, -_dash_dir.z)
 	if model:
 		model.impulse_squash(-0.25)
@@ -202,6 +209,14 @@ func _spend_stamina(amount: float) -> void:
 	stamina_changed.emit(stamina, max_stamina)
 
 
+## Re-apply passive stats after the skill tree changes.
+func _apply_progression() -> void:
+	var old_max: float = max_health
+	max_health = base_max_health + progression.stat("max_health")
+	health = minf(health + maxf(max_health - old_max, 0.0), max_health)
+	health_changed.emit(health, max_health)
+
+
 func set_auto_retaliate(on: bool) -> void:
 	auto_retaliate = on
 	auto_retaliate_changed.emit(on)
@@ -210,6 +225,7 @@ func set_auto_retaliate(on: bool) -> void:
 func take_damage(amount: float, knockback: Vector3 = Vector3.ZERO, attacker: Node3D = null) -> bool:
 	if is_invulnerable() or health <= 0.0:
 		return false
+	amount *= maxf(0.2, 1.0 + progression.stat("damage_taken_mult"))
 	health = maxf(health - amount, 0.0)
 	health_changed.emit(health, max_health)
 	combat.cancel()
@@ -288,7 +304,7 @@ func _physics_process(delta: float) -> void:
 		if hover > 0.0 and not on_floor:
 			velocity.y = maxf(velocity.y, 0.0) * 0.5 + hover * 0.3
 	else:
-		var target_speed: float = sprint_speed if is_sprinting else walk_speed
+		var target_speed: float = (sprint_speed if is_sprinting else walk_speed) * (1.0 + progression.stat("move_speed_mult"))
 		var target: Vector3 = wish * target_speed
 		var hvel := Vector3(velocity.x, 0, velocity.z)
 		var rate: float

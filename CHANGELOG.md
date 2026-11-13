@@ -15,6 +15,8 @@ Feedback van de eigenaar verwerkt: besturing in RuneScape-stijl, haperingen bij 
 - **Humor:** dorpelingen zeggen droge zinnen als je dichtbij staat. Het verhaal blijft episch.
 - **Leash voor mobs:** Leeghulzen worden agressief binnen 13 m en jagen niet verder dan 16 m van hun thuisplek. Daarna lopen ze terug en genezen ze.
 - **Niet in het water:** je stopt aan de waterlijn en kunt niet van de steiger af. Steigers blijven beloopbaar.
+- **Klassen en skilltree (keuze-issue #1):** de eigenaar koos A met Priest en Warlock erbij, en C los. Er zijn nu 5 klassen (Vanguard, Ranger, Arcanist, Priest, Warlock). Vanguard is speelbaar met een boom van 3 takken (Blade, Bulwark, Momentum). XP per verslagen Hollowed, levels, 1 skillpunt per level. Skills op de balk worden pas bruikbaar als je ze in de boom vrijspeelt (Cleave heb je vanaf het begin). Karaktervenster met **K** of de knop rechtsonder, met daarin ook je trouw aan een factie (geen invloed op je klasse). XP-balk en level-up-melding in de HUD.
+- **Alles Engels in het spel:** in-game tekst was al Engels. Nu zijn ook alle namen officieel Engels (Saltwick, Warden's Vale, the Veil, the Hollowed, the Saltbound enzovoort), met een namenlijst in `docs/DESIGN.md`. Bij het binnenlopen van een gebied verschijnt de naam in beeld.
 - **Roadmap:** nieuwe koers. Eerst een verticale slice van het eerste gebied (klassen en skilltree, XP en loot, quest met dialoog, opslaan, geluid, modellen bijschaven), pas daarna de wereld uitbreiden.
 - **Personages:** held, dorpelingen en Leeghulzen opnieuw opgebouwd als gefacetteerde low-poly lichamen met echte verhoudingen (naar de anatomie-referentie). Held met kuras met goudrand, gelaagde schouderstukken, tabard, cape met franje en een sierlijk zwaard met gloeiende steen. Leeghulzen mager en gebogen, met gescheurde gewaden en klauwen.
 
@@ -34,6 +36,7 @@ Feedback van de eigenaar verwerkt: besturing in RuneScape-stijl, haperingen bij 
 ![Avond in Zoutwijk](docs/screenshots/2026-11-13b/05_avond.png)
 ![Zoutwijk](docs/screenshots/2026-11-13b/06_dorp.png)
 ![Dorpeling met een grap](docs/screenshots/2026-11-13b/07_dorpeling.png)
+![Skilltree](docs/screenshots/2026-11-13b/08_skilltree.png)
 
 **Zelfcontrole**
 - Diepte: ja, sterk in het dorpsbeeld (steiger, huizen, heuvels, bergen). | Landmark: Veilspire en de zwevende kroonscherf. | Palet: ja. Koningsblauwe daken, steenkleurige muren, hemelblauw water. Gras van dichtbij is nog wat fel. | Game of demo: game. Het dorp en de avond zien eruit als een spel. | Zwakste deel: het gras dichtbij (fel en egaal) en de bergring overdag.
@@ -57,7 +60,7 @@ Feedback van de eigenaar verwerkt: besturing in RuneScape-stijl, haperingen bij 
 
 **Volgende run**
 - Bevestiging van de eigenaar over de prestaties. Zo nodig: schaduwen en grasdichtheid achter een kwaliteitsinstelling.
-- Verticale slice V.3: keuze-issue over klassen en skilltree, daarna V.4 (XP, levels, loot).
+- Verticale slice V.4b (loot en inventaris), daarna V.5 (dialoog en eerste quest in Saltwick).
 
 ## 13-11-2026
 

@@ -15,32 +15,32 @@ Blokken van ongeveer 60 minuten. De bouwagent pakt elke run het eerste niet-afge
 
 **Eerst het eerste gebied en de grote stappen af, dan pas de wereld uitbouwen.** Geen nieuwe gebieden, chunk-streaming of extra landmarks tot de verticale slice hieronder klaar is. Zo verbranden we geen tijd aan wereld terwijl het concept nog niet vaststaat.
 
-## Verticale slice: Wachtersvallei en Zoutwijk (nu)
+## Verticale slice: Warden's Vale en Saltwick (nu)
 
 Doel: één gebied waarin de hele kernloop speelbaar is: praten, quest aannemen, vechten met skills, belonen, sterker worden, opslaan.
 
 - [x] V.1 Mobs met aggro-afstand en leash: ze volgen je niet eindeloos, lopen terug en genezen.
 - [x] V.2 Looproutes afbakenen: niet de zee in, wel over steigers.
 - [ ] V.3 Klassen en skilltree: keuze-issue over opzet (welke klassen, hoe de boom eruitziet, hoe skills op de balk komen). Dan eerste klasse uitwerken.
-- [ ] V.4 Stats, XP en levels, loot van Leeghulzen, eenvoudige inventaris.
-- [ ] V.5 Dialoogsysteem en eerste NPC-quest in Zoutwijk (met een vleugje humor), quest-log.
+- [ ] V.4 Stats, XP en levels, loot van Hollowed, eenvoudige inventaris.
+- [ ] V.5 Dialoogsysteem en eerste NPC-quest in Saltwick (met een vleugje humor), quest-log.
 - [ ] V.6 Pad naar de Veilspire, toren als eerste questdoel. Heiligdom met obelisken.
 - [ ] V.7 Opslaan en laden.
 - [ ] V.8 Geluid: voetstappen, zwaard, treffers, golven, meeuwen, eenvoudige muziek.
-- [ ] V.9 Modellen bijschaven: meer detail in held, Leeghuls en huizen (RuneScape 3 is inmiddels gedetailleerd). Eventueel passende CC0-modellen zoeken.
+- [ ] V.9 Modellen bijschaven: meer detail in held, Hollowed en huizen (RuneScape 3 is inmiddels gedetailleerd). Eventueel passende CC0-modellen zoeken.
 - [ ] V.10 Prestaties en kwaliteitsinstelling (laag, midden, hoog).
 
 ## Fase 1: speelbare kern (snel en vloeiend)
 
 - [x] **1.1 Fundament.** Projectstructuur, CI naar GitHub Pages, testgebied met belichting en mist, third-person controller (lopen, sprinten, springen met coyote time, dash met i-frames), SpringArm-camera (muis en gamepad, FOV bij sprinten), procedureel personage met loopcyclus, minimale HUD, rooktests en screenshotscript.
 - [x] **1.2 Gevecht: aanvallen.** Lichte combo van 3 slagen, zware aanval, luchtaanval, annuleren met ontwijken, stamina. Zwaard-trail.
-- [x] **1.3 Vijand: Leeghuls.** Eén vijandtype met state machine (idle, achtervolgen, aanloop, aanval, getroffen, dood), hitboxes en hurtboxes, schade en dood.
+- [x] **1.3 Vijand: Hollowed.** Eén vijandtype met state machine (idle, achtervolgen, aanloop, aanval, getroffen, dood), hitboxes en hurtboxes, schade en dood.
 - [x] **1.4 Treffergevoel en lock-on.** Hitstop, impactdeeltjes, camera shake bij treffers, knockback, lock-on met doelwissel.
 - [x] **1.5 HUD en pauzemenu.** Vijandbalk boven doelwit, pauzemenu (hervatten, besturing, gevoeligheid), muisvangst netjes regelen.
 - [x] **1.6a Afwerking kern.** Stof bij sprintstappen, landen en ontwijken.
 - [x] **1.7 RuneScape-besturing (feedback).** Camera draait niet zelf (middelste muisknop, pijltjes), zoomen met scrollwiel, klik op monster om te lopen en aan te vallen, klik op de grond om te lopen, skills 1-4 met cooldowns en skillbalk, auto retaliate (R).
 - [x] **1.8 Prestaties gevecht (feedback).** Effecten in pools, materialen voorverwarmd, zachtere hitstop, bomen en dorp samengevoegd.
-- [x] **1.9 Low-poly anatomie (feedback).** Held, dorpelingen en Leeghulzen als gefacetteerde lichamen met echte verhoudingen. Rijkere uitrusting.
+- [x] **1.9 Low-poly anatomie (feedback).** Held, dorpelingen en Hollowed als gefacetteerde lichamen met echte verhoudingen. Rijkere uitrusting.
 - [ ] **1.6b Afwerking kern.** Ontwijk-nabeeld, betere idle-pose, gamepad-test.
 - [ ] **1.10 Skills uitbreiden.** Skill-effecten per skill (Whirlwind-spoor, Surge-streep, groene heal-gloed), adrenaline of resource zoals in RuneScape (eerst keuze-issue).
 
@@ -52,9 +52,9 @@ Doel: één gebied waarin de hele kernloop speelbaar is: praten, quest aannemen,
 - [x] 2.3a Zee in de baai met golven, schuimranden en strand (diepte per vertex, geen depth texture).
 - [ ] 2.3b Rivier met kapotte brug (Havenhythe-inspiratie), waterval vanaf de bergen.
 - [x] 2.4 Hemel met wolken (eigen sky-shader), dag-nachtcyclus van 16 minuten met maan en sterren, mist en ambient per tijdstip.
-- [x] 2.5a Vissersdorp Zoutwijk aan de baai: vakwerkhuizen, steigers, boten, rook, meeuwen, dorpelingen. Zwevende kroonscherf boven de vallei.
+- [x] 2.5a Vissersdorp Saltwick aan de baai: vakwerkhuizen, steigers, boten, rook, meeuwen, dorpelingen. Zwevende kroonscherf boven de vallei.
 - [ ] 2.5b Pad omhoog naar de Veilspire, interieur van de toren. Heiligdom met obelisken (Ascendanten).
-- [ ] 2.5c **Pas na de verticale slice.** Tweede gebied met monumentale architectuur en gloeiende runen (sfeerreferentie eigenaar 13-11-2026): bijvoorbeeld een smidsestad van de Asheer.
+- [ ] 2.5c **Pas na de verticale slice.** Tweede gebied met monumentale architectuur en gloeiende runen (sfeerreferentie eigenaar 13-11-2026): bijvoorbeeld een smidsestad van the Ashen Host.
 - [ ] 2.6 Snelle verplaatsing: glijden (glider) of klimmen.
 - [x] 2.7a Leven rond de speler: stuifmeel overdag, vuurvliegjes 's nachts, vlinders.
 - [ ] 2.7b Vallende bladeren bij bomen, vogels in het bos, dieren (herten, konijnen).
@@ -70,7 +70,7 @@ Doel: één gebied waarin de hele kernloop speelbaar is: praten, quest aannemen,
 
 ## Fase 4: verhaal (serieus en episch)
 
-- [x] 4.1 Lore en hoofdconflict uitwerken in DESIGN.md (Ascendanten, facties, de Ongezongene).
+- [x] 4.1 Lore en hoofdconflict uitwerken in DESIGN.md (Ascendanten, facties, the Unsung).
 - [ ] 4.2 NPC's en dialoogsysteem.
 - [ ] 4.3 Questsysteem met quest-log.
 - [ ] 4.4 Hoofdquest van 3 tot 5 quests.

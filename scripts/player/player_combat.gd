@@ -108,8 +108,12 @@ func get_cooldown(id: String) -> float:
 	return maxf(_cooldowns.get(id, 0.0), 0.0)
 
 
+func is_skill_unlocked(id: String) -> bool:
+	return player.progression == null or player.progression.is_skill_unlocked(id)
+
+
 func is_skill_usable(id: String) -> bool:
-	if get_cooldown(id) > 0.0:
+	if not is_skill_unlocked(id) or get_cooldown(id) > 0.0:
 		return false
 	if id == "surge":
 		var t: Node3D = _skill_target()
@@ -138,7 +142,7 @@ func use_skill(id: String) -> bool:
 	if atk != "":
 		cancel()
 		_start(atk)
-	_cooldowns[id] = sk["cooldown"]
+	_cooldowns[id] = float(sk["cooldown"]) * maxf(0.3, 1.0 + player.progression.stat("cooldown_mult"))
 	skill_used.emit(id)
 	return true
 
@@ -366,8 +370,20 @@ func _detect_hits() -> void:
 		var dir: Vector3 = to.normalized() if d > 0.01 else fwd
 		var hit_pos: Vector3 = en.global_position + Vector3.UP * 1.1 - dir * 0.35
 		if en.has_method("take_hit"):
-			en.call("take_hit", current["damage"], dir * current["knockback"], hit_pos)
+			en.call("take_hit", _damage_against(en), dir * current["knockback"], hit_pos)
 		hit_landed.emit(en, hit_pos, current)
+
+
+## Attack damage with skill-tree bonuses (Keen Edge, Executioner).
+func _damage_against(en: Node3D) -> float:
+	var dmg: float = float(current["damage"])
+	if player.progression:
+		dmg *= 1.0 + player.progression.stat("damage_mult")
+		var hp: float = float(en.get("health"))
+		var mhp: float = float(en.get("max_health"))
+		if mhp > 0.0 and hp / mhp < 0.3:
+			dmg *= 1.0 + player.progression.stat("execute_bonus")
+	return dmg
 
 
 func _update_pose(delta: float) -> void:
