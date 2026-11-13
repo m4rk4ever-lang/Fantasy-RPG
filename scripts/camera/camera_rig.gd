@@ -1,15 +1,18 @@
 class_name CameraRig
 extends Node3D
-## Third-person orbit camera: SpringArm3D collision, mouse + gamepad look,
-## speed-based FOV kick and trauma-based screen shake.
+## Third-person orbit camera in the RuneScape style: it never turns by itself.
+## Rotate with middle-mouse drag, arrow keys or the right stick; zoom with the scroll wheel.
+## SpringArm3D collision, speed-based FOV kick and trauma-based screen shake.
 
 @export var target_path: NodePath
-@export var arm_length: float = 4.6
+@export var arm_length: float = 7.5
+@export var min_zoom: float = 3.0
+@export var max_zoom: float = 18.0
 @export var height_offset: float = 1.55
-@export var mouse_sensitivity: float = 0.0025
+@export var mouse_sensitivity: float = 0.005
 @export var stick_sensitivity: float = 3.2
-@export var min_pitch: float = deg_to_rad(-65.0)
-@export var max_pitch: float = deg_to_rad(40.0)
+@export var min_pitch: float = deg_to_rad(-75.0)
+@export var max_pitch: float = deg_to_rad(10.0)
 @export var base_fov: float = 68.0
 @export var sprint_fov: float = 76.0
 @export var follow_sharpness: float = 14.0
@@ -23,7 +26,9 @@ var target: Node3D
 var look_target: Node3D
 
 var _yaw: float = 0.0
-var _pitch: float = deg_to_rad(-14.0)
+var _pitch: float = deg_to_rad(-24.0)
+var _zoom_target: float = 7.5
+var _dragging: bool = false
 var _trauma: float = 0.0
 var _noise := FastNoiseLite.new()
 var _time: float = 0.0
@@ -46,7 +51,7 @@ func _ready() -> void:
 	var probe := SphereShape3D.new()
 	probe.radius = 0.25
 	spring.shape = probe
-	spring.position = Vector3(0.45, 0, 0)  # Slight over-the-shoulder offset.
+	spring.position = Vector3.ZERO
 	pitch_node.add_child(spring)
 	camera = Camera3D.new()
 	camera.name = "Camera"
@@ -86,14 +91,24 @@ func kick_fov(amount: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+	if event is InputEventMouseButton:
+		var mb := event as InputEventMouseButton
+		if mb.button_index == MOUSE_BUTTON_MIDDLE:
+			_dragging = mb.pressed
+		elif mb.pressed and mb.button_index == MOUSE_BUTTON_WHEEL_UP:
+			_zoom_target = clampf(_zoom_target * 0.88, min_zoom, max_zoom)
+		elif mb.pressed and mb.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			_zoom_target = clampf(_zoom_target / 0.88, min_zoom, max_zoom)
+	elif event is InputEventMouseMotion and _dragging:
 		var mm := event as InputEventMouseMotion
 		_yaw -= mm.relative.x * mouse_sensitivity
 		_pitch -= mm.relative.y * mouse_sensitivity
 		_pitch = clampf(_pitch, min_pitch, max_pitch)
-	elif event is InputEventMouseButton and (event as InputEventMouseButton).pressed:
-		if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED and not get_tree().paused:
-			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	elif event is InputEventKey and (event as InputEventKey).pressed:
+		if event.is_action("zoom_in"):
+			_zoom_target = clampf(_zoom_target * 0.88, min_zoom, max_zoom)
+		elif event.is_action("zoom_out"):
+			_zoom_target = clampf(_zoom_target / 0.88, min_zoom, max_zoom)
 
 
 func _process(delta: float) -> void:
@@ -102,6 +117,7 @@ func _process(delta: float) -> void:
 	_yaw -= stick.x * stick_sensitivity * delta
 	_pitch -= stick.y * stick_sensitivity * 0.7 * delta
 	_pitch = clampf(_pitch, min_pitch, max_pitch)
+	spring.spring_length = lerpf(spring.spring_length, _zoom_target, 1.0 - exp(-10.0 * delta))
 
 	if look_target and is_instance_valid(look_target) and target:
 		var to: Vector3 = look_target.global_position - target.global_position
@@ -136,6 +152,11 @@ func _process(delta: float) -> void:
 func _apply_angles() -> void:
 	yaw_node.rotation.y = _yaw
 	pitch_node.rotation.x = _pitch
+
+
+func set_zoom(distance: float) -> void:
+	_zoom_target = clampf(distance, min_zoom, max_zoom)
+	spring.spring_length = _zoom_target
 
 
 func get_yaw_node() -> Node3D:

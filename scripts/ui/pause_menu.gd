@@ -11,18 +11,19 @@ const COL_SLATE := Color("5b6c9e")
 const COL_DANGER := Color("d9552e")
 
 const CONTROLS: Array[Array] = [
-	["Move", "WASD", "Left stick"],
-	["Camera", "Mouse", "Right stick"],
+	["Move", "WASD or click the ground", "Left stick"],
+	["Attack", "Left-click a monster", "X"],
+	["Skills", "1 2 3 4", "Y, RB, LB, Back"],
+	["Rotate camera", "Middle mouse drag or arrows", "Right stick"],
+	["Zoom", "Scroll wheel or + -", "-"],
 	["Sprint", "Shift", "L3"],
 	["Jump", "Space", "A"],
 	["Dodge", "Right mouse, Alt or C", "B"],
-	["Light attack", "Left mouse or J", "X"],
-	["Heavy attack", "E or K", "Y"],
-	["Lock-on", "Q or middle mouse", "R3"],
+	["Target nearest", "Q", "R3"],
 	["Pause", "Esc or P", "Start"],
 ]
 
-var mouse_sensitivity: float = 0.0025
+var mouse_sensitivity: float = 0.005
 var stick_sensitivity: float = 3.2
 
 var _root: Control
@@ -88,7 +89,7 @@ func _build_ui() -> void:
 	restart_button.pressed.connect(_on_restart_pressed)
 	box.add_child(restart_button)
 
-	_mouse_slider = _add_slider(box, "Mouse sensitivity", 0.0005, 0.006, 0.0001, mouse_sensitivity)
+	_mouse_slider = _add_slider(box, "Mouse sensitivity", 0.001, 0.012, 0.0002, mouse_sensitivity)
 	_stick_slider = _add_slider(box, "Stick sensitivity", 1.0, 6.0, 0.1, stick_sensitivity)
 	_mouse_slider.value_changed.connect(_on_slider_changed)
 	_stick_slider.value_changed.connect(_on_slider_changed)
@@ -212,7 +213,7 @@ func close() -> void:
 	_open = false
 	_root.visible = false
 	get_tree().paused = false
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 
 func is_open() -> bool:

@@ -50,6 +50,8 @@ var _leg_l: Node3D
 var _leg_r: Node3D
 var _eye_mat: StandardMaterial3D
 var _flash_mat: StandardMaterial3D
+var _flash_meshes: Array[MeshInstance3D] = []
+var _overlay_on: bool = false
 var _wisps: CPUParticles3D
 
 
@@ -90,7 +92,7 @@ func _part(parent: Node3D, mesh: Mesh, mat: Material, pos: Vector3, rot: Vector3
 	var mi := MeshInstance3D.new()
 	mi.mesh = mesh
 	mi.material_override = mat
-	mi.material_overlay = _flash_mat
+	_flash_meshes.append(mi)
 	mi.position = pos
 	mi.rotation = rot
 	mi.scale = scl
@@ -108,11 +110,8 @@ func _caps(r: float, h: float) -> CapsuleMesh:
 
 
 func _build_model() -> void:
-	_flash_mat = StandardMaterial3D.new()
-	_flash_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	_flash_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_flash_mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
-	_flash_mat.albedo_color = Color(1, 1, 1, 0)
+	# Same material features as CombatFx's pre-warmed flash, so no shader compile on first hit.
+	_flash_mat = CombatFx.make_hit_flash_material()
 	_eye_mat = StandardMaterial3D.new()
 	_eye_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_eye_mat.albedo_color = COL_EYE
@@ -164,7 +163,7 @@ func _build_model() -> void:
 	eye.height = 0.056
 	for side: float in [-1.0, 1.0]:
 		var e := _part(_head, eye, _eye_mat, Vector3(0.055 * side, 0.1, -0.19))
-		e.material_overlay = null
+		_flash_meshes.erase(e)
 
 	_arm_l = Node3D.new()
 	_arm_l.position = Vector3(-0.33, 0.55, 0.05)
@@ -269,6 +268,12 @@ func _physics_process(delta: float) -> void:
 	_cooldown -= delta
 	_flash = move_toward(_flash, 0.0, delta * 6.0)
 	_flash_mat.albedo_color = Color(1.0, 0.95, 0.85, _flash * 0.6)
+	# The overlay is an extra transparent pass per mesh: only attach it while flashing.
+	var want_overlay: bool = _flash > 0.0
+	if want_overlay != _overlay_on:
+		_overlay_on = want_overlay
+		for mi: MeshInstance3D in _flash_meshes:
+			mi.material_overlay = _flash_mat if want_overlay else null
 
 	var hv := Vector3.ZERO
 	var to_target := Vector3.ZERO

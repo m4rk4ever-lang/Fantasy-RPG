@@ -7,6 +7,7 @@ const COL_STAMINA := Color("4cb46a")
 const COL_FRAME := Color("e6e1d3")
 const COL_BACK := Color(0.12, 0.13, 0.16, 0.65)
 
+var skill_bar: SkillBar
 var _health_bar: ProgressBar
 var _stamina_bar: ProgressBar
 var _fps_label: Label
@@ -49,11 +50,11 @@ func _ready() -> void:
 	root.add_child(_fps_label)
 
 	_hint = Label.new()
-	_hint.text = "WASD move · Shift sprint · Space jump · RMB dodge · LMB attack · E heavy · Q lock-on · Esc pause"
+	_hint.text = "WASD move · Click monster to attack · 1-4 skills · RMB dodge · Middle mouse / arrows rotate · Scroll zoom · Esc pause"
 	_hint.anchor_left = 0.5
 	_hint.anchor_right = 0.5
-	_hint.offset_left = -360
-	_hint.offset_right = 360
+	_hint.offset_left = -560
+	_hint.offset_right = 560
 	_hint.offset_top = 16
 	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_hint.add_theme_color_override("font_color", COL_FRAME)
@@ -81,6 +82,19 @@ func _ready() -> void:
 	_target_root.add_child(_target_label)
 	_target_bar = _make_bar(COL_HEALTH, Vector2(420, 12))
 	_target_root.add_child(_target_bar)
+
+	var bar_holder := CenterContainer.new()
+	bar_holder.anchor_left = 0.0
+	bar_holder.anchor_right = 1.0
+	bar_holder.anchor_top = 1.0
+	bar_holder.anchor_bottom = 1.0
+	bar_holder.offset_top = -104
+	bar_holder.offset_bottom = -24
+	bar_holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(bar_holder)
+	skill_bar = SkillBar.new()
+	skill_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bar_holder.add_child(skill_bar)
 
 	_flash_rect = ColorRect.new()
 	_flash_rect.color = Color(COL_HEALTH, 0.0)

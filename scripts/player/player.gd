@@ -46,6 +46,12 @@ var model: HeroModel
 var combat: PlayerCombat
 ## Enemy the hero is locked onto (set by the lock-on system). Null = free.
 var lock_target: Node3D
+## Monster the hero walks to and auto-attacks (set by clicking it). Null = no auto combat.
+var attack_target: Node3D
+## Distance at which auto-attacks start.
+@export var auto_attack_range: float = 2.1
+var _move_target: Vector3 = Vector3.ZERO
+var _has_move_target: bool = false
 
 var _coyote: float = 0.0
 var _jump_buffer: float = 0.0
@@ -85,10 +91,25 @@ func _ready() -> void:
 	combat.name = "Combat"
 	add_child(combat)
 	combat.setup(self)
+	combat.skill_used.connect(_on_skill_used)
 
 
 func is_invulnerable() -> bool:
+	if combat and combat.current_name == "surge" and combat.phase != PlayerCombat.Phase.RECOVERY:
+		return true
 	return _iframe_timer > 0.0
+
+
+## Click-to-move (RuneScape style). WASD input cancels it.
+func set_move_target(point: Vector3) -> void:
+	_move_target = point
+	_has_move_target = true
+	attack_target = null
+
+
+func clear_orders() -> void:
+	_has_move_target = false
+	attack_target = null
 
 
 func get_move_input() -> Vector2:
@@ -114,10 +135,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_pressed("dodge"):
 		try_dash()
 	elif event.is_action_pressed("attack_light"):
-		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED or not (event is InputEventMouseButton):
-			combat.request_light()
-	elif event.is_action_pressed("attack_heavy"):
-		combat.request_heavy()
+		combat.request_light()
+	else:
+		for i: int in 4:
+			if event.is_action_pressed("skill_%d" % (i + 1)):
+				combat.use_skill(PlayerCombat.SKILLS[i]["id"])
 
 
 func request_jump() -> void:
@@ -202,6 +224,12 @@ func _physics_process(delta: float) -> void:
 	_tick_timers(delta)
 	var input: Vector2 = get_move_input()
 	var wish: Vector3 = _camera_relative(input)
+	if input.length() > 0.2:
+		# Direct control always wins over click orders.
+		_has_move_target = false
+		attack_target = null
+	else:
+		wish = _order_wish()
 	_wish = wish
 	var locked: bool = lock_target != null and is_instance_valid(lock_target)
 	var on_floor: bool = is_on_floor()
@@ -212,7 +240,7 @@ func _physics_process(delta: float) -> void:
 	else:
 		_coyote -= delta
 
-	is_sprinting = Input.is_action_pressed("sprint") and input.length() > 0.2 and stamina > 0.0 and on_floor
+	is_sprinting = Input.is_action_pressed("sprint") and wish.length() > 0.2 and stamina > 0.0 and on_floor
 	if is_sprinting:
 		stamina = maxf(stamina - sprint_drain * delta, 0.0)
 		_regen_wait = 0.2
@@ -293,6 +321,36 @@ func _physics_process(delta: float) -> void:
 	_update_model(delta)
 
 
+## Movement wanted by click orders: walk to a clicked point, or chase and auto-attack a monster.
+func _order_wish() -> Vector3:
+	if attack_target and (not is_instance_valid(attack_target) or (attack_target.has_method("is_dead") and attack_target.call("is_dead"))):
+		attack_target = null
+	if attack_target:
+		var to: Vector3 = attack_target.global_position - global_position
+		to.y = 0.0
+		if to.length() > auto_attack_range:
+			return to.normalized()
+		if not combat.is_busy() or combat.phase == PlayerCombat.Phase.RECOVERY:
+			combat.request_light()
+		return Vector3.ZERO
+	if _has_move_target:
+		var to2: Vector3 = _move_target - global_position
+		to2.y = 0.0
+		if to2.length() < 0.35:
+			_has_move_target = false
+			return Vector3.ZERO
+		return to2.normalized() * clampf(to2.length() / 1.2, 0.3, 1.0)
+	return Vector3.ZERO
+
+
+func _on_skill_used(id: String) -> void:
+	if id == "second_wind":
+		health = minf(health + 35.0, max_health)
+		stamina = max_stamina
+		health_changed.emit(health, max_health)
+		stamina_changed.emit(stamina, max_stamina)
+
+
 func _tick_timers(delta: float) -> void:
 	_jump_buffer -= delta
 	_dash_cd = maxf(_dash_cd - delta, 0.0)
@@ -307,7 +365,11 @@ func _tick_timers(delta: float) -> void:
 func _update_model(delta: float) -> void:
 	if model == null:
 		return
-	model.rotation.y = lerp_angle(model.rotation.y, _facing, 1.0 - exp(-turn_speed * delta))
+	var spin: float = combat.get_spin() if combat else 0.0
+	if spin != 0.0:
+		model.rotation.y = _facing + spin
+	else:
+		model.rotation.y = lerp_angle(model.rotation.y, _facing, 1.0 - exp(-turn_speed * delta))
 	var hvel := Vector3(velocity.x, 0, velocity.z)
 	var accel: Vector3 = (hvel - _prev_hvel) / maxf(delta, 0.0001)
 	_prev_hvel = hvel

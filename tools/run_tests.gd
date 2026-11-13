@@ -107,6 +107,37 @@ func _run() -> void:
 	_check(died[0] or foe.health < hp0, "enemy takes damage")
 	_check(died[0], "enemy dies after enough damage")
 	await _frames(40)
+
+	# RuneScape-style: clicking a monster makes the hero walk to it and auto-attack until it dies.
+	var foe2 := Hollow.new()
+	root.add_child(foe2)
+	foe2.global_position = player.global_position + player.get_facing_vector() * 7.0 + Vector3.UP * 0.2
+	foe2.attack_damage = 0.0
+	var died2: Array[bool] = [false]
+	foe2.died.connect(func(_x: Hollow) -> void: died2[0] = true)
+	await _frames(3)
+	player.attack_target = foe2
+	player.lock_target = foe2
+	for i: int in 60:
+		if died2[0]:
+			break
+		await _frames(10)
+	_check(died2[0], "auto-attack walks to the clicked monster and kills it")
+	_check(player.attack_target == null, "auto-attack stops after the kill")
+
+	# Skills: use, then cooldown blocks reuse.
+	await _frames(30)
+	_check(player.combat.use_skill("whirlwind"), "skill Whirlwind activates")
+	_check(not player.combat.use_skill("whirlwind"), "skill is on cooldown after use")
+	_check(player.combat.get_cooldown("whirlwind") > 9.0, "cooldown runs (%.1f s)" % player.combat.get_cooldown("whirlwind"))
+	await _frames(60)
+	player.take_damage(30.0)
+	await _frames(50)
+	var hp_before: float = player.health
+	_check(player.combat.use_skill("second_wind"), "skill Second Wind activates")
+	_check(player.health > hp_before, "Second Wind heals")
+	_check(not player.combat.is_skill_usable("surge"), "Surge Strike needs a target in range")
+	await _frames(30)
 	player.combat.request_heavy()
 	await _frames(5)
 	_check(player.combat.is_busy(), "heavy attack starts")

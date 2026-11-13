@@ -9,6 +9,7 @@ var camera_rig: CameraRig
 var hud: Hud
 var fx: CombatFx
 var lock_on: LockOn
+var clicks: ClickController
 var _step_timer: float = 0.0
 var _enemy_spawns: Array[Vector3] = [Vector3(-6.0, 0.0, -10.0), Vector3(7.0, 0.0, -14.0), Vector3(-1.0, 0.0, -24.0)]
 
@@ -27,7 +28,8 @@ func _ready() -> void:
 	camera_rig.name = "CameraRig"
 	add_child(camera_rig)
 	camera_rig.set_target(player)
-	camera_rig.set_angles(0.0, deg_to_rad(-12.0))
+	camera_rig.set_angles(0.0, deg_to_rad(-24.0))
+	camera_rig.set_zoom(8.0)
 	player.camera_basis_source = camera_rig.get_yaw_node()
 
 	hud = Hud.new()
@@ -54,6 +56,13 @@ func _ready() -> void:
 	add_child(lock_on)
 	lock_on.setup(player, camera_rig)
 	lock_on.target_changed.connect(hud.set_target)
+	clicks = ClickController.new()
+	clicks.name = "ClickController"
+	add_child(clicks)
+	clicks.setup(player, camera_rig, lock_on)
+	hud.skill_bar.setup(PlayerCombat.SKILLS)
+	hud.skill_bar.skill_clicked.connect(func(id: String) -> void: player.combat.use_skill(id))
+	player.combat.skill_used.connect(_on_skill_used)
 	for i: int in _enemy_spawns.size():
 		_spawn_enemy(i)
 	# --- End combat ---
@@ -128,7 +137,22 @@ func _on_player_died() -> void:
 		player.revive(at))
 
 
+func _on_skill_used(id: String) -> void:
+	hud.skill_bar.flash(id)
+	match id:
+		"surge":
+			fx.dust(player.global_position, 1.0)
+			camera_rig.kick_fov(8.0)
+		"second_wind":
+			fx.impact(player.global_position + Vector3.UP * 1.2, Vector3.UP, 0.6)
+			fx.dust(player.global_position, 0.6)
+
+
 func _process(delta: float) -> void:
+	for sk: Dictionary in PlayerCombat.SKILLS:
+		var id: String = sk["id"]
+		hud.skill_bar.set_cooldown(id, player.combat.get_cooldown(id), sk["cooldown"])
+		hud.skill_bar.set_usable(id, player.combat.get_cooldown(id) > 0.0 or player.combat.is_skill_usable(id))
 	# Dust puffs from sprint footsteps.
 	if player.is_sprinting and player.is_on_floor():
 		_step_timer -= delta
