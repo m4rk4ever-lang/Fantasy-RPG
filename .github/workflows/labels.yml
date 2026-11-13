@@ -1,0 +1,23 @@
+name: Labels
+
+on:
+  push:
+    branches: [main]
+    paths: [".github/workflows/labels.yml"]
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  labels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create or update labels
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          gh label create feedback --repo "$REPO" --color 3D5BA9 --description "Feedback van de eigenaar" --force
+          gh label create keuze --repo "$REPO" --color D9552E --description "Ontwerpkeuze met varianten" --force
+          gh label create gedaan --repo "$REPO" --color 4CB46A --description "Verwerkt door de bouwagent" --force
