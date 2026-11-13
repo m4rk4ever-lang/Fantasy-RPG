@@ -178,15 +178,34 @@ func _refresh() -> void:
 			col_box.add_child(_node_button(nodes[i], c, own))
 
 
+## Tree node that can be dragged onto the action bar once the skill is learned.
+class NodeButton:
+	extends Button
+	var skill_id: String = ""
+	var learned: bool = false
+
+	func _get_drag_data(_at_position: Vector2) -> Variant:
+		if skill_id == "" or not learned:
+			return null
+		var e: Dictionary = PlayerCombat.skill_entry(skill_id)
+		var preview := ColorRect.new()
+		preview.color = e.get("color", Color.WHITE)
+		preview.size = Vector2(36, 36)
+		set_drag_preview(preview)
+		return e
+
+
 func _node_button(n: Dictionary, c: Dictionary, own: bool) -> Button:
-	var b := Button.new()
+	var b := NodeButton.new()
 	b.focus_mode = Control.FOCUS_NONE
 	b.custom_minimum_size = Vector2(250, 52)
 	var rank: int = progression.get_rank(n["id"]) if own else 0
+	b.skill_id = n.get("skill", "")
+	b.learned = own and rank > 0
 	var max_rank: int = int(n.get("max", 1))
 	var kind: String = "Active skill" if n["kind"] == "active" else "Passive"
 	b.text = "%s\n%s  %d/%d" % [n["name"], kind, rank, max_rank]
-	b.tooltip_text = "%s (%s)\n%s" % [n["name"], kind, n["desc"]]
+	b.tooltip_text = "%s (%s)\n%s%s" % [n["name"], kind, n["desc"], "\nDrag onto the action bar." if n["kind"] == "active" else ""]
 	var can: bool = own and progression.can_rank_up(n["id"])
 	var border: Color = COL_SLATE
 	var bg: Color = COL_PANEL

@@ -180,10 +180,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		set_auto_retaliate(not auto_retaliate)
 	elif event.is_action_pressed("attack_light"):
 		combat.request_light()
-	else:
-		for i: int in 4:
-			if event.is_action_pressed("skill_%d" % (i + 1)):
-				combat.use_skill(PlayerCombat.SKILLS[i]["id"])
+
 
 
 func request_jump() -> void:

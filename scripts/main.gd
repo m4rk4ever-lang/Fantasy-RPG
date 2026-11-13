@@ -71,8 +71,10 @@ func _ready() -> void:
 	clicks.name = "ClickController"
 	add_child(clicks)
 	clicks.setup(player, camera_rig, lock_on)
-	hud.skill_bar.setup(PlayerCombat.SKILLS)
-	hud.skill_bar.skill_clicked.connect(func(id: String) -> void: player.combat.use_skill(id))
+	# Action bar: the four Vanguard skills on 1-4, slots 5-8 free for more skills or food.
+	for i: int in PlayerCombat.SKILLS.size():
+		hud.action_bar.assign(i, skill_entry(PlayerCombat.SKILLS[i]["id"]))
+	hud.action_bar.slot_activated.connect(_activate_slot)
 	player.combat.skill_used.connect(_on_skill_used)
 	player.retaliated.connect(func(attacker: Node3D) -> void: lock_on.set_target(attacker))
 	player.auto_retaliate_changed.connect(hud.set_retaliate)
@@ -202,7 +204,10 @@ func _on_player_died() -> void:
 
 
 func _on_skill_used(id: String) -> void:
-	hud.skill_bar.flash(id)
+	for i: int in ActionBar.SLOTS:
+		var e: Dictionary = hud.action_bar.entries[i]
+		if e.get("type", "") == "skill" and e.get("id", "") == id:
+			hud.action_bar.flash(i)
 	match id:
 		"surge":
 			fx.dust(player.global_position, 1.0)
@@ -222,11 +227,7 @@ func _process(delta: float) -> void:
 	if absf(night - _last_night) > 0.02:
 		_last_night = night
 		ambience.set_night(night)
-	for sk: Dictionary in PlayerCombat.SKILLS:
-		var id: String = sk["id"]
-		hud.skill_bar.set_cooldown(id, player.combat.get_cooldown(id), sk["cooldown"])
-		var unlocked: bool = player.combat.is_skill_unlocked(id)
-		hud.skill_bar.set_usable(id, unlocked and (player.combat.get_cooldown(id) > 0.0 or player.combat.is_skill_usable(id)))
+	_update_action_bar()
 	# Dust puffs from sprint footsteps.
 	if player.is_sprinting and player.is_on_floor():
 		_step_timer -= delta
@@ -297,3 +298,51 @@ func _build_nav() -> void:
 	nav.build(arena)
 	player.nav = nav
 	print("NavGrid built in %d ms" % (Time.get_ticks_msec() - t0))
+
+
+## Action-bar entry for a combat skill (also used by drag-and-drop from the skill tree).
+static func skill_entry(id: String) -> Dictionary:
+	return PlayerCombat.skill_entry(id)
+
+
+static func item_entry(id: String) -> Dictionary:
+	var d: Dictionary = Inventory.item_data(id)
+	if d.is_empty():
+		return {}
+	return {"type": "item", "id": id, "name": d["name"], "desc": d["desc"], "color": d["color"], "icon": 4}
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	for i: int in ActionBar.SLOTS:
+		if event.is_action_pressed("skill_%d" % (i + 1)):
+			_activate_slot(i)
+			get_viewport().set_input_as_handled()
+			return
+
+
+func _activate_slot(i: int) -> void:
+	var e: Dictionary = hud.action_bar.entries[i]
+	match e.get("type", ""):
+		"skill":
+			player.combat.use_skill(e["id"])
+		"item":
+			if player.inventory.count_of(e["id"]) > 0:
+				_on_item_used(e["id"])
+				hud.action_bar.flash(i)
+			else:
+				hud.toast("You have no %s left." % e["name"])
+
+
+func _update_action_bar() -> void:
+	for i: int in ActionBar.SLOTS:
+		var e: Dictionary = hud.action_bar.entries[i]
+		match e.get("type", ""):
+			"skill":
+				var id: String = e["id"]
+				hud.action_bar.set_cooldown(i, player.combat.get_cooldown(id), float(e["cooldown"]))
+				var unlocked: bool = player.combat.is_skill_unlocked(id)
+				hud.action_bar.set_usable(i, unlocked and (player.combat.get_cooldown(id) > 0.0 or player.combat.is_skill_usable(id)))
+			"item":
+				var n: int = player.inventory.count_of(e["id"])
+				hud.action_bar.set_count(i, n)
+				hud.action_bar.set_usable(i, n > 0)

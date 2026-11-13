@@ -72,9 +72,10 @@ Dit is een smaakkeuze. Voorstel: eerst een keuze-issue openen voordat het gebouw
 
 | Onderdeel | Nu | Doel (V.11) |
 |---|---|---|
+| Rennen | **knop "Run: ON/OFF" naast de orb (gebouwd)** | ronde run-orb met stamina |
 | Health en stamina | **health-orb met golvende vloeistof en een stamina-boog (gebouwd 13-11-2026)** | afwerking: textuur op de rand, waarschuwing bij lage health |
 | Resource | ontbreekt | orb per klasse (eerst een keuze-issue) |
-| Skillbalk | 4 vlakke vakken, **radiale cooldown (gebouwd 13-11-2026)** | gebogen balk, slepen vanuit de boom |
+| Skillbalk | **8 vakken (1-8), radiale cooldown, skills uit de boom en eten uit de rugzak erop te slepen, slepen tussen vakken, rechtsklik leegt (gebouwd 13-11-2026)** | gebogen stenen balk, meer balken bij hogere levels |
 | Skilltree | knoppen in kolommen | boom met iconen en verbindingslijnen |
 | Rugzak | gekleurde ruitjes | eigen itemiconen |
 | Dialoog | paneel zonder portret | paneel met portret |

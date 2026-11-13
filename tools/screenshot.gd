@@ -40,6 +40,8 @@ func _run() -> void:
 	dn.time_of_day = 9.5
 	dn.apply()
 
+	(main.get("hud") as Hud).action_bar.drop(4, {"type": "item", "id": "salted_fish", "name": "Salted Fish", "desc": "", "color": Color("6ec3f0"), "icon": 4})
+	player.inventory.add("salted_fish", 3)
 	# 1. Overview: behind the hero, looking up the valley at the watchtower.
 	rig.set_angles(-0.23, deg_to_rad(-6.0))
 	player.debug_move_input = Vector2(0, -0.0001)

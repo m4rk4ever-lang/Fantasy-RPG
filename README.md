@@ -12,7 +12,7 @@ De Crown of Seven Heavens is gebroken. Uit de scheuren in de lucht kruipt de Slu
 |---|---|---|
 | Lopen | WASD, of klik op de grond | linkerstick |
 | Aanvallen | klik op een monster (lopen en auto-aanval) | X |
-| Skills | 1, 2, 3, 4 (of klik op de balk) | Y, RB, LB, Back |
+| Actiebalk (skills en eten) | 1 t/m 8, klik op de balk, slepen om in te delen | Y, RB, LB, Back |
 | Camera draaien | middelste muisknop slepen of pijltjes | rechterstick |
 | Zoomen | scrollwiel of + en - | - |
 | Rennen aan/uit | Shift of Spatie, of de knop Run | linkerstick of B |

@@ -5,6 +5,24 @@ extends CanvasLayer
 
 signal item_used(id: String)
 
+
+## Backpack slot that can be dragged onto the action bar (consumables only).
+class DragSlot:
+	extends Button
+	var window: InventoryWindow
+	var index: int = 0
+
+	func _get_drag_data(_at_position: Vector2) -> Variant:
+		var s: Dictionary = window.inventory.slots[index]
+		if s.is_empty() or not Inventory.item_data(s["id"]).has("heal"):
+			return null
+		var preview := ColorRect.new()
+		preview.color = Inventory.item_data(s["id"]).get("color", Color.WHITE)
+		preview.size = Vector2(30, 30)
+		set_drag_preview(preview)
+		var d: Dictionary = Inventory.item_data(s["id"])
+		return {"type": "item", "id": s["id"], "name": d["name"], "desc": d["desc"], "color": d["color"], "icon": 4}
+
 const COL_PANEL := Color(0.12, 0.13, 0.16, 0.95)
 const COL_STONE := Color("e6e1d3")
 const COL_SLATE := Color("5b6c9e")
@@ -91,7 +109,9 @@ func _build() -> void:
 	_grid.add_theme_constant_override("v_separation", 6)
 	box.add_child(_grid)
 	for i: int in Inventory.SLOTS:
-		var b := Button.new()
+		var b := DragSlot.new()
+		b.window = self
+		b.index = i
 		b.focus_mode = Control.FOCUS_NONE
 		b.custom_minimum_size = Vector2(50, 44)
 		b.add_theme_stylebox_override("normal", _style(Color(0.18, 0.19, 0.23, 0.9), Color(0.3, 0.32, 0.38), 4))
@@ -133,4 +153,4 @@ func _refresh() -> void:
 		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		b.add_child(icon)
 		b.text = "\n%d" % int(s["count"]) if int(s["count"]) > 1 else ""
-		b.tooltip_text = "%s\n%s%s" % [data["name"], data["desc"], "\nClick to eat." if data.has("heal") else ""]
+		b.tooltip_text = "%s\n%s%s" % [data["name"], data["desc"], "\nClick to eat, or drag it onto the action bar." if data.has("heal") else ""]

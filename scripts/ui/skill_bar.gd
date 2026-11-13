@@ -37,7 +37,11 @@ class Icon:
 		draw_style_box(hi, Rect2(c - Vector2(17, 17), Vector2(34, 34)))
 		var shadow := Color(0, 0, 0, 0.5)
 		var w := 4.0
-		match kind % 4:
+		match kind:
+			4:  # item: faceted gem / food token
+				var d := PackedVector2Array([c + Vector2(0, -12), c + Vector2(11, 0), c + Vector2(0, 12), c + Vector2(-11, 0)])
+				draw_colored_polygon(d, mark_color)
+				draw_polyline(PackedVector2Array([d[0], d[1], d[2], d[3], d[0]]), shadow, 2.0, true)
 			0:  # downward chevron, doubled (slam)
 				for dy in [-7.0, 3.0]:
 					var o := Vector2(0, dy)

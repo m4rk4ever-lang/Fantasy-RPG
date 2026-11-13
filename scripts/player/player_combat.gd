@@ -97,6 +97,17 @@ var _cooldowns: Dictionary = {}
 var _spin: float = 0.0
 
 
+const SKILL_ICONS: Dictionary = {"cleave": 0, "surge": 1, "whirlwind": 2, "second_wind": 3}
+
+
+## Action-bar entry for a skill.
+static func skill_entry(id: String) -> Dictionary:
+	for sk: Dictionary in SKILLS:
+		if sk["id"] == id:
+			return {"type": "skill", "id": id, "name": sk["name"], "desc": sk["description"], "color": sk["color"], "icon": SKILL_ICONS.get(id, 0), "cooldown": sk["cooldown"]}
+	return {}
+
+
 func get_skill(id: String) -> Dictionary:
 	for sk: Dictionary in SKILLS:
 		if sk["id"] == id:

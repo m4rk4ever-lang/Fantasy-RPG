@@ -7,7 +7,7 @@ const COL_STAMINA := Color("4cb46a")
 const COL_FRAME := Color("e6e1d3")
 const COL_BACK := Color(0.12, 0.13, 0.16, 0.65)
 
-var skill_bar: SkillBar
+var action_bar: ActionBar
 var health_orb: Orb
 ## Emitted when the player clicks the auto-retaliate button.
 signal retaliate_clicked
@@ -82,7 +82,7 @@ func _ready() -> void:
 	root.add_child(_fps_label)
 
 	_hint = Label.new()
-	_hint.text = "WASD move · Click monster to attack · 1-4 skills · Shift/Space run on/off · Middle mouse / arrows rotate · Scroll zoom · R auto retaliate · K skills · I backpack · L quests · Esc pause"
+	_hint.text = "WASD move · Click monster to attack · 1-8 action bar · Shift/Space run on/off · Middle mouse / arrows rotate · Scroll zoom · R auto retaliate · K skills · I backpack · L quests · Esc pause"
 	_hint.anchor_left = 0.5
 	_hint.anchor_right = 0.5
 	_hint.offset_left = -560
@@ -124,9 +124,8 @@ func _ready() -> void:
 	bar_holder.offset_bottom = -24
 	bar_holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(bar_holder)
-	skill_bar = SkillBar.new()
-	skill_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	bar_holder.add_child(skill_bar)
+	action_bar = ActionBar.new()
+	bar_holder.add_child(action_bar)
 
 	# Auto-retaliate toggle (RuneScape style), bottom right.
 	_retaliate_button = Button.new()
@@ -197,8 +196,8 @@ func _ready() -> void:
 	_toasts.anchor_top = 1.0
 	_toasts.anchor_bottom = 1.0
 	_toasts.offset_left = 34
-	_toasts.offset_top = -260
-	_toasts.offset_bottom = -120
+	_toasts.offset_top = -330
+	_toasts.offset_bottom = -170
 	_toasts.alignment = BoxContainer.ALIGNMENT_END
 	_toasts.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(_toasts)

@@ -318,6 +318,28 @@ func _run() -> void:
 	_main.call("_on_item_used", "salted_fish")
 	_check(player.health > hp_f, "eating salted fish heals")
 
+	# Action bar: 8 slots, food on a slot, swapping by drag, no duplicates.
+	var hud_t: Hud = _main.get("hud")
+	var bar: ActionBar = hud_t.action_bar
+	_check(bar.entries.size() == 8 and bar.entries[0].get("id", "") == "cleave", "action bar has 8 slots with Cleave on 1")
+	player.inventory.add("salted_fish", 2)
+	bar.drop(4, {"type": "item", "id": "salted_fish", "name": "Salted Fish", "desc": "", "color": Color.WHITE, "icon": 4})
+	player.take_damage(20.0)
+	await _frames(50)
+	var hp_bar: float = player.health
+	_main.call("_activate_slot", 4)
+	_check(player.health > hp_bar, "food on the action bar heals when used")
+	var first: Dictionary = bar.entries[0].duplicate()
+	first["from_bar"] = 0
+	bar.drop(6, first)
+	_check(bar.entries[6].get("id", "") == "cleave" and bar.entries[0].is_empty(), "dragging between slots moves the skill")
+	bar.drop(1, PlayerCombat.skill_entry("cleave"))
+	var count_cleave: int = 0
+	for e: Dictionary in bar.entries:
+		if e.get("id", "") == "cleave":
+			count_cleave += 1
+	_check(count_cleave == 1, "a skill is never on the bar twice")
+
 	# Frame time indication (headless, physics only).
 	var t0: int = Time.get_ticks_usec()
 	await _frames(60)
