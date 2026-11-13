@@ -2,21 +2,30 @@
 
 Blokken van ongeveer 60 minuten. De bouwagent pakt elke run het eerste niet-afgevinkte blok (feedback gaat voor).
 
+**Werkwijze bij de start van elke run:** naast issues met label `feedback` ook alle bestanden in de map `feedback/` lezen (behalve README). Verwerkte bestanden gaan naar `feedback/verwerkt/` met een notitie wat er gedaan is. Deze map is op verzoek van de eigenaar toegevoegd (13-11-2026).
+
+## Eerst volgende run (uit zelfcontrole)
+
+- **Klif onder de Veilspire** oogt als een ronde kei. Maak er een echte rotswand van: richels, breuklijnen, losse rotsblokken aan de voet, een pad omhoog.
+- **Bergring overdag** is te vlak grijs-wit. Meer leisteenblauw in de flanken, scherpere sneeuwgrens.
+
 ## Fase 1: speelbare kern (snel en vloeiend)
 
 - [x] **1.1 Fundament.** Projectstructuur, CI naar GitHub Pages, testgebied met belichting en mist, third-person controller (lopen, sprinten, springen met coyote time, dash met i-frames), SpringArm-camera (muis en gamepad, FOV bij sprinten), procedureel personage met loopcyclus, minimale HUD, rooktests en screenshotscript.
-- [ ] **1.2 Gevecht: aanvallen.** Lichte combo van 3 slagen, zware aanval, luchtaanval, annuleren met ontwijken, stamina. Zwaard-trail.
-- [ ] **1.3 Vijand: Leeghuls.** Eén vijandtype met state machine (idle, achtervolgen, aanloop, aanval, getroffen, dood), hitboxes en hurtboxes, schade en dood.
-- [ ] **1.4 Treffergevoel en lock-on.** Hitstop, impactdeeltjes, camera shake bij treffers, knockback, lock-on met doelwissel.
-- [ ] **1.5 HUD en pauzemenu.** Vijandbalk boven doelwit, pauzemenu (hervatten, besturing, gevoeligheid), muisvangst netjes regelen.
-- [ ] **1.6 Afwerking kern.** Voetstappen-stof, landingsstof, ontwijk-nabeeld, betere idle-pose, gamepad-test.
+- [x] **1.2 Gevecht: aanvallen.** Lichte combo van 3 slagen, zware aanval, luchtaanval, annuleren met ontwijken, stamina. Zwaard-trail.
+- [x] **1.3 Vijand: Leeghuls.** Eén vijandtype met state machine (idle, achtervolgen, aanloop, aanval, getroffen, dood), hitboxes en hurtboxes, schade en dood.
+- [x] **1.4 Treffergevoel en lock-on.** Hitstop, impactdeeltjes, camera shake bij treffers, knockback, lock-on met doelwissel.
+- [x] **1.5 HUD en pauzemenu.** Vijandbalk boven doelwit, pauzemenu (hervatten, besturing, gevoeligheid), muisvangst netjes regelen.
+- [x] **1.6a Afwerking kern.** Stof bij sprintstappen, landen en ontwijken.
+- [ ] **1.6b Afwerking kern.** Ontwijk-nabeeld, betere idle-pose, gamepad-test, hero-gezicht verfijnen.
 
 ## Fase 2: open wereld (episch en helder)
 
 - [ ] 2.1 Terrein in chunks met streaming en LOD, groter dan de testvallei.
-- [ ] 2.2 Terreinshader verfijnen (hoogte, helling, paden), gras met wind (MultiMesh).
+- [x] 2.2a Gras met wind (MultiMesh, 14.000 plukjes rond de arena, vervaagt op afstand).
+- [ ] 2.2b Terreinshader verfijnen (paden, rotsrichels, klif onder de toren).
 - [ ] 2.3 Water (meer en rivier) met golvende shader.
-- [ ] 2.4 Hemel met wolken, dag-nachtcyclus, mist op afstand en hoogte per tijdstip.
+- [x] 2.4 Hemel met wolken (eigen sky-shader), dag-nachtcyclus van 16 minuten met maan en sterren, mist en ambient per tijdstip.
 - [ ] 2.5 Landmarks: hoofdberg, Veilspire, ruïnes, een dorp.
 - [ ] 2.6 Snelle verplaatsing: glijden (glider) of klimmen.
 - [ ] 2.7 Deeltjes in de wereld: bladeren, vuurvliegjes, stof.
@@ -50,5 +59,4 @@ Blokken van ongeveer 60 minuten. De bouwagent pakt elke run het eerste niet-afge
 
 ## Bekende verbeterpunten (uit zelfcontrole)
 
-- Klif onder de toren oogt als een ronde kei; meer rotsrichels en breuklijnen nodig.
 - Bomen en rotsen zijn losse meshes; naar MultiMesh zodra er meer van zijn.

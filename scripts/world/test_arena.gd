@@ -14,6 +14,9 @@ var _detail := FastNoiseLite.new()
 var terrain_material: ShaderMaterial
 var sun: DirectionalLight3D
 var environment: Environment
+var sky_material: ShaderMaterial
+var moon: DirectionalLight3D
+var day_night: DayNight
 
 
 func _ready() -> void:
@@ -29,6 +32,7 @@ func _ready() -> void:
 	_build_ruins()
 	_build_arena_props()
 	_scatter_trees()
+	_scatter_grass()
 
 
 ## Terrain height at world x/z. Flat arena in the middle, rising valley walls, a cliff plateau.
@@ -45,25 +49,20 @@ func height_at(x: float, z: float) -> float:
 
 
 func _build_environment() -> void:
-	var sky_mat := ProceduralSkyMaterial.new()
-	sky_mat.sky_top_color = Color("3f86d6")
-	sky_mat.sky_horizon_color = Color("a8dcf6")
-	sky_mat.sky_curve = 0.12
-	sky_mat.ground_horizon_color = Color("a8dcf6")
-	sky_mat.ground_bottom_color = Color("5b6c9e")
-	sky_mat.sun_angle_max = 12.0
-	sky_mat.sun_curve = 0.08
+	sky_material = ShaderMaterial.new()
+	sky_material.shader = preload("res://shaders/sky.gdshader")
 	var sky := Sky.new()
-	sky.sky_material = sky_mat
+	sky.sky_material = sky_material
+	sky.radiance_size = Sky.RADIANCE_SIZE_32
 
 	environment = Environment.new()
 	environment.background_mode = Environment.BG_SKY
 	environment.sky = sky
-	environment.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	environment.ambient_light_energy = 0.5
-	environment.ambient_light_sky_contribution = 0.6
-	environment.ambient_light_color = Color("e8e0cc")
-	environment.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
+	# Flat ambient color driven by DayNight: cheaper than sky radiance with an animated sky.
+	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	environment.ambient_light_energy = 0.55
+	environment.ambient_light_color = Color("dcdccf")
+	environment.reflected_light_source = Environment.REFLECTION_SOURCE_DISABLED
 	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	environment.tonemap_exposure = 0.92
 	environment.tonemap_white = 6.0
@@ -101,6 +100,18 @@ func _build_environment() -> void:
 	sun.directional_shadow_max_distance = 90.0
 	sun.shadow_blur = 1.2
 	add_child(sun)
+
+	moon = DirectionalLight3D.new()
+	moon.name = "Moon"
+	moon.light_color = Color("c9d4f0")
+	moon.light_energy = 0.0
+	moon.shadow_enabled = false
+	add_child(moon)
+
+	day_night = DayNight.new()
+	day_night.name = "DayNight"
+	add_child(day_night)
+	day_night.setup(sun, moon, environment, sky_material)
 
 
 func _build_terrain() -> void:
@@ -450,3 +461,64 @@ func _scatter_trees() -> void:
 		body.add_child(cs)
 		tree.add_child(body)
 		placed += 1
+
+
+func _grass_tuft_mesh() -> ArrayMesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 5
+	for b: int in 5:
+		var ang: float = rng.randf() * TAU
+		var off := Vector3(rng.randf_range(-0.12, 0.12), 0, rng.randf_range(-0.12, 0.12))
+		var h: float = rng.randf_range(0.22, 0.4)
+		var w: float = 0.045
+		var side := Vector3(cos(ang), 0, sin(ang)) * w
+		var lean := Vector3(-sin(ang), 0, cos(ang)) * rng.randf_range(0.05, 0.15)
+		var p0: Vector3 = off - side
+		var p1: Vector3 = off + side
+		var p2: Vector3 = off + lean * 0.5 - side * 0.6 + Vector3.UP * h * 0.55
+		var p3: Vector3 = off + lean * 0.5 + side * 0.6 + Vector3.UP * h * 0.55
+		var p4: Vector3 = off + lean + Vector3.UP * h
+		for v: Vector3 in [p0, p1, p2, p1, p3, p2, p2, p3, p4]:
+			st.set_normal(Vector3.UP)
+			st.add_vertex(v)
+	return st.commit()
+
+
+## Wind-swept grass tufts around the arena. One MultiMesh: a single draw call.
+func _scatter_grass() -> void:
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.mesh = _grass_tuft_mesh()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 909
+	var xforms: Array[Transform3D] = []
+	var tries: int = 0
+	while xforms.size() < 14000 and tries < 40000:
+		tries += 1
+		var r: float = sqrt(rng.randf()) * 62.0
+		var a: float = rng.randf() * TAU
+		var x: float = cos(a) * r
+		var z: float = sin(a) * r
+		var y: float = height_at(x, z)
+		var slope: float = absf(height_at(x + 1.0, z) - y) + absf(height_at(x, z + 1.0) - y)
+		if slope > 0.9:
+			continue
+		# Thin out in patches so the ground keeps some rhythm.
+		if _noise.get_noise_2d(x * 3.0, z * 3.0) < -0.15:
+			continue
+		var s: float = rng.randf_range(0.6, 1.15)
+		var basis := Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3(s, s * rng.randf_range(0.8, 1.3), s))
+		xforms.append(Transform3D(basis, Vector3(x, y - 0.02, z)))
+	mm.instance_count = xforms.size()
+	for i: int in xforms.size():
+		mm.set_instance_transform(i, xforms[i])
+	var mmi := MultiMeshInstance3D.new()
+	mmi.name = "Grass"
+	mmi.multimesh = mm
+	var mat := ShaderMaterial.new()
+	mat.shader = preload("res://shaders/grass.gdshader")
+	mmi.material_override = mat
+	mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(mmi)

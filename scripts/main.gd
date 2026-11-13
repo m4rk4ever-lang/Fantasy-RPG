@@ -9,6 +9,7 @@ var camera_rig: CameraRig
 var hud: Hud
 var fx: CombatFx
 var lock_on: LockOn
+var _step_timer: float = 0.0
 var _enemy_spawns: Array[Vector3] = [Vector3(-6.0, 0.0, -10.0), Vector3(7.0, 0.0, -14.0), Vector3(-1.0, 0.0, -24.0)]
 
 
@@ -69,9 +70,12 @@ func _ready() -> void:
 
 func _on_player_dashed() -> void:
 	camera_rig.kick_fov(6.0)
+	if player.is_on_floor():
+		fx.dust(player.global_position, 0.8)
 
 
 func _on_player_landed(impact: float) -> void:
+	fx.dust(player.global_position, 0.3 + impact)
 	if impact > 0.35:
 		camera_rig.add_trauma(impact * 0.45)
 
@@ -122,3 +126,14 @@ func _on_player_died() -> void:
 	get_tree().create_timer(1.5).timeout.connect(func() -> void:
 		var at: Vector3 = PLAYER_SPAWN + Vector3.UP * (arena.height_at(PLAYER_SPAWN.x, PLAYER_SPAWN.z) + 0.1)
 		player.revive(at))
+
+
+func _process(delta: float) -> void:
+	# Dust puffs from sprint footsteps.
+	if player.is_sprinting and player.is_on_floor():
+		_step_timer -= delta
+		if _step_timer <= 0.0:
+			_step_timer = 0.17
+			fx.dust(player.global_position, 0.15)
+	else:
+		_step_timer = 0.0

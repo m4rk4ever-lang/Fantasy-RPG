@@ -2,7 +2,7 @@ shader_type spatial;
 // Stylized terrain: grass on flats, layered rock on slopes, snow above a height line.
 // Pure procedural noise, no textures, so it stays crisp at any distance.
 
-uniform vec3 grass_color : source_color = vec3(0.298, 0.706, 0.416);
+uniform vec3 grass_color : source_color = vec3(0.26, 0.62, 0.36);
 uniform vec3 grass_dark : source_color = vec3(0.17, 0.45, 0.25);
 uniform vec3 grass_dry : source_color = vec3(0.60, 0.72, 0.30);
 uniform vec3 rock_color : source_color = vec3(0.46, 0.49, 0.58);

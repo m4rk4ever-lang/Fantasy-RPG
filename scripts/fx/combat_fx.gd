@@ -146,3 +146,50 @@ func slam(pos: Vector3) -> void:
 	tw.tween_property(rm, "albedo_color:a", 0.0, 0.35)
 	tw.chain().tween_callback(ring.queue_free)
 	impact(pos + Vector3.UP * 0.2, Vector3.UP, 1.3)
+
+
+## Soft ground dust (landing, dash, sprint steps). Tinted toward warm stone so it reads on grass.
+func dust(pos: Vector3, strength: float = 1.0) -> void:
+	var p := CPUParticles3D.new()
+	p.one_shot = true
+	p.explosiveness = 0.9
+	p.amount = int(6 + 10 * strength)
+	p.lifetime = 0.6
+	p.local_coords = false
+	p.emission_shape = CPUParticles3D.EMISSION_SHAPE_RING
+	p.emission_ring_axis = Vector3.UP
+	p.emission_ring_radius = 0.25
+	p.emission_ring_inner_radius = 0.0
+	p.emission_ring_height = 0.05
+	p.direction = Vector3.UP
+	p.spread = 80.0
+	p.initial_velocity_min = 0.6
+	p.initial_velocity_max = 1.6 + strength
+	p.gravity = Vector3(0, 0.4, 0)
+	p.damping_min = 2.0
+	p.damping_max = 3.0
+	p.scale_amount_min = 0.7
+	p.scale_amount_max = 1.3 + strength * 0.5
+	var curve := Curve.new()
+	curve.add_point(Vector2(0, 0.4))
+	curve.add_point(Vector2(0.3, 1.0))
+	curve.add_point(Vector2(1, 0.0))
+	p.scale_amount_curve = curve
+	var grad := Gradient.new()
+	grad.set_color(0, Color(0.93, 0.9, 0.82, 0.55))
+	grad.set_color(1, Color(0.93, 0.9, 0.82, 0.0))
+	p.color_ramp = grad
+	var q := QuadMesh.new()
+	q.size = Vector2(0.5, 0.5)
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	m.vertex_color_use_as_albedo = true
+	m.albedo_texture = soft_dot()
+	q.material = m
+	p.mesh = q
+	add_child(p)
+	p.global_position = pos + Vector3.UP * 0.1
+	p.emitting = true
+	get_tree().create_timer(1.0).timeout.connect(p.queue_free)

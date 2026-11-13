@@ -22,7 +22,7 @@ De Kroon van Zeven Hemelen is gebroken. Uit de scheuren in de lucht kruipt de Sl
 
 ## Feedback geven
 
-Open een issue met het label `feedback`. Elke vrijdag leest de bouwagent die issues, verwerkt ze vóór nieuw werk en reageert met wat er gedaan is. Ontwerpkeuzes met varianten staan in issues met het label `keuze`: reageer met je voorkeur.
+Open een issue met het label `feedback`, of zet een bestand in de map [`feedback/`](feedback/README.md). Elke vrijdag leest de bouwagent die issues, verwerkt ze vóór nieuw werk en reageert met wat er gedaan is. Ontwerpkeuzes met varianten staan in issues met het label `keuze`: reageer met je voorkeur.
 
 Alleen issues en reacties van de eigenaar (`m4rk4ever-lang`) worden als opdracht gezien.
 

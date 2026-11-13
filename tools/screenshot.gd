@@ -35,6 +35,10 @@ func _run() -> void:
 	var rig: CameraRig = main.get_node("CameraRig")
 	var hud: Hud = main.get_node("Hud")
 	hud.set_hint_visible(false)
+	var dn: DayNight = (main.get("arena") as TestArena).day_night
+	dn.running = false
+	dn.time_of_day = 9.5
+	dn.apply()
 
 	# 1. Overview: behind the hero, looking up the valley at the watchtower.
 	rig.set_angles(-0.23, deg_to_rad(-6.0))
@@ -108,4 +112,13 @@ func _run() -> void:
 	cam.fov = 45.0
 	await _wait(5)
 	await _save("04_held.png")
+
+	# 5. Dusk over the valley: day-night cycle.
+	dn.time_of_day = 19.2
+	dn.apply()
+	cam.fov = 62.0
+	cam.global_position = Vector3(8.0, 6.0, 26.0)
+	cam.look_at(Vector3(10.0, 18.0, -70.0))
+	await _wait(8)
+	await _save("05_avond.png")
 	quit(0)
