@@ -6,7 +6,7 @@ Blokken van ongeveer 60 minuten. De bouwagent pakt elke run het eerste niet-afge
 
 ## Eerst volgende run (uit zelfcontrole)
 
-- **Klif onder de Veilspire** oogt als een ronde kei. Maak er een echte rotswand van: richels, breuklijnen, losse rotsblokken aan de voet, een pad omhoog.
+- **Pad naar de Veilspire.** De rots heeft nu richels, maar je kunt er nog niet op. Een pad of trap langs de richels omhoog.
 - **Bergring overdag** is te vlak grijs-wit. Meer leisteenblauw in de flanken, scherpere sneeuwgrens.
 
 ## Fase 1: speelbare kern (snel en vloeiend)
@@ -23,7 +23,7 @@ Blokken van ongeveer 60 minuten. De bouwagent pakt elke run het eerste niet-afge
 
 - [ ] 2.1 Terrein in chunks met streaming en LOD, groter dan de testvallei.
 - [x] 2.2a Gras met wind (MultiMesh, 14.000 plukjes rond de arena, vervaagt op afstand).
-- [ ] 2.2b Terreinshader verfijnen (paden, rotsrichels, klif onder de toren).
+- [ ] 2.2b Terreinshader verfijnen (paden, rotsrichels). Klif onder de toren is al vervangen door een gefacetteerde rots met grasrichels.
 - [ ] 2.3 Water (meer en rivier) met golvende shader.
 - [x] 2.4 Hemel met wolken (eigen sky-shader), dag-nachtcyclus van 16 minuten met maan en sterren, mist en ambient per tijdstip.
 - [ ] 2.5 Landmarks: hoofdberg, Veilspire, ruïnes, een dorp.

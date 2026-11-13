@@ -7,6 +7,13 @@ extends Node3D
 const TERRAIN_SIZE: float = 240.0
 const CELL: float = 2.0
 const CLIFF_CENTER := Vector2(18.0, -78.0)
+const CRAG_TOP: float = 32.0
+## Crag profile: (height, radius) rings from base to top. Short steep steps make grassy ledges.
+const CRAG_PROFILE: Array[Vector2] = [
+	Vector2(-1.0, 22.0), Vector2(5.0, 20.5), Vector2(9.0, 19.5), Vector2(9.8, 17.6),
+	Vector2(16.0, 16.8), Vector2(20.5, 16.0), Vector2(21.2, 14.6), Vector2(27.0, 14.0),
+	Vector2(31.0, 13.4), Vector2(32.0, 12.6),
+]
 const PEAK_DIR: float = deg_to_rad(-20.0)  # Direction of the great peak (from +X toward -Z).
 
 var _noise := FastNoiseLite.new()
@@ -28,6 +35,7 @@ func _ready() -> void:
 	_build_environment()
 	_build_terrain()
 	_build_far_mountains()
+	_build_crag()
 	_build_watchtower()
 	_build_ruins()
 	_build_arena_props()
@@ -43,8 +51,9 @@ func height_at(x: float, z: float) -> float:
 	var walls: float = pow(smoothstep(55.0, 118.0, r), 1.6) * 34.0
 	var h: float = flat_blend * (hills + walls)
 	var cd: float = Vector2(x, z).distance_to(CLIFF_CENTER)
-	var cliff: float = pow(smoothstep(30.0, 16.0, cd), 0.7) * 30.0
-	h = maxf(h, cliff + (_detail.get_noise_2d(x * 0.5, z * 0.5)) * 1.2 * smoothstep(30.0, 16.0, cd))
+	# Gentle mound under the crag; the rock itself is a separate faceted mesh (see _build_crag).
+	var mound: float = smoothstep(36.0, 18.0, cd) * 7.0
+	h = maxf(h, mound)
 	return h
 
 
@@ -75,7 +84,7 @@ func _build_environment() -> void:
 	environment.fog_light_color = Color("a6cdea")
 	environment.fog_light_energy = 1.0
 	environment.fog_sun_scatter = 0.25
-	environment.fog_density = 0.0017
+	environment.fog_density = 0.0012
 	environment.fog_sky_affect = 0.0
 	environment.fog_height = 8.0
 	environment.fog_height_density = 0.0015
@@ -261,12 +270,94 @@ func _cyl(top: float, bottom: float, height: float, segs: int = 20) -> CylinderM
 	return c
 
 
+func _crag_radius(ring: int, ang: float) -> float:
+	var base: float = CRAG_PROFILE[ring].y
+	var n: float = _noise.get_noise_2d(cos(ang) * 60.0 + ring * 3.0, sin(ang) * 60.0)
+	var ridges: float = sin(ang * 7.0 + ring * 0.7) * 0.04 + sin(ang * 13.0) * 0.025
+	return base * (1.0 + n * 0.22 + ridges)
+
+
+## Faceted rock crag with grassy ledges: the cliff the Veilspire stands on.
+## Flat-shaded triangles keep it crisp and stylized at any distance.
+func _build_crag() -> void:
+	var seg: int = 36
+	var rings: int = CRAG_PROFILE.size()
+	var pts: Array[PackedVector3Array] = []
+	for k: int in rings:
+		var row := PackedVector3Array()
+		for i: int in seg:
+			var ang: float = TAU * float(i) / seg
+			var r: float = _crag_radius(k, ang)
+			row.append(Vector3(cos(ang) * r, CRAG_PROFILE[k].x, sin(ang) * r))
+		pts.append(row)
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for k: int in rings - 1:
+		for i: int in seg:
+			var j: int = (i + 1) % seg
+			var a: Vector3 = pts[k][i]
+			var b: Vector3 = pts[k][j]
+			var c: Vector3 = pts[k + 1][i]
+			var d: Vector3 = pts[k + 1][j]
+			for v: Vector3 in [a, b, c, b, d, c]:
+				st.add_vertex(v)
+	# Top cap (fan).
+	var top: PackedVector3Array = pts[rings - 1]
+	var centre := Vector3(0, CRAG_PROFILE[rings - 1].x + 0.2, 0)
+	for i: int in seg:
+		var j: int = (i + 1) % seg
+		for v: Vector3 in [centre, top[i], top[j]]:
+			st.add_vertex(v)
+	st.generate_normals()  # Vertices are not shared, so normals are per-face (flat).
+	var mesh: ArrayMesh = st.commit()
+
+	var mat := ShaderMaterial.new()
+	mat.shader = preload("res://shaders/terrain.gdshader")
+	mat.set_shader_parameter("snow_height", 400.0)
+	mat.set_shader_parameter("rock_slope", 0.55)
+	mat.set_shader_parameter("strata_freq", 0.9)
+	mat.set_shader_parameter("strata_amount", 0.35)
+	mat.set_shader_parameter("rock_color", Color("6f7893"))
+	mat.set_shader_parameter("rock_light", Color("c9c3b3"))
+
+	var body := StaticBody3D.new()
+	body.name = "Crag"
+	body.collision_layer = 1
+	body.position = Vector3(CLIFF_CENTER.x, 0.0, CLIFF_CENTER.y)
+	add_child(body)
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	mi.material_override = mat
+	body.add_child(mi)
+	var cs := CollisionShape3D.new()
+	cs.shape = mesh.create_trimesh_shape()
+	body.add_child(cs)
+
+	# Fallen boulders around the foot of the crag.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 314
+	var rock_mat := _stone_mat(Color("8e94a6"), 0.95)
+	for n: int in 16:
+		var ang: float = rng.randf() * TAU
+		var dist: float = _crag_radius(0, ang) + rng.randf_range(0.5, 5.0)
+		var p := Vector3(cos(ang) * dist + CLIFF_CENTER.x, 0, sin(ang) * dist + CLIFF_CENTER.y)
+		p.y = height_at(p.x, p.z)
+		var rad: float = rng.randf_range(0.7, 2.2)
+		var sm := SphereMesh.new()
+		sm.radius = rad
+		sm.height = rad * 1.5
+		sm.radial_segments = 6
+		sm.rings = 3
+		var sh := SphereShape3D.new()
+		sh.radius = rad * 0.7
+		_add_static(self, sm, rock_mat, Transform3D(Basis(Vector3(rng.randf(), 1, rng.randf()).normalized(), rng.randf() * TAU).scaled(Vector3(1.2, rng.randf_range(0.6, 1.0), 1.0)), p), sh)
+
+
 ## Watchtower on the cliff: the main landmark visible from the arena.
 func _build_watchtower() -> void:
 	var root := Node3D.new()
 	root.name = "Watchtower"
-	var base_y: float = height_at(CLIFF_CENTER.x, CLIFF_CENTER.y)
-	root.position = Vector3(CLIFF_CENTER.x, base_y - 0.5, CLIFF_CENTER.y)
+	root.position = Vector3(CLIFF_CENTER.x, CRAG_TOP - 0.3, CLIFF_CENTER.y)
 	add_child(root)
 	var stone := _stone_mat(Color("e6e1d3"))
 	var stone_dark := _stone_mat(Color("b9b3a3"))
@@ -414,7 +505,7 @@ func _scatter_trees() -> void:
 		var dist: float = rng.randf_range(26.0, 105.0)
 		var x: float = cos(ang) * dist
 		var z: float = sin(ang) * dist
-		if Vector2(x, z).distance_to(CLIFF_CENTER) < 14.0:
+		if Vector2(x, z).distance_to(CLIFF_CENTER) < 25.0:
 			continue
 		if x > -22.0 and x < 10.0 and z < -8.0 and z > -28.0:
 			continue  # Keep the ruins readable.

@@ -19,6 +19,7 @@ Eerste run. Repo opgezet en de speelbare kern van fase 1 gebouwd, plus twee blok
 - Testvallei: terrein met kliffen en heuvels, Veilspire op een klif, ruïnes met boog, bergring met grote sneeuwtop, bomen met wind.
 - Hemel-shader met wolken, zon, maan en sterren. Dag-nachtcyclus (16 minuten). Gras met wind (14.000 plukjes, MultiMesh). Stof bij sprinten, landen en ontwijken.
 - Map `feedback/` met uitleg, op verzoek van de eigenaar.
+- Na de eerste zelfcontrole: de ronde klif onder de Veilspire vervangen door een gefacetteerde rots met grasrichels en losse rotsblokken aan de voet. Mist iets lichter, zodat de bergring meer vorm houdt.
 
 **Feedback verwerkt**
 - Geen open feedback-issues.
@@ -34,7 +35,7 @@ Eerste run. Repo opgezet en de speelbare kern van fase 1 gebouwd, plus twee blok
 ![Avond](docs/screenshots/2026-11-13/05_avond.png)
 
 **Zelfcontrole**
-- Diepte: ja. Gras en held voor, ruïnes en bomen in het midden, klif, toren en bergring achter. | Landmark: ja, de Veilspire op de klif, ook van ver zichtbaar. | Palet: grotendeels. Held en toren volgen het palet. Overdag is het gras iets te licht mintgroen en de bergen te grijs-wit. | Game of demo: eerder game, vooral het avondbeeld en het gevechtsbeeld. Het daglicht oogt nog wat vlak. | Zwakste deel: de klif onder de toren (een ronde kei) en de bergring overdag. Staat bovenaan de roadmap.
+- Diepte: ja. Gras en held voor, ruïnes en bomen in het midden, klif, toren en bergring achter. | Landmark: ja, de Veilspire op de klif, ook van ver zichtbaar. | Palet: grotendeels. Held en toren volgen het palet. Overdag is het gras iets te licht mintgroen en de bergen te grijs-wit. | Game of demo: eerder game, vooral het avondbeeld en het gevechtsbeeld. Het daglicht oogt nog wat vlak. | Zwakste deel: eerst de klif onder de toren (een ronde kei). Die is in dezelfde run vervangen. Nu is de bergring overdag het zwakst: te grijs-wit en vlak. Staat bovenaan de roadmap.
 
 **Prestaties:** niet betrouwbaar te meten hier (alleen software-rendering, 2 tot 3 fps). Headless physics draait op de 60 Hz-limiet (16,7 ms per frame). De web-build start zonder fouten in headless Chromium. Graag een meting op een echte laptop.
 
@@ -52,6 +53,6 @@ Eerste run. Repo opgezet en de speelbare kern van fase 1 gebouwd, plus twee blok
 - Geen externe assets. Alles is procedureel.
 
 **Volgende run**
-- Klif onder de toren tot echte rotswand maken, bergring overdag meer leisteenblauw.
+- Bergring overdag meer leisteenblauw en vorm. Pad omhoog naar de Veilspire.
 - Blok 1.6b: ontwijk-nabeeld, betere idle-pose, gezicht van de held.
 - Daarna fase 2: terreinshader (2.2b), water (2.3).
