@@ -17,6 +17,7 @@ const COL_ROPE := Color("c9b48a")
 const COL_SAIL := Color("e6e1d3")
 
 var arena: TestArena
+var brenna: Villager
 var _kit := MeshKit.new()
 var _glow_kit := MeshKit.new()
 var _boats: Array[Node3D] = []
@@ -81,6 +82,7 @@ func build(p_arena: TestArena) -> void:
 	_boats_build()
 	_gulls_build()
 	_villagers()
+	brenna = spawn_brenna()
 
 
 func _collider(xf: Transform3D, size: Vector3) -> void:
@@ -431,6 +433,21 @@ func _villagers() -> void:
 		v.route = pts
 		v.arena = arena
 		add_child(v)
+
+
+## Brenna Gale, harbourmaster: quest giver at the pier head.
+func spawn_brenna() -> Villager:
+	var b := Villager.new()
+	b.display_name = "Brenna Gale"
+	b.outfit = {"tunic": Color("3d5ba9").darkened(0.2), "cloak": Color("c9b48a"), "hair": Color("8e8a7e")}
+	var p: Vector3 = _sea() * 30.5 + _along() * -2.3
+	b.route = [p]
+	b.face_dir = -_sea()
+	b.arena = arena
+	var bl: Array[String] = ["Warden! A word, if you have a moment. Or several."]
+	b.lines = bl
+	add_child(b)
+	return b
 
 
 func _process(delta: float) -> void:

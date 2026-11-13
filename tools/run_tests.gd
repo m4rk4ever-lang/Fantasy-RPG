@@ -231,6 +231,45 @@ func _run() -> void:
 	_check(not player.combat.is_busy(), "dodge cancels attack")
 	Engine.time_scale = 1.0
 
+	# Loot: a killed Hollowed drops a pouch; walking over it fills the backpack.
+	var inv: Inventory = player.inventory
+	var dust0: int = inv.count_of("veil_dust")
+	var coins0: int = inv.coins
+	_main.call("_drop_loot", player.global_position + player.get_facing_vector() * 0.5)
+	await _frames(5)
+	_check(inv.count_of("veil_dust") > dust0 and inv.coins > coins0, "loot pouch is picked up (dust %d, coins %d)" % [inv.count_of("veil_dust"), inv.coins])
+
+	# Quest: talk to Brenna, accept, bring 5 Veil Dust, get rewards.
+	var arena_q: TestArena = _main.get("arena")
+	var brenna: Villager = arena_q.village.brenna
+	_check(brenna != null and brenna.is_in_group(&"npcs"), "Brenna stands in Saltwick")
+	var talked: Array[bool] = [false]
+	player.talk_reached.connect(func(_n: Node3D) -> void: talked[0] = true)
+	player.global_position = brenna.global_position + Vector3(3.0, 0.4, 0.0)
+	await _frames(5)
+	player.set_talk_target(brenna)
+	await _frames(90)
+	_check(talked[0], "clicking Brenna walks over and starts a conversation")
+	var dlg: DialogueWindow = _main.get("dialogue")
+	_check(dlg.is_open(), "dialogue window opens")
+	var ql: QuestLog = player.quests
+	ql.start("ashes_on_the_shore")
+	dlg.close()
+	inv.add("veil_dust", 5)
+	_check(ql.can_complete("ashes_on_the_shore"), "quest can be completed with 5 Veil Dust")
+	var lvl_xp: int = player.progression.xp + player.progression.level * 10000
+	var c0: int = inv.coins
+	(_main.get("brenna_talk") as BrennaDialogue).start()
+	_check(ql.state("ashes_on_the_shore") == "done", "quest completes at Brenna")
+	_check(inv.coins >= c0 + 50 and inv.count_of("salted_fish") >= 3, "quest rewards coins and fish")
+	_check(player.progression.xp + player.progression.level * 10000 > lvl_xp, "quest rewards XP")
+	dlg.close()
+	player.take_damage(25.0)
+	await _frames(50)
+	var hp_f: float = player.health
+	_main.call("_on_item_used", "salted_fish")
+	_check(player.health > hp_f, "eating salted fish heals")
+
 	# Frame time indication (headless, physics only).
 	var t0: int = Time.get_ticks_usec()
 	await _frames(60)

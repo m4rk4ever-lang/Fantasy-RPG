@@ -151,3 +151,10 @@ Hollowed Wardens: de Wardens die the Veil als eersten raakte. Ze dragen nog de g
 - Vanguard is speelbaar: Blade (Cleave, Keen Edge, Whirlwind, Executioner), Bulwark (Second Wind, Iron Skin, Unbroken, Last Stand), Momentum (Surge Strike, Fleet Foot, Battle Rhythm, Relentless). De andere vier tonen hun boom als "soon".
 - **Trouw (allegiance)** aan een factie kies je los in het karaktervenster (K). Heeft geen invloed op je klasse. Later: reputatie, quests en uitrusting per factie.
 - XP: 40 per Hollowed. Benodigde XP per level: 80 + 45 × (level − 1). `Progression` beheert level, XP, punten, rangen en trouw.
+
+## Loot, rugzak en quests (13-11-2026)
+
+- **Loot:** een verslagen Hollowed laat een buidel vallen (`LootDrop`): altijd coins en Veil Dust, soms een Hollow Claw (35%) of Warden's Sigil (12%). Erover lopen pakt alles op. Meldingen linksonder.
+- **Rugzak:** `Inventory`, 28 vakjes zoals RuneScape, stapelbare items, coins apart. Venster met I of de knop. Klik op eten om het op te eten (Salted Fish: +20 health).
+- **Dialoog:** `DialogueWindow` met spreker, tekst en tot 4 antwoorden (klik of 1-4). Klik op een NPC (goudkleurige naam) om erheen te lopen en te praten.
+- **Quests:** `QuestLog` met staten none, active en done. Eerste quest: **Ashes on the Shore** van **Brenna Gale**, havenmeester van Saltwick: breng 5 Veil Dust. Beloning 150 XP, 50 coins en 3 Salted Fish. Daarna opent **The Dark Spire** (het licht van de Veilspire is uit), uit te werken in V.6. Questlog met L, tracker rechtsboven.

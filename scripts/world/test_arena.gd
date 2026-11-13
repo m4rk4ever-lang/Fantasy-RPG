@@ -30,6 +30,7 @@ var environment: Environment
 var sky_material: ShaderMaterial
 var moon: DirectionalLight3D
 var day_night: DayNight
+var village: Village
 
 
 func _ready() -> void:
@@ -54,7 +55,7 @@ func _ready() -> void:
 	shard.scale = Vector3.ONE * 1.5
 	shard.rotation = Vector3(0.0, 0.0, 0.18)
 	add_child(shard)
-	var village := Village.new()
+	village = Village.new()
 	village.name = "Village"
 	add_child(village)
 	village.build(self)

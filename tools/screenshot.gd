@@ -154,6 +154,26 @@ func _run() -> void:
 	await _save("08_skilltree.png")
 	tree_win.toggle()
 
+	# 5e. Talking to Brenna in Saltwick, quest tracker and backpack open.
+	var brenna: Villager = arena.village.brenna
+	player.global_position = brenna.global_position + sea * 1.9 + along * 0.6 + Vector3.UP * 0.3
+	player.face_direction(-sea)
+	player.inventory.add("veil_dust", 3)
+	player.inventory.add("hollow_fang", 2)
+	player.inventory.add("coins", 42)
+	player.quests.start("ashes_on_the_shore")
+	await _wait(6)
+	cam.fov = 55.0
+	cam.global_position = brenna.global_position + sea * 5.5 + along * 3.5 + Vector3.UP * 2.6
+	cam.look_at(brenna.global_position + sea * 1.0 + Vector3.UP * 0.9)
+	var dlg: DialogueWindow = main.get("dialogue")
+	(main.get("brenna_talk") as BrennaDialogue).call("_why")
+	(main.get_node("Backpack") as InventoryWindow).toggle()
+	await _wait(6)
+	await _save("09_quest.png")
+	dlg.close()
+	(main.get_node("Backpack") as InventoryWindow).toggle()
+
 	# 5. Dusk over the valley: day-night cycle.
 	dn.time_of_day = 19.2
 	dn.apply()

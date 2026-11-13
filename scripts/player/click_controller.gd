@@ -54,12 +54,20 @@ func _ray(screen_pos: Vector2) -> Array[Vector3]:
 
 ## Closest living monster whose body (a vertical segment) passes near the mouse ray.
 func pick_enemy(screen_pos: Vector2) -> Node3D:
+	return _pick_group(screen_pos, &"enemies")
+
+
+func pick_npc(screen_pos: Vector2) -> Node3D:
+	return _pick_group(screen_pos, &"npcs")
+
+
+func _pick_group(screen_pos: Vector2, group: StringName) -> Node3D:
 	var r: Array[Vector3] = _ray(screen_pos)
 	var from: Vector3 = r[0]
 	var dir: Vector3 = r[1]
 	var best: Node3D = null
 	var best_t: float = INF
-	for e: Node in get_tree().get_nodes_in_group(&"enemies"):
+	for e: Node in get_tree().get_nodes_in_group(group):
 		var en := e as Node3D
 		if en == null or (en.has_method("is_dead") and en.call("is_dead")):
 			continue
@@ -87,6 +95,8 @@ func pick_ground(screen_pos: Vector2) -> Variant:
 
 func _update_hover(screen_pos: Vector2) -> void:
 	var en: Node3D = pick_enemy(screen_pos)
+	if en == null:
+		en = pick_npc(screen_pos)
 	if en != _hover:
 		_hover = en
 		Input.set_default_cursor_shape(Input.CURSOR_POINTING_HAND if en else Input.CURSOR_ARROW)
@@ -97,6 +107,10 @@ func _click(screen_pos: Vector2) -> void:
 	if en:
 		lock_on.set_target(en)
 		player.attack_target = en
+		return
+	var npc: Node3D = pick_npc(screen_pos)
+	if npc:
+		player.set_talk_target(npc)
 		return
 	var p: Variant = pick_ground(screen_pos)
 	if p != null:

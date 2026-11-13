@@ -9,6 +9,10 @@ var arena: TestArena
 var speed: float = 1.7
 ## Things this villager says when the hero is near. Epic world, but people still joke.
 var lines: Array[String] = []
+## Named NPCs can be clicked to talk (group "npcs") and show a name tag.
+var display_name: String = ""
+var face_dir: Vector3 = Vector3.ZERO
+var _tag: Label3D
 
 var _label: Label3D
 var _line_timer: float = 0.0
@@ -36,9 +40,23 @@ func _ready() -> void:
 		global_position = _ground(route[0])
 		_index = 1 % route.size()
 	_wait = _rng.randf_range(0.0, 3.0)
+	if display_name != "":
+		add_to_group(&"npcs")
+		_tag = Label3D.new()
+		_tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		_tag.text = display_name
+		_tag.position.y = 2.0
+		_tag.font_size = 32
+		_tag.pixel_size = 0.004
+		_tag.outline_size = 8
+		_tag.modulate = Color("f2d48a")
+		_tag.outline_modulate = Color(0.12, 0.13, 0.16, 0.9)
+		add_child(_tag)
+		if face_dir != Vector3.ZERO:
+			_facing = atan2(-face_dir.x, -face_dir.z)
 	_label = Label3D.new()
 	_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	_label.position.y = 2.25
+	_label.position.y = 2.25 if display_name == "" else 2.45
 	_label.font_size = 40
 	_label.pixel_size = 0.004
 	_label.outline_size = 10
@@ -61,6 +79,7 @@ func _ground(p: Vector3) -> Vector3:
 func _process(delta: float) -> void:
 	_update_bark(delta)
 	if route.size() < 2:
+		_model.rotation.y = _facing
 		_model.animate(delta, 0.0, true, 0.0, 0.0, false)
 		return
 	var moving: float = 0.0

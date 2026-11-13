@@ -10,6 +10,8 @@ var hud: Hud
 var fx: CombatFx
 var lock_on: LockOn
 var clicks: ClickController
+var dialogue: DialogueWindow
+var brenna_talk: BrennaDialogue
 var ambience: Ambience
 var _last_night: float = -1.0
 var _area: String = ""
@@ -84,6 +86,26 @@ func _ready() -> void:
 		fx.impact(player.global_position + Vector3.UP * 1.2, Vector3.UP, 1.4))
 	hud.set_xp(prog.xp, prog.xp_to_next(), prog.level)
 	hud.set_skill_points(prog.skill_points)
+	# --- Backpack ---
+	var inv_window := InventoryWindow.new()
+	inv_window.name = "Backpack"
+	add_child(inv_window)
+	inv_window.setup(player.inventory)
+	inv_window.item_used.connect(_on_item_used)
+	hud.backpack_clicked.connect(inv_window.toggle)
+	# --- Quests and dialogue ---
+	var quest_window := QuestLogWindow.new()
+	quest_window.name = "QuestLog"
+	add_child(quest_window)
+	quest_window.setup(player.quests)
+	dialogue = DialogueWindow.new()
+	dialogue.name = "Dialogue"
+	add_child(dialogue)
+	brenna_talk = BrennaDialogue.new(dialogue, player.quests, player.progression, hud)
+	player.talk_reached.connect(_on_talk_reached)
+	var update_tracker := func() -> void: hud.set_tracker(player.quests.tracker_text())
+	player.quests.changed.connect(update_tracker)
+	player.inventory.changed.connect(update_tracker)
 	hud.retaliate_clicked.connect(func() -> void: player.set_auto_retaliate(not player.auto_retaliate))
 	for i: int in _enemy_spawns.size():
 		_spawn_enemy(i)
@@ -130,11 +152,12 @@ func _spawn_enemy(index: int) -> void:
 	e.global_position = at
 	e.home = at
 	e.target = player
-	e.died.connect(func(_en: Hollow) -> void: _on_enemy_died(index))
+	e.died.connect(func(en: Hollow) -> void: _on_enemy_died(index, en))
 
 
-func _on_enemy_died(index: int) -> void:
+func _on_enemy_died(index: int, en: Hollow) -> void:
 	player.progression.add_xp(40)
+	_drop_loot(en.global_position)
 	camera_rig.add_trauma(0.35)
 	fx.hitstop(0.12)
 	# Training valley: the Hollowed reform after a while.
@@ -209,3 +232,45 @@ func _is_walkable(from: Vector3, to: Vector3) -> bool:
 	var q := PhysicsRayQueryParameters3D.create(Vector3(to.x, from.y + 1.0, to.z), Vector3(to.x, from.y - 1.5, to.z), 1)
 	var hit: Dictionary = space.intersect_ray(q)
 	return not hit.is_empty() and (hit["position"] as Vector3).y > TestArena.WATER_LEVEL + 0.4
+
+
+## Loot table of a Hollowed: always dust and coins, sometimes claws or a sigil.
+func _drop_loot(at: Vector3) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	var items: Array = [["coins", rng.randi_range(5, 15)], ["veil_dust", rng.randi_range(1, 2)]]
+	if rng.randf() < 0.35:
+		items.append(["hollow_fang", 1])
+	if rng.randf() < 0.12:
+		items.append(["warden_sigil", 1])
+	var drop := LootDrop.new()
+	drop.items = items
+	add_child(drop)
+	drop.global_position = Vector3(at.x, arena.height_at(at.x, at.z) + 0.05, at.z)
+	drop.picked_up.connect(_on_loot_picked)
+
+
+func _on_loot_picked(items: Array) -> void:
+	for it: Array in items:
+		if player.inventory.add(it[0], it[1]):
+			var item_name: String = "coins" if it[0] == "coins" else Inventory.item_data(it[0])["name"]
+			hud.toast("+%d %s" % [it[1], item_name])
+		else:
+			hud.toast("Your backpack is full.")
+
+
+func _on_item_used(id: String) -> void:
+	var data: Dictionary = Inventory.item_data(id)
+	if data.has("heal") and player.health < player.max_health:
+		player.inventory.remove(id, 1)
+		player.heal(float(data["heal"]))
+		hud.toast("You eat the %s." % data["name"].to_lower())
+	elif data.has("heal"):
+		hud.toast("You are not hungry. Or hurt.")
+
+
+func _on_talk_reached(npc: Node3D) -> void:
+	if npc == arena.village.brenna:
+		brenna_talk.start()
+	elif npc is Villager and not (npc as Villager).lines.is_empty():
+		hud.toast((npc as Villager).lines[0])

@@ -23,7 +23,7 @@ Doel: één gebied waarin de hele kernloop speelbaar is: praten, quest aannemen,
 - [x] V.2 Looproutes afbakenen: niet de zee in, wel over steigers.
 - [ ] V.3 Klassen en skilltree: keuze-issue over opzet (welke klassen, hoe de boom eruitziet, hoe skills op de balk komen). Dan eerste klasse uitwerken.
 - [ ] V.4 Stats, XP en levels, loot van Hollowed, eenvoudige inventaris.
-- [ ] V.5 Dialoogsysteem en eerste NPC-quest in Saltwick (met een vleugje humor), quest-log.
+- [x] V.5 Dialoogsysteem, eerste quest "Ashes on the Shore" bij Brenna Gale in Saltwick, questlog (L) en tracker in beeld.
 - [ ] V.6 Pad naar de Veilspire, toren als eerste questdoel. Heiligdom met obelisken.
 - [ ] V.7 Opslaan en laden.
 - [ ] V.8 Geluid: voetstappen, zwaard, treffers, golven, meeuwen, eenvoudige muziek.

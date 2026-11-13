@@ -14,6 +14,8 @@ signal died
 ## Fired when auto-retaliate makes the hero fight back against `attacker`.
 signal retaliated(attacker: Node3D)
 signal auto_retaliate_changed(on: bool)
+## Reached an NPC the player clicked: open the conversation.
+signal talk_reached(npc: Node3D)
 
 @export var walk_speed: float = 6.5
 @export var sprint_speed: float = 10.5
@@ -53,6 +55,8 @@ var air_dashes_left: int = 1
 var model: HeroModel
 var combat: PlayerCombat
 var progression: Progression
+var inventory: Inventory
+var quests: QuestLog
 ## Base max health before skill-tree bonuses.
 var base_max_health: float = 100.0
 ## Enemy the hero is locked onto (set by the lock-on system). Null = free.
@@ -63,6 +67,7 @@ var attack_target: Node3D
 var auto_retaliate: bool = true
 ## Distance at which auto-attacks start.
 @export var auto_attack_range: float = 2.1
+var talk_target: Node3D
 var _move_target: Vector3 = Vector3.ZERO
 var _has_move_target: bool = false
 
@@ -101,6 +106,13 @@ func _ready() -> void:
 	stamina = max_stamina
 	health = max_health
 	_facing = rotation.y
+	inventory = Inventory.new()
+	inventory.name = "Inventory"
+	add_child(inventory)
+	quests = QuestLog.new()
+	quests.name = "Quests"
+	quests.inventory = inventory
+	add_child(quests)
 	progression = Progression.new()
 	progression.name = "Progression"
 	add_child(progression)
@@ -122,6 +134,13 @@ func is_invulnerable() -> bool:
 func set_move_target(point: Vector3) -> void:
 	_move_target = point
 	_has_move_target = true
+	attack_target = null
+	talk_target = null
+
+
+func set_talk_target(npc: Node3D) -> void:
+	talk_target = npc
+	_has_move_target = false
 	attack_target = null
 
 
@@ -217,6 +236,11 @@ func _apply_progression() -> void:
 	health_changed.emit(health, max_health)
 
 
+func heal(amount: float) -> void:
+	health = minf(health + amount, max_health)
+	health_changed.emit(health, max_health)
+
+
 func set_auto_retaliate(on: bool) -> void:
 	auto_retaliate = on
 	auto_retaliate_changed.emit(on)
@@ -262,6 +286,7 @@ func _physics_process(delta: float) -> void:
 		# Direct control always wins over click orders.
 		_has_move_target = false
 		attack_target = null
+		talk_target = null
 	else:
 		wish = _order_wish()
 	_wish = wish
@@ -362,6 +387,16 @@ func _physics_process(delta: float) -> void:
 
 ## Movement wanted by click orders: walk to a clicked point, or chase and auto-attack a monster.
 func _order_wish() -> Vector3:
+	if talk_target and is_instance_valid(talk_target):
+		var tt: Vector3 = talk_target.global_position - global_position
+		tt.y = 0.0
+		if tt.length() > 2.0:
+			return tt.normalized()
+		var npc: Node3D = talk_target
+		talk_target = null
+		face_direction(tt.normalized())
+		talk_reached.emit(npc)
+		return Vector3.ZERO
 	if attack_target and (not is_instance_valid(attack_target) or (attack_target.has_method("is_dead") and attack_target.call("is_dead"))):
 		attack_target = null
 	if attack_target:

@@ -11,6 +11,10 @@ var skill_bar: SkillBar
 ## Emitted when the player clicks the auto-retaliate button.
 signal retaliate_clicked
 signal skills_clicked
+signal backpack_clicked
+var _backpack_button: Button
+var _toasts: VBoxContainer
+var _tracker: Label
 var _xp_bar: ProgressBar
 var _level_label: Label
 var _banner: Label
@@ -71,7 +75,7 @@ func _ready() -> void:
 	root.add_child(_fps_label)
 
 	_hint = Label.new()
-	_hint.text = "WASD move · Click monster to attack · 1-4 skills · Space/RMB dodge · Middle mouse / arrows rotate · Scroll zoom · R auto retaliate · K skill tree · Esc pause"
+	_hint.text = "WASD move · Click monster to attack · 1-4 skills · Space/RMB dodge · Middle mouse / arrows rotate · Scroll zoom · R auto retaliate · K skills · I backpack · L quests · Esc pause"
 	_hint.anchor_left = 0.5
 	_hint.anchor_right = 0.5
 	_hint.offset_left = -560
@@ -162,6 +166,50 @@ func _ready() -> void:
 	_skills_button.pressed.connect(func() -> void: skills_clicked.emit())
 	root.add_child(_skills_button)
 
+	_backpack_button = Button.new()
+	_backpack_button.focus_mode = Control.FOCUS_NONE
+	_backpack_button.anchor_left = 1.0
+	_backpack_button.anchor_right = 1.0
+	_backpack_button.anchor_top = 1.0
+	_backpack_button.anchor_bottom = 1.0
+	_backpack_button.offset_left = -208
+	_backpack_button.offset_right = -24
+	_backpack_button.offset_top = -196
+	_backpack_button.offset_bottom = -148
+	var bp_style: StyleBoxFlat = _retaliate_style.duplicate()
+	bp_style.border_color = Color("8a6446")
+	for st3: String in ["normal", "hover", "pressed"]:
+		_backpack_button.add_theme_stylebox_override(st3, bp_style)
+	_backpack_button.add_theme_color_override("font_color", COL_FRAME)
+	_backpack_button.add_theme_font_size_override("font_size", 14)
+	_backpack_button.text = "Backpack  [I]"
+	_backpack_button.pressed.connect(func() -> void: backpack_clicked.emit())
+	root.add_child(_backpack_button)
+
+	_toasts = VBoxContainer.new()
+	_toasts.anchor_top = 1.0
+	_toasts.anchor_bottom = 1.0
+	_toasts.offset_left = 34
+	_toasts.offset_top = -260
+	_toasts.offset_bottom = -120
+	_toasts.alignment = BoxContainer.ALIGNMENT_END
+	_toasts.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(_toasts)
+
+	_tracker = Label.new()
+	_tracker.anchor_left = 1.0
+	_tracker.anchor_right = 1.0
+	_tracker.offset_left = -360
+	_tracker.offset_right = -24
+	_tracker.offset_top = 40
+	_tracker.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_tracker.add_theme_font_size_override("font_size", 15)
+	_tracker.add_theme_color_override("font_color", Color("f2d48a"))
+	_tracker.add_theme_color_override("font_outline_color", Color(0.12, 0.13, 0.16, 0.9))
+	_tracker.add_theme_constant_override("outline_size", 5)
+	_tracker.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(_tracker)
+
 	_banner = Label.new()
 	_banner.anchor_left = 0.5
 	_banner.anchor_right = 0.5
@@ -214,6 +262,28 @@ func set_health(value: float, max_value: float) -> void:
 func set_stamina(value: float, max_value: float) -> void:
 	_stamina_bar.max_value = max_value
 	_stamina_bar.value = value
+
+
+## Small message bottom-left (loot, eating). Fades after a few seconds.
+func toast(text: String) -> void:
+	var l := Label.new()
+	l.text = text
+	l.add_theme_font_size_override("font_size", 15)
+	l.add_theme_color_override("font_color", Color("f2d48a"))
+	l.add_theme_color_override("font_outline_color", Color(0.12, 0.13, 0.16, 0.9))
+	l.add_theme_constant_override("outline_size", 5)
+	_toasts.add_child(l)
+	while _toasts.get_child_count() > 6:
+		_toasts.get_child(0).queue_free()
+		_toasts.remove_child(_toasts.get_child(0))
+	var tw := l.create_tween()
+	tw.tween_interval(3.0)
+	tw.tween_property(l, "modulate:a", 0.0, 0.8)
+	tw.tween_callback(l.queue_free)
+
+
+func set_tracker(text: String) -> void:
+	_tracker.text = text
 
 
 func set_xp(xp: int, xp_to_next: int, level: int) -> void:

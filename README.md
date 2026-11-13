@@ -18,6 +18,10 @@ De Crown of Seven Heavens is gebroken. Uit de scheuren in de lucht kruipt de Slu
 | Sprinten | Shift | linkerstick indrukken |
 | Ontwijken | Spatie / rechtermuis / Alt / C | B of A |
 | Dichtstbijzijnde doelwit | Q | rechterstick indrukken |
+| Skilltree en trouw | K | D-pad omlaag |
+| Rugzak | I | D-pad links |
+| Questlog | L | D-pad rechts |
+| Praten | klik op een NPC (goudkleurige naam) | - |
 | Pauze | Esc / P | Start |
 
 ## Feedback geven
