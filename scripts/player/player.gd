@@ -7,6 +7,8 @@ signal stamina_changed(value: float, max_value: float)
 signal health_changed(value: float, max_value: float)
 signal dashed
 signal landed(impact: float)
+signal hurt(amount: float, from_dir: Vector3)
+signal died
 
 @export var walk_speed: float = 6.5
 @export var sprint_speed: float = 10.5
@@ -41,6 +43,9 @@ var is_dashing: bool = false
 var air_dashes_left: int = 1
 
 var model: HeroModel
+var combat: PlayerCombat
+## Enemy the hero is locked onto (set by the lock-on system). Null = free.
+var lock_target: Node3D
 
 var _coyote: float = 0.0
 var _jump_buffer: float = 0.0
@@ -53,6 +58,9 @@ var _was_on_floor: bool = true
 var _last_fall_speed: float = 0.0
 var _facing: float = 0.0
 var _prev_hvel: Vector3 = Vector3.ZERO
+var _knockback: Vector3 = Vector3.ZERO
+var _hurt_timer: float = 0.0
+var _wish: Vector3 = Vector3.ZERO
 
 
 func _ready() -> void:
@@ -73,6 +81,10 @@ func _ready() -> void:
 	stamina = max_stamina
 	health = max_health
 	_facing = rotation.y
+	combat = PlayerCombat.new()
+	combat.name = "Combat"
+	add_child(combat)
+	combat.setup(self)
 
 
 func is_invulnerable() -> bool:
@@ -101,6 +113,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		velocity.y *= 0.5  # Variable jump height.
 	elif event.is_action_pressed("dodge"):
 		try_dash()
+	elif event.is_action_pressed("attack_light"):
+		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED or not (event is InputEventMouseButton):
+			combat.request_light()
+	elif event.is_action_pressed("attack_heavy"):
+		combat.request_heavy()
 
 
 func request_jump() -> void:
@@ -114,6 +131,9 @@ func try_dash() -> bool:
 		return false
 	if not is_on_floor() and air_dashes_left <= 0:
 		return false
+	if _hurt_timer > 0.15:
+		return false
+	combat.cancel()  # Dodging always cancels an attack.
 	var dir: Vector3 = _camera_relative(get_move_input())
 	if dir.length_squared() < 0.01:
 		dir = -model.global_transform.basis.z if model else Vector3.FORWARD
@@ -132,24 +152,58 @@ func try_dash() -> bool:
 	return true
 
 
+## Attacks never get blocked by stamina (forgiving): they just drain what is left.
+func spend_stamina_soft(amount: float) -> void:
+	_spend_stamina(amount)
+
+
+func get_wish_direction() -> Vector3:
+	return _wish
+
+
+func get_facing_vector() -> Vector3:
+	return Vector3(-sin(_facing), 0.0, -cos(_facing))
+
+
 func _spend_stamina(amount: float) -> void:
 	stamina = maxf(stamina - amount, 0.0)
 	_regen_wait = stamina_regen_delay
 	stamina_changed.emit(stamina, max_stamina)
 
 
-func take_damage(amount: float) -> bool:
+func take_damage(amount: float, knockback: Vector3 = Vector3.ZERO) -> bool:
 	if is_invulnerable() or health <= 0.0:
 		return false
 	health = maxf(health - amount, 0.0)
 	health_changed.emit(health, max_health)
+	combat.cancel()
+	_knockback = knockback
+	_hurt_timer = 0.3
+	_iframe_timer = 0.45  # Brief mercy invulnerability after a hit.
+	if model:
+		model.impulse_squash(0.3)
+	hurt.emit(amount, knockback.normalized())
+	if health <= 0.0:
+		died.emit()
 	return true
+
+
+## Full restore, used on respawn.
+func revive(at: Vector3) -> void:
+	global_position = at
+	velocity = Vector3.ZERO
+	health = max_health
+	stamina = max_stamina
+	health_changed.emit(health, max_health)
+	stamina_changed.emit(stamina, max_stamina)
 
 
 func _physics_process(delta: float) -> void:
 	_tick_timers(delta)
 	var input: Vector2 = get_move_input()
 	var wish: Vector3 = _camera_relative(input)
+	_wish = wish
+	var locked: bool = lock_target != null and is_instance_valid(lock_target)
 	var on_floor: bool = is_on_floor()
 
 	if on_floor:
@@ -174,6 +228,19 @@ func _physics_process(delta: float) -> void:
 		if _dash_timer <= 0.0:
 			is_dashing = false
 			_dash_cd = dash_cooldown
+	elif _hurt_timer > 0.0:
+		_hurt_timer -= delta
+		velocity.x = _knockback.x
+		velocity.z = _knockback.z
+		_knockback = _knockback.move_toward(Vector3.ZERO, 40.0 * delta)
+	elif combat.locks_movement():
+		var av: Vector3 = combat.get_attack_velocity()
+		var hv := Vector3(velocity.x, 0, velocity.z).move_toward(av, 90.0 * delta)
+		velocity.x = hv.x
+		velocity.z = hv.z
+		var hover: float = combat.get_hover()
+		if hover > 0.0 and not on_floor:
+			velocity.y = maxf(velocity.y, 0.0) * 0.5 + hover * 0.3
 	else:
 		var target_speed: float = sprint_speed if is_sprinting else walk_speed
 		var target: Vector3 = wish * target_speed
@@ -186,7 +253,11 @@ func _physics_process(delta: float) -> void:
 		hvel = hvel.move_toward(target, rate * delta)
 		velocity.x = hvel.x
 		velocity.z = hvel.z
-		if wish.length_squared() > 0.01:
+		if locked and not is_sprinting:
+			var to_t: Vector3 = lock_target.global_position - global_position
+			if Vector2(to_t.x, to_t.z).length() > 0.3:
+				_facing = atan2(-to_t.x, -to_t.z)
+		elif wish.length_squared() > 0.01:
 			_facing = atan2(-wish.x, -wish.z)
 
 	# Gravity with a heavier fall for a snappy arc.
@@ -194,11 +265,13 @@ func _physics_process(delta: float) -> void:
 		var g: float = gravity * (fall_gravity_mult if velocity.y < 0.0 else 1.0)
 		if is_dashing:
 			g *= 0.15
+		elif combat.get_hover() > 0.0:
+			g *= 0.25
 		velocity.y -= g * delta
 		_last_fall_speed = minf(_last_fall_speed, velocity.y)
 
 	# Jump with coyote time and buffering. Jumping cancels a dash and keeps its momentum.
-	if _jump_buffer > 0.0 and _coyote > 0.0:
+	if _jump_buffer > 0.0 and _coyote > 0.0 and not combat.locks_movement():
 		velocity.y = jump_velocity
 		_jump_buffer = 0.0
 		_coyote = 0.0

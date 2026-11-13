@@ -42,15 +42,42 @@ func _run() -> void:
 	await _wait(40)
 	await _save("01_overzicht.png")
 
-	# 2. Action: sprinting hero mid-stride, camera from the side.
-	rig.set_angles(0.0, deg_to_rad(-8.0))
-	await _wait(5)
-	player.debug_move_input = Vector2(-1.0, -0.25)
-	Input.action_press("sprint")
-	await _wait(32)
-	await _save("02_actie.png")
-	Input.action_release("sprint")
+	# 2. Combat: hero mid-swing against a Hollowed, with lock-on and trail. Time slowed for a clean frame.
+	var fx: CombatFx = main.get("fx")
+	fx.hitstop_enabled = false
+	var foes: Array[Node] = get_nodes_in_group(&"enemies")
+	for f: Node in foes:
+		f.process_mode = Node.PROCESS_MODE_DISABLED
+	var arena: TestArena = main.get("arena")
+	var spot := Vector3(3.0, 0.0, -2.0)
+	spot.y = arena.height_at(spot.x, spot.z)
+	player.global_position = spot
+	player.velocity = Vector3.ZERO
 	player.debug_move_input = Vector2.ZERO
+	var foe: Hollow = foes[0]
+	foe.global_position = spot + Vector3(-0.6, 0.0, -2.0)
+	foe.process_mode = Node.PROCESS_MODE_INHERIT
+	foe.attack_damage = 0.0
+	foe.state = Hollow.State.WINDUP
+	if foes.size() > 1:
+		(foes[1] as Node3D).global_position = spot + Vector3(3.5, 0.0, -5.0)
+		foes[1].process_mode = Node.PROCESS_MODE_INHERIT
+	player.face_direction((foe.global_position - spot).normalized())
+	var lock: LockOn = main.get("lock_on")
+	lock.set_target(foe)
+	rig.set_angles(0.55, deg_to_rad(-12.0))
+	await _wait(12)
+	Engine.time_scale = 0.06
+	player.combat.request_light()
+	for i: int in 60:
+		await _wait(1)
+		if player.combat.phase == PlayerCombat.Phase.ACTIVE and player.combat.current_name == "light_1":
+			pass
+		if player.combat.phase == PlayerCombat.Phase.RECOVERY:
+			break
+	await _save("02_gevecht.png")
+	Engine.time_scale = 1.0
+	lock.set_target(null)
 
 	# 3. Landmark: free camera framing the cliff and tower against the mountains.
 	var cam := Camera3D.new()
@@ -63,7 +90,15 @@ func _run() -> void:
 	await _wait(10)
 	await _save("03_landmark.png")
 
-	# 4. Hero close-up: shows the procedural character design.
+	# 4. Hero and Hollowed close-up: shows both procedural character designs.
+	for f: Node in get_nodes_in_group(&"enemies"):
+		f.process_mode = Node.PROCESS_MODE_DISABLED
+	var foe2: Hollow = get_nodes_in_group(&"enemies")[0]
+	foe2.global_position = Vector3(-6.0, arena.height_at(-6.0, -3.8) + 0.05, -3.8)
+	foe2.process_mode = Node.PROCESS_MODE_INHERIT
+	foe2.target = null
+	foe2.state = Hollow.State.IDLE
+	foe2.set("_facing", atan2(2.0, -2.2))
 	player.global_position = Vector3(-4.0, 0.05, -6.0)
 	player.velocity = Vector3.ZERO
 	player.face_direction(Vector3(2.2, 0, -3.2))

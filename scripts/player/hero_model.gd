@@ -5,7 +5,7 @@ extends Node3D
 
 const COLOR_TUNIC := Color("3d5ba9")
 const COLOR_CLOAK := Color("5b6c9e")
-const COLOR_PLATE := Color("e6e1d3")
+const COLOR_PLATE := Color("8a93a6")
 const COLOR_SKIN := Color("e9b894")
 const COLOR_HAIR := Color("4a3426")
 const COLOR_LEATHER := Color("6b4a33")

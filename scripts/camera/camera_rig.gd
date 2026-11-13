@@ -108,7 +108,7 @@ func _process(delta: float) -> void:
 		var want_yaw: float = atan2(-to.x, -to.z)
 		_yaw = lerp_angle(_yaw, want_yaw, 1.0 - exp(-8.0 * delta))
 		var flat: float = Vector2(to.x, to.z).length()
-		var want_pitch: float = clampf(-atan2(height_offset * 0.6, flat + arm_length) - 0.12 + atan2(to.y, flat) * 0.5, min_pitch, max_pitch)
+		var want_pitch: float = clampf(-0.26 + atan2(to.y, maxf(flat, 1.0)) * 0.5, min_pitch, max_pitch)
 		_pitch = lerpf(_pitch, want_pitch, 1.0 - exp(-5.0 * delta))
 
 	if target:

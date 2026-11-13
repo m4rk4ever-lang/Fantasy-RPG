@@ -37,6 +37,11 @@ func _run() -> void:
 		_finish()
 		return
 	_check(player.is_on_floor(), "player stands on the ground after spawn")
+	var enemies: Array[Node] = get_nodes_in_group(&"enemies")
+	_check(enemies.size() >= 1, "enemies spawned (%d)" % enemies.size())
+	# Park the enemies so movement tests are deterministic.
+	for e: Node in enemies:
+		e.process_mode = Node.PROCESS_MODE_DISABLED
 
 	# Movement: push forward for one second.
 	var start: Vector3 = player.global_position
@@ -74,6 +79,40 @@ func _run() -> void:
 	var st1: float = player.stamina
 	await _frames(60)
 	_check(player.stamina > st1 or player.stamina >= player.max_stamina, "stamina regenerates")
+
+	_check(is_equal_approx(Engine.time_scale, 1.0), "hitstop always ends (time scale %.2f)" % Engine.time_scale)
+	(_main.get("fx") as CombatFx).hitstop_enabled = false
+	# Combat: an enemy right in front of the hero dies after enough light combos.
+	for e: Node in enemies:
+		e.queue_free()
+	await _frames(2)
+	var foe := Hollow.new()
+	root.add_child(foe)
+	var fwd: Vector3 = player.get_facing_vector()
+	foe.global_position = player.global_position + fwd * 1.8 + Vector3.UP * 0.2
+	foe.target = player
+	foe.attack_damage = 0.0
+	var died: Array[bool] = [false]
+	foe.died.connect(func(_x: Hollow) -> void: died[0] = true)
+	await _frames(5)
+	var hp0: float = foe.health
+	var hits: Array[int] = [0]
+	player.combat.hit_landed.connect(func(_t: Node3D, _p: Vector3, _a: Dictionary) -> void: hits[0] += 1)
+	for i: int in 40:
+		if died[0]:
+			break
+		player.combat.request_light()
+		await _frames(8)
+	_check(hits[0] > 0, "light attacks land hits (%d)" % hits[0])
+	_check(died[0] or foe.health < hp0, "enemy takes damage")
+	_check(died[0], "enemy dies after enough damage")
+	await _frames(40)
+	player.combat.request_heavy()
+	await _frames(5)
+	_check(player.combat.is_busy(), "heavy attack starts")
+	player.try_dash()
+	_check(not player.combat.is_busy(), "dodge cancels attack")
+	Engine.time_scale = 1.0
 
 	# Frame time indication (headless, physics only).
 	var t0: int = Time.get_ticks_usec()

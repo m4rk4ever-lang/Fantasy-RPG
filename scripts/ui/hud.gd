@@ -12,6 +12,12 @@ var _stamina_bar: ProgressBar
 var _fps_label: Label
 var _hint: Label
 var _hint_timer: float = 12.0
+var _target_root: VBoxContainer
+var _target_label: Label
+var _target_bar: ProgressBar
+var _target: Node
+var _flash_rect: ColorRect
+var _flash_tween: Tween
 
 
 func _ready() -> void:
@@ -43,7 +49,7 @@ func _ready() -> void:
 	root.add_child(_fps_label)
 
 	_hint = Label.new()
-	_hint.text = "WASD move · Shift sprint · Space jump · Right mouse / Alt dodge · Click to capture mouse"
+	_hint.text = "WASD move · Shift sprint · Space jump · RMB dodge · LMB attack · E heavy · Q lock-on · Esc pause"
 	_hint.anchor_left = 0.5
 	_hint.anchor_right = 0.5
 	_hint.offset_left = -360
@@ -55,6 +61,32 @@ func _ready() -> void:
 	_hint.add_theme_constant_override("outline_size", 4)
 	_hint.add_theme_font_size_override("font_size", 15)
 	root.add_child(_hint)
+
+	_target_root = VBoxContainer.new()
+	_target_root.anchor_left = 0.5
+	_target_root.anchor_right = 0.5
+	_target_root.offset_left = -210
+	_target_root.offset_right = 210
+	_target_root.offset_top = 56
+	_target_root.add_theme_constant_override("separation", 4)
+	_target_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_target_root.visible = false
+	root.add_child(_target_root)
+	_target_label = Label.new()
+	_target_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_target_label.add_theme_color_override("font_color", COL_FRAME)
+	_target_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.6))
+	_target_label.add_theme_constant_override("outline_size", 4)
+	_target_label.add_theme_font_size_override("font_size", 16)
+	_target_root.add_child(_target_label)
+	_target_bar = _make_bar(COL_HEALTH, Vector2(420, 12))
+	_target_root.add_child(_target_bar)
+
+	_flash_rect = ColorRect.new()
+	_flash_rect.color = Color(COL_HEALTH, 0.0)
+	_flash_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_flash_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(_flash_rect)
 
 
 func _make_bar(fill: Color, size: Vector2) -> ProgressBar:
@@ -92,7 +124,39 @@ func set_hint_visible(v: bool) -> void:
 	_hint.visible = v
 
 
+func set_target(enemy: Node) -> void:
+	if _target != null and is_instance_valid(_target) and _target.has_signal("health_changed"):
+		if _target.health_changed.is_connected(_on_target_health_changed):
+			_target.health_changed.disconnect(_on_target_health_changed)
+	_target = null
+	if enemy == null or not is_instance_valid(enemy):
+		_target_root.visible = false
+		return
+	_target = enemy
+	_target_label.text = str(enemy.get("display_name"))
+	_on_target_health_changed(float(enemy.get("health")), float(enemy.get("max_health")))
+	if enemy.has_signal("health_changed"):
+		enemy.health_changed.connect(_on_target_health_changed)
+	_target_root.visible = true
+
+
+func _on_target_health_changed(value: float, max_value: float) -> void:
+	_target_bar.max_value = max_value
+	_target_bar.value = value
+
+
+func flash_damage() -> void:
+	if _flash_tween != null and _flash_tween.is_valid():
+		_flash_tween.kill()
+	_flash_rect.color = Color(COL_HEALTH, 0.25)
+	_flash_tween = create_tween()
+	_flash_tween.tween_property(_flash_rect, "color:a", 0.0, 0.3)
+
+
 func _process(delta: float) -> void:
+	if _target != null and not is_instance_valid(_target):
+		_target = null
+		_target_root.visible = false
 	_fps_label.text = "%d fps" % Engine.get_frames_per_second()
 	if _hint_timer > 0.0:
 		_hint_timer -= delta
