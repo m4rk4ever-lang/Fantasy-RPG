@@ -79,6 +79,8 @@ var hide_meshes: Array[String] = []
 ## Target height of the head bone in metres.
 var head_height: float = 1.62
 var idle_anim: String = "Idle_Sword"
+## Walk animation playback rate per unit of speed_ratio (villagers walk slowly: higher value).
+var walk_rate: float = 1.8
 var _glb: Node3D
 var _anim: AnimationPlayer
 var _cur_anim: String = ""
@@ -304,7 +306,7 @@ func _animate_glb(delta: float, speed_ratio: float, dashing: bool) -> void:
 		if speed_ratio > 0.72:
 			_play("Run", 0.15, clampf(speed_ratio, 0.8, 1.3))
 		elif speed_ratio > 0.06:
-			_play("Walk", 0.15, clampf(speed_ratio * 1.8, 0.6, 1.4))
+			_play("Walk", 0.15, clampf(speed_ratio * walk_rate, 0.6, 1.4))
 		else:
 			_play(idle_anim, 0.2)
 	# Squash and stretch spring on the whole body.

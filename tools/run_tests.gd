@@ -511,6 +511,13 @@ func _run() -> void:
 	_check(arena.environment.background_mode == env_bg and player.nav != null, "overworld environment and nav grid are restored")
 	spire.fade_time = 0.45
 
+	# Graphics quality (V.10) and local steering.
+	var q_arena: TestArena = _main.get("arena")
+	Quality.apply(q_arena, 0)
+	_check(not q_arena.sun.shadow_enabled and q_arena.get_viewport().scaling_3d_scale < 0.8, "Low quality turns off shadows and lowers render scale")
+	Quality.apply(q_arena, 2)
+	_check(q_arena.get_viewport().scaling_3d_scale == 1.0, "High quality renders at full scale")
+
 	# Frame time indication (headless, physics only).
 	var t0: int = Time.get_ticks_usec()
 	await _frames(60)

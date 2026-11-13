@@ -9,6 +9,10 @@ Feedback van de eigenaar: 31 tot 45 fps in Safari, en personages en omgeving zie
 - **Hollowed als echt 3D-model:** geanimeerd lichaam (lopen, rennen, slaan, geraakt, dood) met een eigen shader die het naar asgrijs trekt, een koude blauwe rand en gloeiende Veil-ogen. De Warden-Husk en de Keeper erven dit.
 - **Dorpelingen** gebruiken dezelfde gladde lichamen (met en zonder kap), in hun eigen kleuren.
 - **Prestaties:** schaduwkaart 4096 naar 2048, zachtere schaduwfilter een stap lager, schaduwafstand 90 naar 60 m, gras 14.000 naar 9.000 plukjes.
+- **V.10 Graphics quality** in het pauzemenu (Low, Medium, High), onthouden in de browser. De browser start op Medium: 85% renderschaal, eenvoudigere schaduwen, 60% van het gras. Low: 70%, geen schaduwen, gras of glow.
+- **Uitwijken voor obstakels** waar geen padraster is (kerkers) en op de laatste meters naar een doel.
+- **Dorpelingen lopen echt** (loopanimatie op tempo) in plaats van te schuiven.
+- **Roadmap opgeschoond:** afgeronde blokken afgevinkt na het samenvoegen van de twee sessies.
 
 **Feedback verwerkt**
 - Prestaties in Safari: eerste ronde besparingen. Graag opnieuw meten.

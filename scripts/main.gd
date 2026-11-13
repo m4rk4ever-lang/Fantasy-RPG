@@ -161,6 +161,7 @@ func _ready() -> void:
 	undercroft.beacon_lit.connect(_on_beacon_lit)
 	arena.spire_path.reached_door.connect(_on_spire_door)
 	_setup_spire_interior()
+	Quality.apply(arena, Quality.load_level())
 	_load_save.call_deferred()
 	# --- Audio (V.8): procedural sound, ambience and music; see scripts/audio/ ---
 	var audio := AudioDirector.new()

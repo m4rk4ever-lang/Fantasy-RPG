@@ -8,9 +8,9 @@ Blokken van ongeveer 60 minuten. De bouwagent pakt elke run het eerste niet-afge
 
 - **Geluid beluisteren** en mix bijstellen (V.8 en V.9 staan op main).
 
-- **Prestaties meten in de browser.** Eigenaar laten bevestigen of de haperingen bij treffers weg zijn. Zo niet: schaduwafstand en aantal schaduwcasters verlagen, grasdichtheid achter een kwaliteitsinstelling.
+- **Prestaties meten in de browser** na de kwaliteitsinstelling (eigenaar). Haalt Medium geen 60 fps: verder met LOD en het samenvoegen van rotsen en ruïnes.
+- **Omgeving gladder** (feedback 13-11-2026): rots onder de Veilspire, ruïnes, rotsblokken en huizen in dezelfde gladde stijl als de nieuwe personages.
 
-- **Pad naar de Veilspire.** De rots heeft nu richels, maar je kunt er nog niet op. Een pad of trap langs de richels omhoog.
 - **Bergring overdag** is te vlak grijs-wit. Meer leisteenblauw in de flanken, scherpere sneeuwgrens.
 
 ## Koers (feedback eigenaar 13-11-2026)
@@ -27,17 +27,18 @@ Doel: één gebied waarin de hele kernloop speelbaar is: praten, quest aannemen,
 - [x] V.2 Looproutes afbakenen: niet de zee in, wel over steigers. Hekken en dorpsspullen hebben botsing, het hek heeft een poort.
 - [x] V.2b Padvinding voor klik-om-te-lopen (raster met A*, 1,25 m, om huizen, hekken, rotsen en water heen).
 - [x] V.2c Rennen aan/uit (RuneScape), ontwijken geschrapt (eigenaar 13-11-2026).
-- [ ] V.3 Klassen en skilltree: keuze-issue over opzet (welke klassen, hoe de boom eruitziet, hoe skills op de balk komen). Dan eerste klasse uitwerken.
-- [ ] V.4 Stats, XP en levels, loot van Hollowed, eenvoudige inventaris.
+- [x] V.3 Klassen en skilltree: keuze-issue over opzet (welke klassen, hoe de boom eruitziet, hoe skills op de balk komen). Dan eerste klasse uitwerken.
+- [x] V.4 Stats, XP en levels, loot van Hollowed, eenvoudige inventaris.
 - [x] V.5 Dialoogsysteem, eerste quest "Ashes on the Shore" bij Brenna Gale in Saltwick, questlog (L) en tracker in beeld.
 - [x] V.1b Level cap 60, XP-curve in WoW-stijl, monster-XP geschaald op levelverschil, monsterlevel in de doelwitbalk.
 - [x] V.6 Eerste kleine dungeon: **Undercroft of the Veilspire** (deur aan de voet van de rots). Drie ruimtes en twee gangen, fakkels, 4 Hollowed (level 3) en eindbaas **Aldric, the Lightless Keeper** (level 5, poise, fase 2 met extra vijanden). Baken aansteken sluit hoofdstuk I af, waarna het licht boven de Veilspire weer brandt.
-- [ ] V.6b Pad omhoog naar de Veilspire en het torenterras. Heiligdom met obelisken.
+- [x] V.6a The Warden's Stair naar de verzegelde deur boven, met optionele Hall of the First Oath.
+- [ ] V.6c Torenterras. Heiligdom met obelisken.
 - [ ] V.13 Keuze-issue: raids solo met NPC-metgezellen, solo-geschaald of later echte multiplayer.
 - [x] V.7 Opslaan en laden: automatisch elke 20 s en bij het sluiten van het tabblad, "Save game" en "New game" in het pauzemenu. Bewaart level, skills, trouw, rugzak, quests, actiebalk, rennen, auto retaliate en positie.
-- [ ] V.8 Geluid: voetstappen, zwaard, treffers, golven, meeuwen, eenvoudige muziek.
-- [ ] V.9 Modellen bijschaven: meer detail in held, Hollowed en huizen (RuneScape 3 is inmiddels gedetailleerd). Eventueel passende CC0-modellen zoeken.
-- [ ] V.10 Prestaties en kwaliteitsinstelling (laag, midden, hoog).
+- [x] V.8 Geluid: voetstappen, zwaard, treffers, golven, meeuwen, eenvoudige muziek.
+- [x] V.9 Modellen bijschaven: meer detail in held, Hollowed en huizen (RuneScape 3 is inmiddels gedetailleerd). Eventueel passende CC0-modellen zoeken.
+- [x] V.10 Prestaties en kwaliteitsinstelling (laag, midden, hoog).
 - [x] V.11 UI-afwerking volgens `docs/UI.md`: orbs voor health en resource, gebogen skillbalk met radiale cooldown, skilltree als echte boom, itemiconen, portretten.
 - [ ] V.12 Keuze-issue: resource per klasse (Fury, Focus, Mana, Faith, Corruption of anders).
 
@@ -64,7 +65,7 @@ Doel: één gebied waarin de hele kernloop speelbaar is: praten, quest aannemen,
 - [ ] 2.3b Rivier met kapotte brug (Havenhythe-inspiratie), waterval vanaf de bergen.
 - [x] 2.4 Hemel met wolken (eigen sky-shader), dag-nachtcyclus van 16 minuten met maan en sterren, mist en ambient per tijdstip.
 - [x] 2.5a Vissersdorp Saltwick aan de baai: vakwerkhuizen, steigers, boten, rook, meeuwen, dorpelingen. Zwevende kroonscherf boven de vallei.
-- [ ] 2.5b Pad omhoog naar de Veilspire, interieur van de toren. Heiligdom met obelisken (Ascendanten).
+- [x] 2.5b Pad omhoog naar de Veilspire, interieur van de toren (eerste zaal). Heiligdom met obelisken (Ascendanten).
 - [ ] 2.5c **Pas na de verticale slice.** Tweede gebied met monumentale architectuur en gloeiende runen (sfeerreferentie eigenaar 13-11-2026): bijvoorbeeld een smidsestad van the Ashen Host.
 - [ ] 2.6 Snelle verplaatsing: glijden (glider) of klimmen.
 - [x] 2.7a Leven rond de speler: stuifmeel overdag, vuurvliegjes 's nachts, vlinders.
@@ -72,29 +73,29 @@ Doel: één gebied waarin de hele kernloop speelbaar is: praten, quest aannemen,
 
 ## Fase 3: RPG-systemen en character creator
 
-- [ ] 3.0 Klassen en skilltree: zie V.3.
+- [x] 3.0 Klassen en skilltree: zie V.3.
 - [ ] 3.1 Keuze-issue: opzet character creator.
 - [ ] 3.2 Character creator: lichaamsvorm, gezicht, haar, kleuren, klasse.
-- [ ] 3.3 Stats, XP en levels.
+- [x] 3.3 Stats, XP en levels.
 - [ ] 3.4 Inventaris, loot en uitrusting zichtbaar op het personage.
-- [ ] 3.5 Opslaan en laden.
+- [x] 3.5 Opslaan en laden.
 
 ## Fase 4: verhaal (serieus en episch)
 
 - [x] 4.1 Lore en hoofdconflict uitwerken in DESIGN.md (Ascendanten, facties, the Unsung).
-- [ ] 4.2 NPC's en dialoogsysteem.
-- [ ] 4.3 Questsysteem met quest-log.
+- [x] 4.2 NPC's en dialoogsysteem.
+- [x] 4.3 Questsysteem met quest-log.
 - [ ] 4.4 Hoofdquest van 3 tot 5 quests.
 
 ## Fase 5: kerkers (donker en grimmig)
 
-- [ ] 5.1 Eerste kerker: gedempt licht, fakkels, vervallen steen.
+- [x] 5.1 Eerste kerker: gedempt licht, fakkels, vervallen steen.
 - [ ] 5.2 Meer vijandtypes.
-- [ ] 5.3 Eindbaas met fases. Sfeer: groots en dreigend, stormlucht, sierlijke stof met goudrand (referentie eigenaar 13-11-2026), eigen ontwerp.
+- [x] 5.3 Eindbaas met fases. Sfeer: groots en dreigend, stormlucht, sierlijke stof met goudrand (referentie eigenaar 13-11-2026), eigen ontwerp.
 
 ## Fase 6: geluid en afwerking
 
-- [ ] 6.1 Geluidseffecten en muziek (procedureel of CC0).
+- [x] 6.1 Geluidseffecten en muziek (procedureel of CC0).
 - [ ] 6.2 Hoofdmenu en instellingen (grafische kwaliteit, gevoeligheid).
 - [ ] 6.3 Toegankelijkheid.
 

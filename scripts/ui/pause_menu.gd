@@ -99,6 +99,7 @@ func _build_ui() -> void:
 	_mouse_slider.value_changed.connect(_on_slider_changed)
 	_stick_slider.value_changed.connect(_on_slider_changed)
 	_add_audio_settings(box)  # Audio block, see the end of this file.
+	_add_quality_setting(box)
 
 	_controls_panel = _make_panel()
 	_controls_panel.visible = false
@@ -270,3 +271,27 @@ func _add_audio_settings(parent: Control) -> void:
 	mute.toggled.connect(func(on: bool) -> void: AudioServer.set_bus_mute(0, on))
 	parent.add_child(mute)
 # --- End audio settings ---
+
+
+# --- Graphics quality (V.10) ---
+func _add_quality_setting(parent: Control) -> void:
+	var row := HBoxContainer.new()
+	var label := Label.new()
+	label.text = "Graphics quality"
+	label.add_theme_color_override("font_color", COL_STONE)
+	label.add_theme_font_size_override("font_size", 16)
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(label)
+	var opt := OptionButton.new()
+	opt.name = "Quality"
+	for n: String in Quality.NAMES:
+		opt.add_item(n)
+	opt.select(Quality.load_level())
+	opt.item_selected.connect(func(i: int) -> void:
+		var arena: TestArena = get_parent().get("arena") as TestArena
+		if arena:
+			Quality.apply(arena, i)
+		Quality.save_level(i))
+	row.add_child(opt)
+	parent.add_child(row)
+# --- End graphics quality ---

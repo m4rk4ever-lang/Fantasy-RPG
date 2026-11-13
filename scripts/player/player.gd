@@ -407,14 +407,18 @@ func _physics_process(delta: float) -> void:
 ## The last stretch to the target is steered directly.
 func _order_wish() -> Vector3:
 	var w: Vector3 = _order_wish_raw()
-	if w.length_squared() < 0.0001 or nav == null or not nav.covers(global_position):
+	if w.length_squared() < 0.0001:
 		_path = PackedVector3Array()
 		return w
+	if nav == null or not nav.covers(global_position):
+		# No grid here (dungeons): steer around pillars and rubble locally.
+		_path = PackedVector3Array()
+		return _steer_around(w)
 	var goal: Vector3 = _order_goal()
 	var flat := Vector3(global_position.x, 0, global_position.z)
 	var goal_flat := Vector3(goal.x, 0, goal.z)
 	if flat.distance_to(goal_flat) < 2.5:
-		return w
+		return _steer_around(w)
 	_repath_timer -= get_physics_process_delta_time()
 	if _path.is_empty() or _path_goal.distance_to(goal_flat) > 1.5 or _repath_timer <= 0.0:
 		_path = nav.find_path(global_position, goal)
@@ -430,6 +434,23 @@ func _order_wish() -> Vector3:
 	if d.length() < 0.05:
 		return w
 	return d.normalized() * w.length()
+
+
+## Local avoidance: if something solid is right ahead at body height, turn toward the clearest side.
+func _steer_around(w: Vector3) -> Vector3:
+	var flat := Vector3(w.x, 0, w.z)
+	if flat.length_squared() < 0.0001:
+		return w
+	var dir: Vector3 = flat.normalized()
+	var space := get_world_3d().direct_space_state
+	var from: Vector3 = global_position + Vector3.UP * 0.9
+	for ang: float in [0.0, 0.6, -0.6, 1.1, -1.1, 1.6, -1.6]:
+		var d: Vector3 = dir.rotated(Vector3.UP, ang)
+		var q := PhysicsRayQueryParameters3D.create(from, from + d * 1.4, 1)
+		q.exclude = [get_rid()]
+		if space.intersect_ray(q).is_empty():
+			return d * w.length()
+	return w
 
 
 func _order_goal() -> Vector3:

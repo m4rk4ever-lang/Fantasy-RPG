@@ -7,6 +7,8 @@ extends Node
 @export var day_length_minutes: float = 16.0  ## Real minutes for a full 24h cycle.
 @export var running: bool = true
 
+## Turned off by the Low graphics quality.
+var shadows_allowed: bool = true
 var sun: DirectionalLight3D
 var moon: DirectionalLight3D
 var environment: Environment
@@ -57,7 +59,7 @@ func apply() -> void:
 	sun.light_color = k[5]
 	sun.light_energy = k[6]
 	sun.visible = k[6] > 0.01
-	sun.shadow_enabled = sun.visible
+	sun.shadow_enabled = sun.visible and shadows_allowed
 	var night_w: float = 1.0 - clampf(k[6] / 0.6, 0.0, 1.0)
 	night_factor = night_w
 	moon.light_energy = 0.45 * night_w
