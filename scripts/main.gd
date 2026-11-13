@@ -15,6 +15,7 @@ var dialogue: DialogueWindow
 var brenna_talk: BrennaDialogue
 var ambience: Ambience
 var save_game: SaveGame
+var spire_interior: SpireInterior
 var _last_night: float = -1.0
 var _area: String = ""
 var _step_timer: float = 0.0
@@ -136,7 +137,15 @@ func _ready() -> void:
 	pause_menu.sensitivity_changed.connect(_on_sensitivity_changed)
 	_setup_save_game(pause_menu)
 	arena.spire_path.reached_door.connect(_on_spire_door)
+	_setup_spire_interior()
 	# --- End pause menu ---
+
+	# --- Audio (V.8): procedural sound, ambience and music; see scripts/audio/ ---
+	var audio := AudioDirector.new()
+	audio.name = "AudioDirector"
+	add_child(audio)
+	audio.setup(player, arena)
+	# --- End audio ---
 
 
 ## Save and load. Persistence is off in headless test runs. Autosave: every 60 s (in SaveGame),
@@ -160,6 +169,42 @@ func _on_spire_door() -> void:
 		return
 	player.quests.set_flag("reached_spire")
 	hud.show_banner("The Veilspire", "The door is sealed by the Veil")
+
+
+# --- Veilspire, first floor (V.6b) ---
+func _setup_spire_interior() -> void:
+	spire_interior = SpireInterior.new()
+	spire_interior.name = "SpireInterior"
+	add_child(spire_interior)
+	spire_interior.setup(player, arena, camera_rig)
+	spire_interior.entered.connect(func() -> void:
+		ambience.visible = false
+		_area = "The Veilspire"
+		if spire_interior.is_cleared():
+			hud.show_banner("The Veilspire", "The Hall of the First Oath lies silent")
+		else:
+			hud.show_banner("The Veilspire", "Hall of the First Oath"))
+	spire_interior.exited.connect(func() -> void: ambience.visible = true)
+	player.died.connect(func() -> void: ambience.visible = true)
+	spire_interior.enemy_died.connect(_on_spire_enemy_died)
+	save_game.loaded.connect(spire_interior.handle_game_loaded)
+	spire_interior.boss_slammed.connect(func(pos: Vector3) -> void:
+		fx.slam(pos)
+		camera_rig.add_trauma(0.6))
+	spire_interior.floor_cleared.connect(func() -> void:
+		hud.show_banner("Chapter I continues", "Warden-Husk Aldric is at rest. The stair above is broken."))
+
+
+func _on_spire_enemy_died(en: Hollow, is_boss: bool) -> void:
+	var gained: int = Progression.kill_xp(en.level, player.progression.level) * (4 if is_boss else 1)
+	player.progression.add_xp(gained)
+	if gained > 0:
+		hud.toast("+%d XP" % gained)
+	var extra: Array = [["coins", 60], ["veil_dust", 4], ["warden_sigil", 1]] if is_boss else []
+	_drop_loot(en.global_position, en.global_position.y, extra)
+	camera_rig.add_trauma(0.6 if is_boss else 0.35)
+	fx.hitstop(0.2 if is_boss else 0.12)
+# --- End Veilspire, first floor ---
 
 
 func _notification(what: int) -> void:
@@ -215,7 +260,10 @@ func _on_hit_landed(_target: Node3D, pos: Vector3, attack: Dictionary) -> void:
 
 
 func _on_heavy_impact(pos: Vector3) -> void:
-	pos.y = arena.height_at(pos.x, pos.z)
+	if spire_interior == null or not spire_interior.is_inside:  # V.6b: indoors the floor is not the terrain.
+		pos.y = arena.height_at(pos.x, pos.z)
+	else:
+		pos.y = SpireInterior.ORIGIN.y
 	fx.slam(pos)
 	camera_rig.add_trauma(0.45)
 
@@ -248,6 +296,8 @@ func _process(delta: float) -> void:
 	var area: String = "Saltwick" if arena.sea_distance(player.global_position.x, player.global_position.z) > 12.0 else "Warden's Vale"
 	if player.global_position.y > 14.0 and Vector2(player.global_position.x, player.global_position.z).distance_to(TestArena.CLIFF_CENTER) < 30.0:
 		area = "The Warden's Stair"
+	if spire_interior != null and spire_interior.is_inside:
+		area = _area  # V.6b: the interior shows its own banner.
 	if area != _area:
 		_area = area
 		hud.show_banner(area, {"Saltwick": "Fishing village of the Saltbound", "The Warden's Stair": "The way up to the first Veilspire"}.get(area, "Beneath the first Veilspire"))
@@ -259,6 +309,7 @@ func _process(delta: float) -> void:
 		var id: String = sk["id"]
 		hud.skill_bar.set_cooldown(id, player.combat.get_cooldown(id), sk["cooldown"])
 		var unlocked: bool = player.combat.is_skill_unlocked(id)
+		hud.skill_bar.set_locked(id, not unlocked)
 		hud.skill_bar.set_usable(id, unlocked and (player.combat.get_cooldown(id) > 0.0 or player.combat.is_skill_usable(id)))
 	# Dust puffs from sprint footsteps.
 	if player.is_sprinting and player.is_on_floor():
@@ -281,7 +332,7 @@ func _is_walkable(from: Vector3, to: Vector3) -> bool:
 
 
 ## Loot table of a Hollowed: always dust and coins, sometimes claws or a sigil.
-func _drop_loot(at: Vector3) -> void:
+func _drop_loot(at: Vector3, floor_y: float = NAN, extra: Array = []) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
 	var items: Array = [["coins", rng.randi_range(5, 15)], ["veil_dust", rng.randi_range(1, 2)]]
@@ -289,10 +340,11 @@ func _drop_loot(at: Vector3) -> void:
 		items.append(["hollow_fang", 1])
 	if rng.randf() < 0.12:
 		items.append(["warden_sigil", 1])
+	items.append_array(extra)
 	var drop := LootDrop.new()
 	drop.items = items
 	add_child(drop)
-	drop.global_position = Vector3(at.x, arena.height_at(at.x, at.z) + 0.05, at.z)
+	drop.global_position = Vector3(at.x, (arena.height_at(at.x, at.z) if is_nan(floor_y) else floor_y) + 0.05, at.z)
 	drop.picked_up.connect(_on_loot_picked)
 
 
@@ -300,7 +352,7 @@ func _on_loot_picked(items: Array) -> void:
 	for it: Array in items:
 		if player.inventory.add(it[0], it[1]):
 			var item_name: String = "coins" if it[0] == "coins" else Inventory.item_data(it[0])["name"]
-			hud.toast("+%d %s" % [it[1], item_name])
+			hud.toast("+%d %s" % [it[1], item_name], it[0])
 		else:
 			hud.toast("Your backpack is full.")
 

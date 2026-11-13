@@ -35,6 +35,11 @@ func _ready() -> void:
 	_model.col_cloak = outfit.get("cloak", HeroModel.COLOR_CLOAK)
 	_model.col_hair = outfit.get("hair", HeroModel.COLOR_HAIR)
 	_model.col_plate = outfit.get("tunic", HeroModel.COLOR_TUNIC).darkened(0.15)
+	_model.col_leather = outfit.get("trousers", HeroModel.COLOR_LEATHER)
+	_model.col_skin = outfit.get("skin", HeroModel.COLOR_SKIN)
+	# Outfit variation: "kind" is "", "apron", "hood" or "hat"; "hair_style" picks the hair shape.
+	_model.outfit_kind = outfit.get("kind", "")
+	_model.hair_style = outfit.get("hair_style", 1)
 	add_child(_model)
 	_model.scale = Vector3.ONE * 0.95
 	if not route.is_empty():

@@ -180,3 +180,10 @@ Hollowed Wardens: de Wardens die the Veil als eersten raakte. Ze dragen nog de g
 - **Geen ontwijken** (eigenaar: "dat kan bij RuneScape/WoW combat ook niet"). Verdedigen doe je met skills (Second Wind, Unbroken) en positie. Surge Strike blijft een aanval met korte onkwetsbaarheid.
 - **Rennen is een schakelaar** (Shift, Spatie, knop "Run" naast de health-orb). Rennen kost stamina (4 per seconde), lopen of stilstaan laadt die op. Bij 0 loop je tot er weer stamina is.
 - **Padvinding:** `NavGrid` maakt bij de start een raster van 1,25 m (in ongeveer 0,1 s). Een vakje is geblokkeerd bij een collider op lichaamshoogte, water zonder steiger of een te steile helling. Klikopdrachten volgen het A*-pad, het laatste stuk gaat recht.
+
+## De Veilspire als eerste kerker (13-11-2026)
+
+- **The Warden's Stair:** stenen pad om de klif, van de poort aan de voet naar de verzegelde deur. Looproutes boven het terrein staan op botsingslaag 5 (`SpirePath.WALKWAY_LAYER`), zodat de navigatiegrid erover plant.
+- **Eerste verdieping, Hall of the First Oath:** staat in dezelfde scène onder de klif (y = -200). Binnen wisselt de Environment naar het kerkerpalet en pauzeert de dag-nachtcyclus. Minibaas **Warden-Husk Aldric** (level 5). Verdieping 2 en 3 en de eindbaas volgen (V.6c).
+- **Opslaan:** `user://save_1.json` (IndexedDB in de browser), versie 1.
+- **Geluid:** alles procedureel bij de start (`scripts/audio/`), bussen Music, SFX en Ambience.

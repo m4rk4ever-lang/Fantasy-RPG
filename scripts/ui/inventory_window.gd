@@ -60,15 +60,16 @@ func _build() -> void:
 	add_child(_root)
 	var panel := PanelContainer.new()
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
-	panel.add_theme_stylebox_override("panel", _style(COL_PANEL, COL_STONE, 10))
+	UiStyle.apply(panel, false, 12)
 	panel.anchor_left = 1.0
 	panel.anchor_right = 1.0
 	panel.anchor_top = 1.0
 	panel.anchor_bottom = 1.0
-	panel.offset_left = -268
+	panel.offset_left = -272
 	panel.offset_right = -24
-	panel.offset_top = -616
+	panel.offset_top = -562
 	panel.offset_bottom = -206
+	panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	_root.add_child(panel)
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 8)
@@ -81,6 +82,9 @@ func _build() -> void:
 	title.add_theme_color_override("font_color", COL_STONE)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(title)
+	var coin_icon := ItemIcon.new("coins", 20.0)
+	coin_icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	top.add_child(coin_icon)
 	_coins = Label.new()
 	_coins.add_theme_color_override("font_color", COL_GOLD)
 	_coins.add_theme_font_size_override("font_size", 16)
@@ -88,15 +92,16 @@ func _build() -> void:
 	_grid = GridContainer.new()
 	_grid.columns = 4
 	_grid.add_theme_constant_override("h_separation", 6)
-	_grid.add_theme_constant_override("v_separation", 6)
+	_grid.add_theme_constant_override("v_separation", 5)
 	box.add_child(_grid)
 	for i: int in Inventory.SLOTS:
 		var b := Button.new()
 		b.focus_mode = Control.FOCUS_NONE
-		b.custom_minimum_size = Vector2(50, 44)
-		b.add_theme_stylebox_override("normal", _style(Color(0.18, 0.19, 0.23, 0.9), Color(0.3, 0.32, 0.38), 4))
-		b.add_theme_stylebox_override("hover", _style(Color(0.22, 0.23, 0.28, 0.95), COL_SLATE, 4))
-		b.add_theme_stylebox_override("pressed", _style(Color(0.22, 0.23, 0.28, 0.95), COL_GOLD, 4))
+		b.custom_minimum_size = Vector2(50, 38)
+		# Slots with a light inset: darker than the panel, thin dark border.
+		b.add_theme_stylebox_override("normal", _style(Color(0.08, 0.09, 0.1, 0.85), Color(0.26, 0.28, 0.32), 4))
+		b.add_theme_stylebox_override("hover", _style(Color(0.14, 0.15, 0.18, 0.95), COL_STONE, 4))
+		b.add_theme_stylebox_override("pressed", _style(Color(0.14, 0.15, 0.18, 0.95), COL_GOLD, 4))
 		b.add_theme_font_size_override("font_size", 12)
 		b.add_theme_color_override("font_color", COL_STONE)
 		var idx: int = i
@@ -124,13 +129,21 @@ func _refresh() -> void:
 			b.tooltip_text = ""
 			continue
 		var data: Dictionary = Inventory.item_data(s["id"])
-		var icon := ColorRect.new()
-		icon.color = data.get("color", COL_STONE)
-		icon.size = Vector2(18, 18)
-		icon.position = Vector2(16, 6)
-		icon.rotation = PI * 0.25
-		icon.pivot_offset = Vector2(9, 9)
-		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var icon := ItemIcon.new(s["id"], 30.0)
+		icon.position = Vector2(10, 4)
 		b.add_child(icon)
-		b.text = "\n%d" % int(s["count"]) if int(s["count"]) > 1 else ""
+		b.text = ""
+		if int(s["count"]) > 1:
+			var n := Label.new()
+			n.text = str(int(s["count"]))
+			n.set_anchors_preset(Control.PRESET_FULL_RECT)
+			n.offset_right = -4
+			n.offset_bottom = -1
+			n.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+			n.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+			n.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			n.add_theme_font_size_override("font_size", 12)
+			n.add_theme_color_override("font_color", UiStyle.GOLD_LIGHT)
+			UiStyle.outline(n, 4)
+			b.add_child(n)
 		b.tooltip_text = "%s\n%s%s" % [data["name"], data["desc"], "\nClick to eat." if data.has("heal") else ""]

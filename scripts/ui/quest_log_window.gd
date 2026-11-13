@@ -16,23 +16,14 @@ func setup(q: QuestLog) -> void:
 	add_child(_root)
 	var panel := PanelContainer.new()
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.12, 0.13, 0.16, 0.96)
-	sb.border_color = Color("e6e1d3")
-	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(10)
-	sb.content_margin_left = 16
-	sb.content_margin_right = 16
-	sb.content_margin_top = 12
-	sb.content_margin_bottom = 12
-	panel.add_theme_stylebox_override("panel", sb)
+	UiStyle.apply(panel, true, 16)
 	panel.anchor_left = 0.0
 	panel.anchor_top = 0.5
 	panel.anchor_bottom = 0.5
 	panel.offset_left = 24
 	panel.offset_right = 444
-	panel.offset_top = -300
-	panel.offset_bottom = 240
+	panel.offset_top = -310
+	panel.offset_bottom = 190
 	_root.add_child(panel)
 	var scroll := ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -71,7 +62,7 @@ func _refresh() -> void:
 		return
 	for c: Node in _list.get_children():
 		c.queue_free()
-	_list.add_child(_label("Quest log  [L]", 20, Color("e6e1d3")))
+	_list.add_child(_label("Quest log  [L]", 20, UiStyle.GOLD_LIGHT))
 	# Main story: chapter title, then each story quest with its steps.
 	var chapter: String = ""
 	for id: String in QuestLog.QUESTS.keys():

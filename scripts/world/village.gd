@@ -11,6 +11,10 @@ const COL_TIMBER := Color("5a3d2b")
 const COL_PLANK := Color("8a6446")
 const COL_PLANK_DARK := Color("6b4a33")
 const COL_GLASS := Color("2a3448")
+const COL_BRASS := Color("d9a441")
+const COL_SHUTTER := Color("3d5ba9")
+const COL_LEAF := Color("3c9a58")
+const COL_BLOOMS: Array[Color] = [Color("d9552e"), Color("e6e1d3"), Color("d9a441")]
 const COL_ROOF_A := Color("3d5ba9")
 const COL_ROOF_B := Color("5b6c9e")
 const COL_ROPE := Color("c9b48a")
@@ -148,7 +152,14 @@ func _house(at: Vector3, width: float, depth: float, storeys: int, roof_col: Col
 			_kit.box(xf * Transform3D(Basis(Vector3.BACK, ang if k2 == 0 else -ang), mid), Vector3(len, t, 0.08), COL_TIMBER)
 	# Door with frame.
 	_kit.box(xf * Transform3D(Basis(), Vector3(0, 1.0, hd + 0.06)), Vector3(1.1, 2.0, 0.08), COL_PLANK_DARK)
-	_kit.box(xf * Transform3D(Basis(), Vector3(0, 2.05, hd + 0.08)), Vector3(1.4, t, 0.12), COL_TIMBER)
+	_kit.box(xf * Transform3D(Basis(), Vector3(0, 2.07, hd + 0.08)), Vector3(1.5, t, 0.14), COL_TIMBER)
+	for ds: float in [-1.0, 1.0]:
+		_kit.box(xf * Transform3D(Basis(), Vector3(ds * 0.63, 1.0, hd + 0.08)), Vector3(0.14, 2.0, 0.14), COL_TIMBER)
+		# Plank seams and iron strap hinges.
+		_kit.box(xf * Transform3D(Basis(), Vector3(ds * 0.18, 1.0, hd + 0.1)), Vector3(0.03, 1.96, 0.02), COL_PLANK_DARK.darkened(0.35))
+	for hy: float in [0.5, 1.55]:
+		_kit.box(xf * Transform3D(Basis(), Vector3(-0.2, hy, hd + 0.11)), Vector3(0.7, 0.07, 0.02), COL_GLASS)
+	_kit.box(xf * Transform3D(Basis(), Vector3(0.4, 1.02, hd + 0.13)), Vector3(0.07, 0.07, 0.06), COL_BRASS)  # Handle.
 	# Front step.
 	_kit.box(xf * Transform3D(Basis(), Vector3(0, -0.2, hd + 0.6)), Vector3(1.6, 0.4, 0.8), COL_STONE)
 	# Windows: front and sides, each storey. Lit windows glow at dusk.
@@ -157,7 +168,7 @@ func _house(at: Vector3, width: float, depth: float, storeys: int, roof_col: Col
 		for wx: float in [-hw * 0.55, hw * 0.55]:
 			if f3 == 0 and absf(wx) < 1.0:
 				continue
-			_window(xf * Transform3D(Basis(), Vector3(wx, wy, hd + 0.05)), (index + f3) % 3 == 0)
+			_window(xf * Transform3D(Basis(), Vector3(wx, wy, hd + 0.05)), (index + f3) % 3 == 0, true, f3 == 0 or index % 2 == 0, index + f3)
 		for side2: float in [-1.0, 1.0]:
 			_window(xf * Transform3D(Basis(Vector3.UP, side2 * PI * 0.5), Vector3(side2 * (hw + 0.05), wy, 0)), false)
 	# Roof: ridge along local X, with overhang.
@@ -165,21 +176,58 @@ func _house(at: Vector3, width: float, depth: float, storeys: int, roof_col: Col
 	_kit.gable(xf * Transform3D(Basis(), Vector3(0, wall_h, 0)), Vector3(width + 0.9, roof_h, depth + 1.1), roof_col)
 	for side3: float in [-1.0, 1.0]:
 		_kit.gable_wall(xf * Transform3D(Basis(Vector3.UP, PI * 0.5), Vector3(side3 * (hw + 0.02), wall_h, 0)), depth, roof_h * (depth / (depth + 1.1)), COL_PLASTER)
+	# Ridge beam, eaves boards and barge boards give the roof a finished, thick edge.
+	var rl: float = width + 0.9
+	var rd: float = (depth + 1.1) * 0.5
+	_kit.box(xf * Transform3D(Basis(), Vector3(0, wall_h + roof_h + 0.02, 0)), Vector3(rl + 0.16, 0.16, 0.2), COL_TIMBER)
+	var slope: float = atan2(roof_h, rd)
+	var slope_len: float = Vector2(roof_h, rd).length()
+	for rs: float in [-1.0, 1.0]:
+		_kit.box(xf * Transform3D(Basis(), Vector3(0, wall_h + 0.01, rs * rd)), Vector3(rl + 0.06, 0.12, 0.12), COL_TIMBER)
+		for re: float in [-1.0, 1.0]:
+			_kit.box(xf * Transform3D(Basis(Vector3.RIGHT, rs * slope), Vector3(re * rl * 0.5, wall_h + roof_h * 0.5 + 0.03, rs * rd * 0.5)), Vector3(0.1, 0.18, slope_len + 0.1), COL_TIMBER)
 	# Chimney with smoke.
 	var ch := Vector3(hw * 0.5, wall_h + roof_h * 0.6, -hd * 0.3)
 	_kit.box(xf * Transform3D(Basis(), ch), Vector3(0.7, roof_h * 1.4, 0.7), COL_STONE_DARK)
-	_kit.box(xf * Transform3D(Basis(), ch + Vector3(0, roof_h * 0.7 + 0.05, 0)), Vector3(0.85, 0.12, 0.85), COL_STONE)
+	_kit.box(xf * Transform3D(Basis(), ch + Vector3(0, roof_h * 0.7 + 0.05, 0)), Vector3(0.9, 0.14, 0.9), COL_STONE)
+	# Chimney cap: a stone band below the slab and a clay pot on top.
+	_kit.box(xf * Transform3D(Basis(), ch + Vector3(0, roof_h * 0.7 - 0.22, 0)), Vector3(0.78, 0.1, 0.78), COL_STONE)
+	_kit.cylinder(xf * Transform3D(Basis(), ch + Vector3(0, roof_h * 0.7 + 0.26, 0)), 0.17, 0.22, 0.3, 6, Color("a8553a"))
+	_kit.cylinder(xf * Transform3D(Basis(), ch + Vector3(0, roof_h * 0.7 + 0.415, 0)), 0.12, 0.12, 0.02, 6, COL_GLASS.darkened(0.4))
 	_smoke(xf * (ch + Vector3(0, roof_h * 0.7 + 0.2, 0)))
 
 
-func _window(xf: Transform3D, lit: bool) -> void:
+## Window in local XY, facing +Z: frame with lintel and sill, glazing bars, optional shutters
+## and a flower box.
+func _window(xf: Transform3D, lit: bool, shutters: bool = false, flowers: bool = false, seed_i: int = 0) -> void:
 	_kit.box(xf, Vector3(0.9, 1.0, 0.06), COL_TIMBER)
 	if lit:
 		_glow_kit.box(xf * Transform3D(Basis(), Vector3(0, 0, 0.02)), Vector3(0.7, 0.8, 0.05), Color("ffcf8a"))
 	else:
 		_kit.box(xf * Transform3D(Basis(), Vector3(0, 0, 0.02)), Vector3(0.7, 0.8, 0.05), COL_GLASS)
 	_kit.box(xf * Transform3D(Basis(), Vector3(0, 0, 0.05)), Vector3(0.08, 0.8, 0.04), COL_TIMBER)
+	_kit.box(xf * Transform3D(Basis(), Vector3(0, 0.08, 0.05)), Vector3(0.7, 0.06, 0.04), COL_TIMBER)
 	_kit.box(xf * Transform3D(Basis(), Vector3(0, -0.52, 0.06)), Vector3(1.0, 0.08, 0.16), COL_TIMBER)
+	_kit.box(xf * Transform3D(Basis(), Vector3(0, 0.54, 0.05)), Vector3(1.06, 0.1, 0.12), COL_TIMBER)
+	if shutters:
+		for side: float in [-1.0, 1.0]:
+			# Open shutter, folded back against the wall at a slight angle, with two battens.
+			var sx := xf * Transform3D(Basis(Vector3.UP, side * 0.22), Vector3(side * 0.66, 0, 0.05))
+			_kit.box(sx, Vector3(0.38, 0.98, 0.05), COL_SHUTTER)
+			for by: float in [-0.3, 0.3]:
+				_kit.box(sx * Transform3D(Basis(), Vector3(0, by, 0.03)), Vector3(0.38, 0.08, 0.02), COL_SHUTTER.darkened(0.25))
+	if flowers:
+		# Flower box on brackets: planter, a strip of leaves and a few blooms.
+		var bx := xf * Transform3D(Basis(), Vector3(0, -0.66, 0.2))
+		_kit.box(bx, Vector3(0.96, 0.2, 0.24), COL_PLANK)
+		_kit.box(bx * Transform3D(Basis(), Vector3(0, 0.07, 0.125)), Vector3(0.98, 0.05, 0.02), COL_PLANK_DARK)
+		_kit.box(bx * Transform3D(Basis(), Vector3(0, 0.14, 0)), Vector3(0.9, 0.12, 0.2), COL_LEAF)
+		for i: int in 5:
+			var fx: float = -0.36 + i * 0.18
+			var fy: float = 0.22 + 0.04 * float((i * 2 + seed_i) % 3)
+			var bloom: Color = COL_BLOOMS[(i + seed_i) % COL_BLOOMS.size()]
+			_kit.box(bx * Transform3D(Basis(Vector3.UP, 0.6 * i), Vector3(fx, fy, 0.03 * float((i + seed_i) % 2))), Vector3(0.11, 0.09, 0.11), bloom)
+			_kit.box(bx * Transform3D(Basis(), Vector3(fx + 0.09, 0.2, -0.04)), Vector3(0.08, 0.1, 0.08), COL_LEAF.lightened(0.12))
 
 
 func _smoke(at: Vector3) -> void:
@@ -416,9 +464,10 @@ func _gulls_build() -> void:
 
 func _villagers() -> void:
 	var outfits: Array[Dictionary] = [
-		{"tunic": Color("8a6446"), "cloak": Color("4a483e"), "hair": Color("2c241e")},
-		{"tunic": Color("5b6c9e"), "cloak": Color("c9b48a"), "hair": Color("b07a45")},
-		{"tunic": Color("4cb46a").darkened(0.35), "cloak": Color("6b4a33"), "hair": Color("8e8a7e")},
+		# Fishmonger in a work apron, fisherman in an oilskin hat, hooded elder.
+		{"tunic": Color("8a6446"), "cloak": Color("4a483e"), "hair": Color("2c241e"), "kind": "apron", "hair_style": 1},
+		{"tunic": Color("5b6c9e"), "cloak": Color("d9a441").darkened(0.12), "hair": Color("b07a45"), "kind": "hat", "trousers": Color("4a483e")},
+		{"tunic": Color("4cb46a").darkened(0.35), "cloak": Color("6b4a33"), "hair": Color("8e8a7e"), "kind": "hood", "skin": Color("dba987")},
 	]
 	var routes: Array[Array] = [
 		[Vector2(21.0, -20.0), Vector2(22.0, 0.0), Vector2(21.0, 18.0)],
@@ -450,7 +499,7 @@ func _villagers() -> void:
 func spawn_brenna() -> Villager:
 	var b := Villager.new()
 	b.display_name = "Brenna Gale"
-	b.outfit = {"tunic": Color("3d5ba9").darkened(0.2), "cloak": Color("c9b48a"), "hair": Color("8e8a7e")}
+	b.outfit = {"tunic": Color("3d5ba9").darkened(0.2), "cloak": Color("c9b48a"), "hair": Color("8e8a7e"), "hair_style": 2}
 	var p: Vector3 = _sea() * 30.5 + _along() * -2.3
 	b.route = [p]
 	b.face_dir = -_sea()

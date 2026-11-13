@@ -82,7 +82,7 @@ func _build() -> void:
 	_root.add_child(center)
 	var panel := PanelContainer.new()
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
-	panel.add_theme_stylebox_override("panel", _style(COL_PANEL, COL_STONE, 10, 2))
+	UiStyle.apply(panel, true, 18)
 	panel.custom_minimum_size = Vector2(860, 0)
 	center.add_child(panel)
 	var box := VBoxContainer.new()
@@ -162,48 +162,119 @@ func _refresh() -> void:
 	for child: Node in _branches.get_children():
 		child.queue_free()
 	for br: Dictionary in c["branches"]:
-		var col_box := VBoxContainer.new()
-		col_box.add_theme_constant_override("separation", 6)
+		var col_box := Branch.new()
+		col_box.add_theme_constant_override("separation", 14)
 		col_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		_branches.add_child(col_box)
 		var title := _label(br["name"], 18, c["color"].lightened(0.25))
-		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		col_box.add_child(title)
 		var nodes: Array = br["nodes"]
 		for i: int in nodes.size():
-			if i > 0:
-				var link := _label("|", 12, COL_SLATE)
-				link.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-				col_box.add_child(link)
 			col_box.add_child(_node_button(nodes[i], c, own))
 
 
-func _node_button(n: Dictionary, c: Dictionary, own: bool) -> Button:
-	var b := Button.new()
-	b.focus_mode = Control.FOCUS_NONE
-	b.custom_minimum_size = Vector2(250, 52)
+func _node_button(n: Dictionary, c: Dictionary, own: bool) -> TreeNode:
+	var b := TreeNode.new()
 	var rank: int = progression.get_rank(n["id"]) if own else 0
 	var max_rank: int = int(n.get("max", 1))
 	var kind: String = "Active skill" if n["kind"] == "active" else "Passive"
-	b.text = "%s\n%s  %d/%d" % [n["name"], kind, rank, max_rank]
+	b.title = n["name"]
+	b.sub = kind
+	b.active = n["kind"] == "active"
+	b.rank = rank
+	b.max_rank = max_rank
+	b.class_col = c["color"]
 	b.tooltip_text = "%s (%s)\n%s" % [n["name"], kind, n["desc"]]
 	var can: bool = own and progression.can_rank_up(n["id"])
-	var border: Color = COL_SLATE
-	var bg: Color = COL_PANEL
-	if rank >= max_rank:
-		border = COL_GOLD
-		bg = c["color"].darkened(0.6)
-	elif rank > 0:
-		border = c["color"]
-		bg = c["color"].darkened(0.7)
-	elif can:
-		border = COL_GRASS
-	b.add_theme_stylebox_override("normal", _style(bg, border))
-	b.add_theme_stylebox_override("hover", _style(bg.lightened(0.08), border.lightened(0.2)))
-	b.add_theme_stylebox_override("disabled", _style(bg, border))
-	b.add_theme_color_override("font_color", COL_STONE if (rank > 0 or can) else COL_STONE.darkened(0.45))
-	b.add_theme_color_override("font_disabled_color", COL_STONE if rank > 0 else COL_STONE.darkened(0.45))
-	b.add_theme_font_size_override("font_size", 14)
+	b.can = can
 	b.disabled = not can
 	b.pressed.connect(func() -> void: progression.rank_up(n["id"]))
 	return b
+
+
+## One branch of the tree: a title and its nodes, with connecting lines drawn between the circles.
+class Branch:
+	extends VBoxContainer
+
+	func _ready() -> void:
+		sort_children.connect(queue_redraw)
+
+	func _draw() -> void:
+		var prev: TreeNode = null
+		for ch: Node in get_children():
+			var n := ch as TreeNode
+			if n == null:
+				continue
+			if prev != null:
+				var a: Vector2 = prev.position + prev.circle_center()
+				var b: Vector2 = n.position + n.circle_center()
+				var lit: bool = prev.rank > 0 and n.rank > 0
+				var col: Color = UiStyle.GOLD if lit else (prev.class_col.darkened(0.1) if prev.rank > 0 else Color("5b6c9e").darkened(0.25))
+				draw_line(a, b, UiStyle.OUTLINE, 6.0, true)
+				draw_line(a, b, col, 3.0, true)
+			prev = n
+
+
+## A node of the skill tree: a round icon with the rank, name and kind next to it.
+## Gold ring when ranked, grass ring when a point can be spent, dim when out of reach.
+class TreeNode:
+	extends Button
+	const R := 22.0
+	var title: String = ""
+	var sub: String = ""
+	var active: bool = false
+	var rank: int = 0
+	var max_rank: int = 1
+	var can: bool = false
+	var class_col: Color = Color("3d5ba9")
+	var _hover: bool = false
+
+	func _init() -> void:
+		focus_mode = Control.FOCUS_NONE
+		custom_minimum_size = Vector2(250, 52)
+		for st: String in ["normal", "hover", "pressed", "disabled", "focus"]:
+			add_theme_stylebox_override(st, StyleBoxEmpty.new())
+		mouse_entered.connect(func() -> void:
+			_hover = true
+			queue_redraw())
+		mouse_exited.connect(func() -> void:
+			_hover = false
+			queue_redraw())
+
+	func circle_center() -> Vector2:
+		return Vector2(R + 6.0, size.y * 0.5)
+
+	func _draw() -> void:
+		var c: Vector2 = circle_center()
+		var ranked: bool = rank > 0
+		if _hover and can:
+			var hl := StyleBoxFlat.new()
+			hl.bg_color = Color(UiStyle.GRASS, 0.14)
+			hl.set_corner_radius_all(int(size.y * 0.5))
+			draw_style_box(hl, Rect2(Vector2.ZERO, size))
+		var ring: Color = Color("5b6c9e").darkened(0.2)
+		if ranked:
+			ring = UiStyle.GOLD
+		elif can:
+			ring = UiStyle.GRASS
+		var fill: Color = class_col.darkened(0.35) if ranked else UiStyle.SLATE_DARK
+		draw_circle(c, R + 2.0, UiStyle.OUTLINE)
+		draw_circle(c, R, ring)
+		draw_circle(c, R - 3.0, fill)
+		draw_circle(c + Vector2(0, -2), R - 9.0, fill.lightened(0.14))
+		if rank >= max_rank:
+			draw_arc(c, R - 4.5, 0.0, TAU, 40, UiStyle.GOLD_LIGHT, 1.0, true)
+		# Active skills carry a small diamond on top of the ring, passives stay plain.
+		if active:
+			UiStyle.draw_gem(self, c + Vector2(0, -R), 3.5)
+		var font: Font = get_theme_default_font()
+		var txt: String = "%d/%d" % [rank, max_rank]
+		var bright: bool = ranked or can
+		var tcol: Color = UiStyle.STONE if bright else UiStyle.STONE.darkened(0.45)
+		var ts: Vector2 = font.get_string_size(txt, HORIZONTAL_ALIGNMENT_CENTER, -1, 13)
+		draw_string(font, c + Vector2(-ts.x * 0.5, 5.0), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, UiStyle.GOLD_LIGHT if ranked else tcol)
+		var tx: float = c.x + R + 12.0
+		draw_string(font, Vector2(tx, size.y * 0.5 - 3.0), title, HORIZONTAL_ALIGNMENT_LEFT, size.x - tx, 15, tcol)
+		var scol: Color = UiStyle.GRASS if (can and not ranked) else (class_col.lightened(0.35) if ranked else UiStyle.STONE.darkened(0.55))
+		var stxt: String = sub + ("  ·  click to learn" if can and not ranked else ("  ·  click to improve" if can else ""))
+		draw_string(font, Vector2(tx, size.y * 0.5 + 15.0), stxt, HORIZONTAL_ALIGNMENT_LEFT, size.x - tx, 12, scol)

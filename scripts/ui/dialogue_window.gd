@@ -8,6 +8,7 @@ const COL_STONE := Color("e6e1d3")
 const COL_GOLD := Color("d9a441")
 const COL_SLATE := Color("5b6c9e")
 
+var portrait: Portrait
 var _root: Control
 var _speaker: Label
 var _text: Label
@@ -23,35 +24,34 @@ func _ready() -> void:
 	add_child(_root)
 	var panel := PanelContainer.new()
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = COL_PANEL
-	sb.border_color = COL_GOLD
-	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(10)
-	sb.content_margin_left = 18
-	sb.content_margin_right = 18
-	sb.content_margin_top = 12
-	sb.content_margin_bottom = 12
-	panel.add_theme_stylebox_override("panel", sb)
+	UiStyle.apply(panel, true, 16)
+	panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	panel.anchor_left = 0.5
 	panel.anchor_right = 0.5
 	panel.anchor_top = 1.0
 	panel.anchor_bottom = 1.0
 	panel.offset_left = -380
 	panel.offset_right = 380
-	panel.offset_top = -330
-	panel.offset_bottom = -112
+	panel.offset_top = -344
+	panel.offset_bottom = -126
 	_root.add_child(panel)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 16)
+	panel.add_child(row)
+	portrait = Portrait.new("", 84.0)
+	portrait.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	row.add_child(portrait)
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 8)
-	panel.add_child(box)
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(box)
 	_speaker = Label.new()
 	_speaker.add_theme_font_size_override("font_size", 18)
 	_speaker.add_theme_color_override("font_color", COL_GOLD)
 	box.add_child(_speaker)
 	_text = Label.new()
 	_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_text.custom_minimum_size = Vector2(720, 0)
+	_text.custom_minimum_size = Vector2(620, 0)
 	_text.add_theme_font_size_override("font_size", 16)
 	_text.add_theme_color_override("font_color", COL_STONE)
 	box.add_child(_text)
@@ -68,6 +68,7 @@ func is_open() -> bool:
 ## options: Array of [label: String, callback: Callable]
 func show_line(speaker: String, text: String, options: Array) -> void:
 	_speaker.text = speaker
+	portrait.kind = Portrait.kind_for(speaker)
 	_text.text = text
 	_callbacks.clear()
 	for c: Node in _answers.get_children():

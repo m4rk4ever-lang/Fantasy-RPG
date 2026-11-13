@@ -19,8 +19,11 @@ var _run_style: StyleBoxFlat
 var _backpack_button: Button
 var _toasts: VBoxContainer
 var _tracker: Label
-var _xp_bar: ProgressBar
-var _level_label: Label
+var xp_bar: XpBar
+var target_bar: TargetBar
+var portrait: Portrait
+var _tracker_panel: PanelContainer
+var _target_level: Label
 var _banner: Label
 var _skills_button: Button
 var _retaliate_button: Button
@@ -30,9 +33,8 @@ var _stamina_bar: ProgressBar
 var _fps_label: Label
 var _hint: Label
 var _hint_timer: float = 12.0
-var _target_root: VBoxContainer
+var _target_root: PanelContainer
 var _target_label: Label
-var _target_bar: ProgressBar
 var _target: Node
 var _flash_rect: ColorRect
 var _flash_tween: Tween
@@ -59,18 +61,14 @@ func _ready() -> void:
 	health_orb.custom_minimum_size = Vector2(104, 104)
 	health_orb.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	box.add_child(health_orb)
-	var xp_row := HBoxContainer.new()
-	xp_row.add_theme_constant_override("separation", 8)
-	box.add_child(xp_row)
-	_level_label = Label.new()
-	_level_label.add_theme_color_override("font_color", COL_FRAME)
-	_level_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.6))
-	_level_label.add_theme_constant_override("outline_size", 4)
-	_level_label.add_theme_font_size_override("font_size", 13)
-	xp_row.add_child(_level_label)
-	_xp_bar = _make_bar(Color("d9a441"), Vector2(240, 7))
-	_xp_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	xp_row.add_child(_xp_bar)
+	# XP: thin gold line across the full bottom width, level in a small shield (docs/UI.md).
+	xp_bar = XpBar.new()
+	xp_bar.anchor_left = 0.0
+	xp_bar.anchor_right = 1.0
+	xp_bar.anchor_top = 1.0
+	xp_bar.anchor_bottom = 1.0
+	xp_bar.offset_top = -38
+	root.add_child(xp_bar)
 
 	_fps_label = Label.new()
 	_fps_label.anchor_left = 1.0
@@ -92,28 +90,41 @@ func _ready() -> void:
 	_hint.add_theme_color_override("font_color", COL_FRAME)
 	_hint.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.6))
 	_hint.add_theme_constant_override("outline_size", 4)
-	_hint.add_theme_font_size_override("font_size", 15)
+	_hint.add_theme_font_size_override("font_size", 13)
 	root.add_child(_hint)
 
-	_target_root = VBoxContainer.new()
+	# Target frame: name + level, fire bar with a white trailing damage segment.
+	_target_root = PanelContainer.new()
 	_target_root.anchor_left = 0.5
 	_target_root.anchor_right = 0.5
-	_target_root.offset_left = -210
-	_target_root.offset_right = 210
+	_target_root.offset_left = -190
+	_target_root.offset_right = 190
 	_target_root.offset_top = 56
-	_target_root.add_theme_constant_override("separation", 4)
 	_target_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_target_root.visible = false
+	UiStyle.apply(_target_root, false, 10)
 	root.add_child(_target_root)
+	var target_box := VBoxContainer.new()
+	target_box.add_theme_constant_override("separation", 5)
+	target_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_target_root.add_child(target_box)
+	var target_row := HBoxContainer.new()
+	target_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	target_box.add_child(target_row)
 	_target_label = Label.new()
-	_target_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_target_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_target_label.clip_text = true
 	_target_label.add_theme_color_override("font_color", COL_FRAME)
-	_target_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.6))
-	_target_label.add_theme_constant_override("outline_size", 4)
+	UiStyle.outline(_target_label)
 	_target_label.add_theme_font_size_override("font_size", 16)
-	_target_root.add_child(_target_label)
-	_target_bar = _make_bar(COL_HEALTH, Vector2(420, 12))
-	_target_root.add_child(_target_bar)
+	target_row.add_child(_target_label)
+	_target_level = Label.new()
+	_target_level.add_theme_color_override("font_color", UiStyle.GOLD_LIGHT)
+	UiStyle.outline(_target_level)
+	_target_level.add_theme_font_size_override("font_size", 14)
+	target_row.add_child(_target_level)
+	target_bar = TargetBar.new()
+	target_box.add_child(target_bar)
 
 	var bar_holder := CenterContainer.new()
 	bar_holder.anchor_left = 0.0
@@ -197,8 +208,8 @@ func _ready() -> void:
 	_toasts.anchor_top = 1.0
 	_toasts.anchor_bottom = 1.0
 	_toasts.offset_left = 34
-	_toasts.offset_top = -260
-	_toasts.offset_bottom = -120
+	_toasts.offset_top = -330
+	_toasts.offset_bottom = -158
 	_toasts.alignment = BoxContainer.ALIGNMENT_END
 	_toasts.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(_toasts)
@@ -225,20 +236,35 @@ func _ready() -> void:
 	root.add_child(_run_button)
 	set_run(true)
 
+	# Hero portrait next to the health orb.
+	portrait = Portrait.new("hero", 46.0)
+	portrait.anchor_top = 1.0
+	portrait.anchor_bottom = 1.0
+	portrait.offset_left = 140
+	portrait.offset_right = 186
+	portrait.offset_top = -80
+	portrait.offset_bottom = -34
+	root.add_child(portrait)
+
+	# Quest tracker, top right, in the shared panel style.
+	_tracker_panel = PanelContainer.new()
+	_tracker_panel.anchor_left = 1.0
+	_tracker_panel.anchor_right = 1.0
+	_tracker_panel.offset_left = -344
+	_tracker_panel.offset_right = -24
+	_tracker_panel.offset_top = 40
+	_tracker_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_tracker_panel.visible = false
+	UiStyle.apply(_tracker_panel, false, 10)
+	root.add_child(_tracker_panel)
 	_tracker = Label.new()
-	_tracker.anchor_left = 1.0
-	_tracker.anchor_right = 1.0
-	_tracker.offset_left = -470
 	_tracker.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_tracker.offset_right = -24
-	_tracker.offset_top = 40
-	_tracker.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_tracker.custom_minimum_size = Vector2(300, 0)
 	_tracker.add_theme_font_size_override("font_size", 14)
 	_tracker.add_theme_color_override("font_color", Color("f2d48a"))
-	_tracker.add_theme_color_override("font_outline_color", Color(0.12, 0.13, 0.16, 0.9))
-	_tracker.add_theme_constant_override("outline_size", 5)
+	UiStyle.outline(_tracker)
 	_tracker.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.add_child(_tracker)
+	_tracker_panel.add_child(_tracker)
 
 	_banner = Label.new()
 	_banner.anchor_left = 0.5
@@ -298,31 +324,40 @@ func set_stamina(value: float, max_value: float) -> void:
 
 
 ## Small message bottom-left (loot, eating). Fades after a few seconds.
-func toast(text: String) -> void:
+## item_id: optional item whose icon is shown in front of the text (loot).
+func toast(text: String, item_id: String = "") -> void:
+	var row := HBoxContainer.new()
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_theme_constant_override("separation", 6)
+	if item_id != "":
+		var icon := ItemIcon.new(item_id, 22.0)
+		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(icon)
 	var l := Label.new()
 	l.text = text
 	l.add_theme_font_size_override("font_size", 15)
 	l.add_theme_color_override("font_color", Color("f2d48a"))
-	l.add_theme_color_override("font_outline_color", Color(0.12, 0.13, 0.16, 0.9))
-	l.add_theme_constant_override("outline_size", 5)
-	_toasts.add_child(l)
+	UiStyle.outline(l, 5)
+	row.add_child(l)
+	_toasts.add_child(row)
 	while _toasts.get_child_count() > 6:
-		_toasts.get_child(0).queue_free()
-		_toasts.remove_child(_toasts.get_child(0))
-	var tw := l.create_tween()
+		var old: Node = _toasts.get_child(0)
+		_toasts.remove_child(old)
+		old.queue_free()
+	var tw := row.create_tween()
 	tw.tween_interval(3.0)
-	tw.tween_property(l, "modulate:a", 0.0, 0.8)
-	tw.tween_callback(l.queue_free)
+	tw.tween_property(row, "modulate:a", 0.0, 0.8)
+	tw.tween_callback(row.queue_free)
 
 
 func set_tracker(text: String) -> void:
 	_tracker.text = text
+	_tracker_panel.visible = text.strip_edges() != ""
+	_tracker_panel.reset_size()
 
 
 func set_xp(xp: int, xp_to_next: int, level: int) -> void:
-	_xp_bar.max_value = xp_to_next
-	_xp_bar.value = xp
-	_level_label.text = "Lv %d" % level
+	xp_bar.set_xp(xp, xp_to_next, level)
 
 
 func set_skill_points(points: int) -> void:
@@ -363,16 +398,16 @@ func set_target(enemy: Node) -> void:
 		return
 	_target = enemy
 	var lvl: Variant = enemy.get("level")
-	_target_label.text = str(enemy.get("display_name")) + ("  (Level %d)" % int(lvl) if lvl != null else "")
-	_on_target_health_changed(float(enemy.get("health")), float(enemy.get("max_health")))
+	_target_label.text = str(enemy.get("display_name"))
+	_target_level.text = "Lv %d" % int(lvl) if lvl != null else ""
+	target_bar.set_health(float(enemy.get("health")), float(enemy.get("max_health")), true)
 	if enemy.has_signal("health_changed"):
 		enemy.health_changed.connect(_on_target_health_changed)
 	_target_root.visible = true
 
 
 func _on_target_health_changed(value: float, max_value: float) -> void:
-	_target_bar.max_value = max_value
-	_target_bar.value = value
+	target_bar.set_health(value, max_value)
 
 
 func flash_damage() -> void:

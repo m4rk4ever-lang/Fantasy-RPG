@@ -383,8 +383,8 @@ func _run() -> void:
 	player.set_move_target(door_goal)
 	var climbed: bool = false
 	var best_y: float = player.global_position.y
-	for k: int in 40:
-		await _frames(60)
+	for k: int in 240:
+		await _frames(10)  # Short polls: right behind the "reached" trigger the door now lets the hero in (V.6b).
 		best_y = maxf(best_y, player.global_position.y)
 		if player.quests.has_flag("reached_spire"):
 			climbed = true
@@ -392,6 +392,111 @@ func _run() -> void:
 	print("  INFO  stair climb: highest point %.1f m, at %s" % [best_y, str(player.global_position)])
 	_check(climbed, "hero climbs the stair and reaches the sealed door")
 	_check(player.quests.current_step("the_dark_spire").begins_with("Find a way past") or player.quests.state("the_dark_spire") != "active", "quest moves to the sealed door step")
+
+	# --- The Veilspire, first floor (V.6b) ---
+	var spire: SpireInterior = _main.get("spire_interior")
+	_check(spire != null, "Veilspire interior exists")
+	spire.fade_time = 0.0
+	var env_bg: int = arena.environment.background_mode
+	_check(not spire.is_inside and spire.can_enter(), "the door opens for a Warden on The Dark Spire")
+	player.set_move_target(door_goal)
+	for k: int in 20:
+		if spire.is_inside:
+			break
+		await _frames(30)
+	if not spire.is_inside:
+		print("  INFO  hero did not walk into the door trigger, placing him there")
+		player.global_position = door_goal + Vector3.UP * 0.5
+		await _frames(10)
+	_check(spire.is_inside and player.global_position.distance_to(spire.entry_point()) < 3.0, "walking into the sealed door teleports the hero inside")
+	for e: Hollow in spire.enemies:
+		e.process_mode = Node.PROCESS_MODE_DISABLED
+	await _frames(40)
+	_check(player.is_on_floor() and absf(player.global_position.y - SpireInterior.ORIGIN.y) < 0.6, "hero stands on the hall floor")
+	_check(arena.environment.background_mode == Environment.BG_COLOR and not arena.sun.visible, "dungeon environment is active inside")
+	_check(spire.boss != null and spire.boss.display_name == "Warden-Husk Aldric" and spire.boss.max_health > 200.0, "Warden-Husk Aldric waits on the first floor")
+	_check(spire.enemies.size() == 4, "three Hollowed guard the hall with him (%d enemies)" % spire.enemies.size())
+	_check(player.quests.current_step("the_dark_spire").begins_with("Defeat the Warden-Husk"), "quest asks to defeat the Warden-Husk")
+	var z_in: float = player.global_position.z
+	player.set_move_target(player.global_position + Vector3(1.5, 0, -3.0))
+	await _frames(60)
+	_check(player.global_position.z < z_in - 1.5, "click-to-move works inside the hall")
+	var xp_b: int = player.progression.xp + player.progression.level * 100000
+	var hp_b: float = spire.boss.health
+	spire.boss.take_hit(20.0, Vector3.ZERO, spire.boss.global_position)
+	_check(spire.boss.health < hp_b and not spire.boss.is_dead() and not player.quests.has_flag("spire_floor_1_cleared"), "the Husk takes damage and survives a normal hit")
+	spire.boss.take_hit(9999.0, Vector3.ZERO, spire.boss.global_position)
+	_check(player.quests.has_flag("spire_floor_1_cleared"), "killing the Warden-Husk sets spire_floor_1_cleared")
+	_check(player.quests.current_step("the_dark_spire").begins_with("Find a way up"), "quest step for the first floor is complete")
+	_check(player.progression.xp + player.progression.level * 100000 > xp_b, "the Warden-Husk grants XP")
+	player.set_move_target(SpireInterior.ORIGIN + Vector3(0.0, 0.0, SpireInterior.RADIUS - 0.8))
+	for k: int in 20:
+		if not spire.is_inside:
+			break
+		await _frames(30)
+	if spire.is_inside:
+		print("  INFO  hero did not walk into the exit trigger, requesting exit")
+		spire.request_exit()
+	await _frames(40)
+	var door_flat: Vector3 = stair.door_position
+	_check(not spire.is_inside and Vector2(player.global_position.x - door_flat.x, player.global_position.z - door_flat.z).length() < 6.0, "leaving returns the hero to the sealed door")
+	_check(player.is_on_floor() and player.global_position.y > TestArena.CRAG_TOP - 2.0, "hero stands on the crag after leaving (y %.1f)" % player.global_position.y)
+	_check(arena.environment.background_mode == env_bg and player.nav != null, "overworld environment and nav grid are restored")
+	spire.fade_time = 0.45
+	# Audio (V.8): director, buses and the procedural sound bank.
+	var audio: AudioDirector = _main.get_node_or_null("AudioDirector")
+	_check(audio != null, "audio director exists")
+	if audio != null:
+		var buses_ok: bool = true
+		for bus: String in ["Master", "Music", "SFX", "Ambience"]:
+			buses_ok = buses_ok and AudioServer.get_bus_index(bus) != -1
+		_check(buses_ok, "audio buses Master, Music, SFX and Ambience exist")
+		var bank_ok: bool = audio.bank != null and audio.bank.streams.size() >= 20 and audio.bank.pad_chords.size() == 4
+		if bank_ok:
+			for id: String in audio.bank.streams:
+				bank_ok = bank_ok and (audio.bank.streams[id] as AudioStreamWAV).data.size() > 200
+		_check(bank_ok, "sound bank generated %d non-empty streams in %d ms" % [audio.bank.streams.size(), audio.bank.generation_ms])
+		var combat_wav: AudioStreamWAV = audio.bank.get_stream("combat")
+		_check(combat_wav != null and combat_wav.loop_mode == AudioStreamWAV.LOOP_FORWARD and combat_wav.loop_end > 0, "music loops have loop points")
+		var played: int = audio.sfx_played
+		audio.play("hit")
+		audio.play_at("hollow_death", player.global_position)
+		audio.play("no_such_sound")
+		await _frames(3)
+		_check(audio.sfx_played == played + 2, "playing hit sounds does not error")
+		# Combat layer: an engaged Hollowed nearby raises the mix, and it falls away after.
+		var mix0: float = audio.combat_mix
+		audio.set("_combat_hold", 2.0)
+		await _frames(60)
+		_check(audio.combat_mix > mix0 + 0.3, "combat music fades in (mix %.2f)" % audio.combat_mix)
+	# UI finishing (V.11): XP bar, target trail, skill locks, portraits, windows.
+	var ui_hud: Hud = _main.get_node("Hud")
+	var prog_ui: Progression = player.progression
+	_check(ui_hud.xp_bar.level == prog_ui.level, "XP bar shows the current level")
+	_check(absf(ui_hud.xp_bar.fraction() - float(prog_ui.xp) / float(prog_ui.xp_to_next())) < 0.001, "XP bar follows XP")
+	ui_hud.set_xp(0, 100, prog_ui.level + 1)
+	_check(ui_hud.xp_bar.is_shining(), "XP bar shines on level up")
+	ui_hud.set_xp(prog_ui.xp, prog_ui.xp_to_next(), prog_ui.level)
+	ui_hud.target_bar.set_health(100.0, 100.0, true)
+	ui_hud.target_bar.set_health(60.0, 100.0)
+	_check(ui_hud.target_bar.trail > ui_hud.target_bar.fraction(), "target bar keeps a trailing damage segment")
+	await create_timer(0.9).timeout
+	_check(absf(ui_hud.target_bar.trail - 0.6) < 0.01, "trailing segment catches up")
+	var lock_ok: bool = true
+	for sk_ui: Dictionary in PlayerCombat.SKILLS:
+		if ui_hud.skill_bar.is_locked(sk_ui["id"]) == player.combat.is_skill_unlocked(sk_ui["id"]):
+			lock_ok = false
+	_check(lock_ok, "skill bar shows a lock on exactly the locked skills")
+	_check(dlg.portrait.kind == "brenna", "dialogue shows Brenna's portrait")
+	_check(Portrait.kind_for("Old Tam") == "Old Tam", "unknown speakers fall back to an initial")
+	for win_name: String in ["Backpack", "SkillTree"]:
+		var win: Node = _main.get_node(win_name)
+		var was: bool = win.call("is_open")
+		win.call("toggle")
+		var opened: bool = win.call("is_open")
+		win.call("toggle")
+		_check(not was and opened and not bool(win.call("is_open")), "%s window opens and closes" % win_name)
+	_check(ItemIcon.has_icon("coins") and ItemIcon.has_icon("salted_fish"), "items have their own icons")
 
 	# Frame time indication (headless, physics only).
 	var t0: int = Time.get_ticks_usec()

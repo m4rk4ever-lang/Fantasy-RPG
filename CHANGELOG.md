@@ -1,5 +1,55 @@
 # Changelog
 
+## 13-11-2026 (derde sessie, wekelijkse run)
+
+Geen open feedback-issues en geen nieuwe bestanden in `feedback/`. Halverwege vroeg de eigenaar om tot 15:00 zoveel mogelijk zwaar werk parallel te laten doen. Daarom zijn vier extra blokken tegelijk gebouwd door subagents en daarna door mij samengevoegd en getest.
+
+**Gebouwd**
+- **V.6a The Warden's Stair:** een stenen pad dat in de rots is uitgehakt en in bijna een volle slag om de klif omhoog loopt naar de Veilspire. Plavuizen in twee tinten, een leisteenblauwe rand, een borstwering, steunberen, lantaarnpalen en een stenen poort met blauwe banieren aan de voet. Boven staat een verzegelde deur met gloeiende runen van the Veil.
+- **Klif staat nu vrij:** de dalwand achter de klif zakt weg in een grazige kom, zodat het pad niet meer in de heuvel verdwijnt.
+- **Padvinding over het pad:** de navigatiegrid kijkt nu ook naar looproutes boven het terrein (de trap en de top van de klif). Klik je op de deur, dan loopt de held de hele trap op. De toren had bijna geen botsing (standaardvorm van 0,5 m); dat is gerepareerd.
+- **V.7 Opslaan en laden:** automatisch elke 60 s, bij questwijzigingen, bij level-up en bij sluiten. In het pauzemenu "Save game" en "New game" (met bevestiging). Een kapot of oud bestand wordt genegeerd zonder crash.
+- **V.6b Eerste verdieping van de Veilspire (eerste kleine kerker):** de deur opent als je The Dark Spire hebt en boven bent. Overgang met fade. Ronde zaal met pilaren, kapotte wenteltrap, puin, banieren, vuurschalen en een streep maanlicht door een hoog venster, in het kerkerpalet. Drie Hollowed (level 3 tot 4) en de minibaas **Warden-Husk Aldric** (level 5) met een trage, zichtbaar aangekondigde slam met een vuurring. Verslaan levert XP, loot en de volgende verhaalstap.
+- **V.8 Geluid en muziek, volledig procedureel:** 28 geluiden (voetstappen op gras en steen, zwaard, treffers, Hollowed, skills, level-up, quest, munten, UI), ambience (zee op afstand, wind, meeuwen overdag, krekels 's nachts), rustige verkenningsmuziek in D dorisch met harp en een gevechtslaag die invalt als vijanden je aanvallen. Volumeschuiven en dempen in het pauzemenu.
+- **V.9 Modellen bijgeschaafd:** held met gezicht, haar, vingers, laarzen, riem met tasjes, cape die nu achter de held wappert in plaats van door hem heen, uitgewerkt zwaard. Hollowed met schedel, ribbenkast met koude blauwe gloed en gescheurde lappen. Drie outfits voor dorpelingen. Huizen met luiken, bloembakken, deurkozijnen en nokbalken.
+- **V.11 UI-afwerking volgens `docs/UI.md`:** één paneelstijl met gouden hoekstukken, XP-lijn over de volle breedte met level-schildje, doelwitbalk met nasleep, gebogen skillbalk met slotjes en tooltips, eigen itemiconen, skilltree als echte boom, portretten van held en Brenna.
+
+**Feedback verwerkt**
+- Geen open issues of feedbackbestanden.
+- Live verzoek van de eigenaar (13:40): zwaar werk parallel laten doen tot 15:00. Gedaan met vier subagents.
+
+**Speel het:** https://m4rk4ever-lang.github.io/Fantasy-RPG/
+
+**Screenshots**
+![Overzicht](docs/screenshots/2026-11-13c/01_overzicht.png)
+![Gevecht](docs/screenshots/2026-11-13c/02_gevecht.png)
+![Held, nieuw model](docs/screenshots/2026-11-13c/04_held.png)
+![The Warden's Stair](docs/screenshots/2026-11-13c/11_trap.png)
+![De verzegelde deur](docs/screenshots/2026-11-13c/12_deur.png)
+![Eerste verdieping van de Veilspire](docs/screenshots/2026-11-13c/13_kerker.png)
+![Skilltree als boom](docs/screenshots/2026-11-13c/08_skilltree.png)
+
+**Zelfcontrole**
+- Diepte: ja. Ruïnes en held voor, klif met trap in het midden, bergen en kroonscherf achter. | Landmark: de Veilspire, nu met een zichtbare weg ernaartoe. | Palet: open wereld ja. De kerker volgt het donkere palet met vuuraccent. | Game of demo: game, vooral de kerker en de nieuwe HUD. | Zwakste deel: de nieuwe kom achter de klif. De steile wand krijgt de rotskleur en oogt als een grijze, vage vlek. Staat bovenaan de roadmap.
+
+**Prestaties:** hier niet te meten (software-rendering, 2 tot 4 fps). Headless 16,7 ms per frame. Geluid wordt bij de start in ongeveer 0,17 s gegenereerd. Draw calls blijven laag: trap, borstwering en lampen zijn elk één samengevoegde mesh.
+
+**Voorstellen voor SMAAK.md**
+- Een regel over geluid en muziek: "Rustig en episch, modaal (dorisch), harp en strijkers; gevechtsmuziek alleen tijdens gevechten."
+- De voorstellen van de vorige sessie (gevecht in RuneScape-stijl, geen springen, geen ontwijken, camera) staan nog open.
+
+**Problemen en beslissingen**
+- Pad en kerkerdeur: de held ging eerst via de heuvel achter de klif omhoog en liep vast. Opgelost door de klif vrij te zetten in een kom en de navigatie over looproutes te laten plannen.
+- Gedelegeerd: opslaan en laden (Sonnet, goed). Daarna op verzoek van de eigenaar vier Fable-subagents parallel in eigen worktrees: kerker (V.6b), geluid (V.8), UI (V.11) en modellen (V.9). Alle vier op tijd klaar, met groene tests. Samenvoegen gaf alleen een conflict in `tools/run_tests.gd` (beide testsecties behouden). Daarmee 5 subagents deze run, meer dan de vaste 3, omdat de eigenaar daar live om vroeg.
+- Niemand heeft het geluid beluisterd; alleen niveaus en loops zijn gecontroleerd. Graag in de browser luisteren.
+- Vijanden in de kerker lopen in een rechte lijn en kunnen aan pilaren blijven haken.
+- Volume-instellingen worden nog niet opgeslagen.
+
+**Volgende run**
+- De kom achter de klif: gras op de helling, zachtere overgang, eventueel rotsblokken.
+- Feedback van de eigenaar op geluid, kerker en modellen.
+- V.12 keuze-issue (resource per klasse), daarna V.10 kwaliteitsinstelling.
+
 ## 13-11-2026 (tweede sessie, met de eigenaar live)
 
 Feedback van de eigenaar verwerkt: besturing in RuneScape-stijl, haperingen bij gevechten, lore, een mooiere en levendigere wereld, betere personages en auto retaliate.

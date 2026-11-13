@@ -105,7 +105,10 @@ func steps(id: String) -> Array:
 			return [
 				{"text": "Hear Brenna out about the Veilspire.", "done": state(id) != "none"},
 				{"text": "Climb the Warden's Stair up the crag to the Veilspire.", "done": has_flag("reached_spire")},
-				{"text": "Find a way past the sealed door. (The Veilspire's halls open in a later update.)", "done": false},
+				{"text": "Find a way past the sealed door.", "done": has_flag("spire_door_opened")},
+				{"text": "Enter the Veilspire.", "done": has_flag("entered_spire")},
+				{"text": "Defeat the Warden-Husk on the first floor.", "done": has_flag("spire_floor_1_cleared")},
+				{"text": "Find a way up to the second floor. (The upper halls open in a later update.)", "done": false},
 			]
 	return []
 

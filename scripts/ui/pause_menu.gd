@@ -112,6 +112,7 @@ func _build_ui() -> void:
 	_stick_slider = _add_slider(box, "Stick sensitivity", 1.0, 6.0, 0.1, stick_sensitivity)
 	_mouse_slider.value_changed.connect(_on_slider_changed)
 	_stick_slider.value_changed.connect(_on_slider_changed)
+	_add_audio_settings(box)  # Audio block, see the end of this file.
 
 	_controls_panel = _make_panel()
 	_controls_panel.visible = false
@@ -286,3 +287,32 @@ func _on_slider_changed(_value: float) -> void:
 	mouse_sensitivity = _mouse_slider.value
 	stick_sensitivity = _stick_slider.value
 	sensitivity_changed.emit(mouse_sensitivity, stick_sensitivity)
+
+
+# --- Audio settings (V.8 sound): bus volume sliders and mute. Self-contained. ---
+func _add_audio_settings(parent: Control) -> void:
+	for bus: String in ["Music", "SFX", "Ambience"]:
+		var idx: int = AudioServer.get_bus_index(bus)
+		if idx == -1:
+			continue
+		var label: String = "Sound effects volume" if bus == "SFX" else bus + " volume"
+		var s: HSlider = _add_slider(parent, label, 0.0, 1.0, 0.05, db_to_linear(AudioServer.get_bus_volume_db(idx)))
+		s.name = "Volume" + bus
+		s.value_changed.connect(func(v: float) -> void:
+			var i: int = AudioServer.get_bus_index(bus)
+			if i != -1:
+				AudioServer.set_bus_volume_db(i, linear_to_db(maxf(v, 0.0001)))
+				AudioServer.set_bus_mute(i, v <= 0.0))
+	var mute := CheckButton.new()
+	mute.name = "MuteAll"
+	mute.text = "Mute all sound"
+	mute.button_pressed = AudioServer.is_bus_mute(0)
+	mute.add_theme_color_override("font_color", COL_STONE)
+	mute.add_theme_color_override("font_hover_color", COL_STONE)
+	mute.add_theme_color_override("font_pressed_color", COL_STONE)
+	mute.add_theme_color_override("font_hover_pressed_color", COL_STONE)
+	mute.add_theme_color_override("font_focus_color", COL_STONE)
+	mute.add_theme_font_size_override("font_size", 16)
+	mute.toggled.connect(func(on: bool) -> void: AudioServer.set_bus_mute(0, on))
+	parent.add_child(mute)
+# --- End audio settings ---

@@ -15,6 +15,8 @@ const COL_DARK := Color("1e2125")
 const COL_CLOTH := Color("4a483e")
 const COL_BONE := Color("c9c6b8")
 const COL_EYE := Color("bfe6ff")
+## Cold Veil light leaking through cracks in the husk.
+const COL_VEIL := Color("7fc4f2")
 
 @export var display_name: String = "Hollowed Warden"
 @export var level: int = 2
@@ -52,6 +54,7 @@ var _arm_r: Node3D
 var _leg_l: Node3D
 var _leg_r: Node3D
 var _eye_mat: StandardMaterial3D
+var _glow_mat: StandardMaterial3D
 var _flash_mat: StandardMaterial3D
 var _flash_meshes: Array[MeshInstance3D] = []
 var _body_mat: StandardMaterial3D
@@ -101,6 +104,10 @@ func _build_model() -> void:
 	_eye_mat = StandardMaterial3D.new()
 	_eye_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_eye_mat.albedo_color = COL_EYE
+	# Same shader variant as the eyes (unshaded, albedo only): no extra shader compile.
+	_glow_mat = StandardMaterial3D.new()
+	_glow_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_glow_mat.albedo_color = COL_VEIL
 
 	_model = Node3D.new()
 	_model.name = "Model"
@@ -127,60 +134,128 @@ func _build_model() -> void:
 	hips.add_child(_leg_l)
 	hips.add_child(_leg_r)
 
-	# Low-poly anatomy like the hero, but gaunt: thin waist, ribs, long arms, ragged Warden robes.
+	# Gaunt husk in the remains of a Warden's robe. One merged mesh per animated pivot, plus
+	# two tiny unshaded glow meshes (rib cracks, eye sockets) for the cold Veil light.
 	var I := Transform3D.IDENTITY
 	var rag: Color = COL_CLOTH
+	var rag_dark: Color = COL_CLOTH.darkened(0.14)
+	var rag_light: Color = COL_CLOTH.lightened(0.2)
+	var husk: Color = COL_BODY.lightened(0.14)
+	var bone_dim: Color = COL_BONE.darkened(0.3)
+	var glow := MeshKit.new()
+
+	# --- Hips: dark under-robe, layered tattered strips, rope belt ---
 	var k := MeshKit.new()
-	# Robe skirt with a tattered hem (wedges pointing down).
-	k.loft(I, [[0.08, 0.15, 0.11, 0.0, rag], [-0.2, 0.2, 0.15, 0.01, rag], [-0.62, 0.27, 0.21, 0.02, rag.darkened(0.15)]], 9, false, false)
-	for f: int in 11:
-		var a: float = TAU * f / 11.0
-		var len: float = 0.12 + fmod(f * 0.37, 0.14)
-		k.wedge(Transform3D(Basis(Vector3.RIGHT, -PI * 0.5).rotated(Vector3.UP, -a), Vector3(cos(a) * 0.26, -0.62 - len * 0.5, sin(a) * 0.2)), Vector3(0.1, 0.02, len), rag.darkened(0.2))
+	k.loft(I, [[0.08, 0.14, 0.1, 0.0, rag_dark], [-0.2, 0.18, 0.135, 0.01, rag_dark], [-0.5, 0.215, 0.165, 0.02, rag_dark.darkened(0.2)]], 9, false, false)
+	for f: int in 9:
+		var a0: float = TAU * (f + 0.5) / 9.0
+		_rag_strip(k, a0, 0.07, 0.5 + fmod(f * 0.23, 0.26), 0.2, rag_dark if f % 2 == 0 else rag.darkened(0.12), 0.0)
+	for f2: int in 7:
+		var a1: float = TAU * f2 / 7.0 + 0.2
+		_rag_strip(k, a1, 0.09, 0.3 + fmod(f2 * 0.31, 0.3), 0.17, rag if f2 % 2 == 0 else rag_light, 0.022)
+	k.loft(I, [[0.1, 0.152, 0.112, 0.0, COL_BONE.darkened(0.45)], [0.06, 0.156, 0.116, 0.0, COL_BONE.darkened(0.45)]], 9, false, false)
+	k.box(Transform3D(Basis(Vector3.BACK, 0.2), Vector3(0.07, -0.02, -0.125)), Vector3(0.02, 0.16, 0.02), COL_BONE.darkened(0.45))
+	k.wedge(Transform3D(Basis(Vector3.RIGHT, -PI * 0.5), Vector3(0.085, -0.14, -0.128)), Vector3(0.035, 0.02, 0.09), COL_BONE)
 	_mesh(hips, k, false)
 
+	# --- Torso: wasted waist, open rib cage with glowing cracks, bony shoulders, torn mantle ---
 	k = MeshKit.new()
-	# Emaciated torso: narrow waist, visible rib bands, bony shoulders.
-	k.loft(I, [[0.0, 0.11, 0.08, 0.0, COL_BODY], [0.15, 0.12, 0.085, 0.0, COL_BODY], [0.25, 0.15, 0.1, -0.01, COL_DARK], [0.3, 0.155, 0.105, -0.01, COL_BODY], [0.36, 0.165, 0.11, -0.012, COL_DARK], [0.41, 0.17, 0.11, -0.012, COL_BODY], [0.5, 0.19, 0.11, 0.0, COL_BODY], [0.57, 0.12, 0.09, 0.0, COL_BODY], [0.62, 0.05, 0.05, -0.04, COL_BODY]], 9)
+	k.loft(I, [[0.0, 0.105, 0.078, 0.0, husk], [0.14, 0.1, 0.075, 0.0, husk], [0.22, 0.14, 0.095, -0.008, COL_DARK], [0.44, 0.168, 0.108, -0.012, husk], [0.5, 0.19, 0.11, 0.0, husk], [0.57, 0.12, 0.09, 0.0, husk], [0.62, 0.05, 0.05, -0.04, husk]], 9)
+	# Ribs: four bone pairs angled down from the sternum, with Veil light in the gaps.
+	for r: int in 4:
+		var ry: float = 0.245 + r * 0.055
+		var rw: float = 0.1 + r * 0.012
+		for side: float in [-1.0, 1.0]:
+			k.box(Transform3D(Basis(Vector3.UP, side * 0.42) * Basis(Vector3.BACK, side * 0.28), Vector3(side * (0.03 + rw * 0.5), ry - 0.012, -0.098 - r * 0.003)), Vector3(rw, 0.024, 0.03), COL_BONE if r % 2 == 0 else bone_dim.lightened(0.15))
+			if r < 3:
+				glow.box(Transform3D(Basis(Vector3.UP, side * 0.42) * Basis(Vector3.BACK, side * 0.28), Vector3(side * (0.035 + rw * 0.4), ry + 0.016, -0.093 - r * 0.003)), Vector3(rw * 0.7, 0.01, 0.024), COL_VEIL)
+	k.box(Transform3D(Basis(Vector3.RIGHT, -0.06), Vector3(0, 0.34, -0.116)), Vector3(0.032, 0.24, 0.026), COL_BONE)
+	# Jagged crack down the belly and a faint line along the spine.
+	var crack: Array[Vector3] = [Vector3(0.0, 0.2, 0.5), Vector3(0.022, 0.155, -0.6), Vector3(-0.004, 0.105, 0.45), Vector3(0.016, 0.06, -0.3)]
+	for cp: Vector3 in crack:
+		glow.box(Transform3D(Basis(Vector3.BACK, cp.z), Vector3(cp.x, cp.y, -0.079)), Vector3(0.012, 0.07, 0.012), COL_VEIL)
+	for sp: int in 4:
+		glow.box(Transform3D(Basis(), Vector3(0, 0.225 + sp * 0.09, 0.094 + sp * 0.006)), Vector3(0.014, 0.04, 0.02), COL_VEIL)
 	# Bone spurs along the spine.
-	for b: int in 5:
-		k.wedge(Transform3D(Basis(Vector3.RIGHT, PI - 0.5), Vector3(0, 0.18 + b * 0.09, 0.1 + b * 0.008)), Vector3(0.03, 0.03, 0.09 + b * 0.012), COL_BONE)
-	# Torn hood mantle over the shoulders.
-	k.loft(I, [[0.46, 0.2, 0.14, 0.02, rag], [0.58, 0.17, 0.13, 0.03, rag], [0.66, 0.08, 0.08, 0.0, rag]], 9, false, false)
+	for b2: int in 5:
+		k.wedge(Transform3D(Basis(Vector3.RIGHT, PI - 0.5), Vector3(0, 0.18 + b2 * 0.09, 0.1 + b2 * 0.008)), Vector3(0.035, 0.035, 0.1 + b2 * 0.016), COL_BONE)
+	# Torn mantle: open at the chest, ragged strips hanging over shoulders and back.
+	k.loft(I, [[0.47, 0.21, 0.135, 0.03, rag], [0.57, 0.17, 0.125, 0.035, rag_light], [0.65, 0.08, 0.08, 0.02, rag_light]], 9, false, false)
+	var mantle: Array[float] = [0.35, 0.95, 1.5, 2.1, 2.75, 3.6, 4.3, 5.0, 5.7]
+	for mi2: int in mantle.size():
+		var ma: float = mantle[mi2]
+		var front: bool = sin(ma) < -0.3
+		var mlen: float = (0.1 if front else 0.2) + fmod(mi2 * 0.37, 0.16)
+		_rag_strip(k, ma, 0.5, mlen, 0.14, rag if mi2 % 2 == 0 else rag_dark, 0.07, 0.04)
+	# Broken shoulder bone jutting through the cloth.
+	k.wedge(Transform3D(Basis(Vector3.BACK, 0.5) * Basis(Vector3.RIGHT, PI * 0.5), Vector3(-0.2, 0.6, 0.02)), Vector3(0.05, 0.04, 0.2), COL_BONE)
+	k.wedge(Transform3D(Basis(Vector3.BACK, -0.75) * Basis(Vector3.RIGHT, PI * 0.5), Vector3(0.21, 0.57, 0.03)), Vector3(0.04, 0.035, 0.12), bone_dim)
 	_mesh(_torso, k, false)
+	var glow_mi := MeshInstance3D.new()
+	glow_mi.mesh = glow.commit()
+	glow_mi.material_override = _glow_mat
+	glow_mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_torso.add_child(glow_mi)
 
+	# --- Head: pale skull with hollow sockets and a hanging jaw, deep hood set back from the face ---
 	k = MeshKit.new()
-	# Skull-like face in a deep hood.
-	k.loft(I, [[0.0, 0.05, 0.05, 0.0, COL_DARK], [0.06, 0.06, 0.07, -0.03, COL_DARK], [0.12, 0.075, 0.085, -0.02, COL_DARK], [0.2, 0.08, 0.09, 0.0, COL_DARK], [0.27, 0.06, 0.075, 0.01, COL_DARK], [0.3, 0.02, 0.03, 0.01, COL_DARK]], 8)
-	k.loft(I, [[0.04, 0.13, 0.13, 0.03, rag], [0.18, 0.125, 0.135, 0.02, rag], [0.3, 0.09, 0.11, 0.03, rag], [0.36, 0.02, 0.05, 0.05, rag]], 9, false, true)
-	k.wedge(Transform3D(Basis(Vector3.RIGHT, 0.2), Vector3(0, 0.33, 0.08)), Vector3(0.06, 0.03, 0.22), rag)  # Hood point.
+	var skull: Color = COL_BONE.darkened(0.38)
+	k.loft(I, [[0.0, 0.045, 0.045, 0.0, COL_DARK], [0.06, 0.05, 0.06, -0.03, skull.darkened(0.25)], [0.11, 0.07, 0.082, -0.022, skull], [0.2, 0.08, 0.09, -0.002, skull], [0.27, 0.062, 0.076, 0.008, skull], [0.3, 0.02, 0.03, 0.01, skull]], 8)
+	k.box(Transform3D(Basis(), Vector3(0, 0.205, -0.088)), Vector3(0.13, 0.02, 0.022), skull.lightened(0.12))  # Brow ridge.
+	k.box(Transform3D(Basis(Vector3.RIGHT, 0.25), Vector3(0, 0.055, -0.07)), Vector3(0.075, 0.035, 0.05), skull.darkened(0.1))  # Hanging jaw.
+	k.box(Transform3D(Basis(), Vector3(0, 0.09, -0.09)), Vector3(0.06, 0.035, 0.016), COL_DARK)  # Open mouth.
+	k.wedge(Transform3D(Basis(Vector3.RIGHT, PI * 0.5), Vector3(0, 0.135, -0.097)), Vector3(0.024, 0.012, 0.035), COL_DARK)  # Nose cavity.
+	var eyes := MeshKit.new()
+	for side2: float in [-1.0, 1.0]:
+		k.box(Transform3D(Basis(Vector3.BACK, side2 * 0.2), Vector3(0.037 * side2, 0.168, -0.089)), Vector3(0.046, 0.04, 0.014), COL_DARK)  # Socket.
+		k.box(Transform3D(Basis(Vector3.UP, -side2 * 0.6), Vector3(0.062 * side2, 0.12, -0.066)), Vector3(0.03, 0.05, 0.012), skull.darkened(0.35))  # Cheek hollow.
+		eyes.box(Transform3D(Basis(Vector3.BACK, PI * 0.25), Vector3(0.037 * side2, 0.166, -0.095)), Vector3(0.017, 0.017, 0.01), COL_EYE)
+	k.loft(I, [[0.0, 0.125, 0.105, 0.065, rag], [0.15, 0.132, 0.118, 0.06, rag], [0.28, 0.108, 0.118, 0.05, rag_light], [0.355, 0.03, 0.05, 0.075, rag_light]], 9, false, true)
+	# Hood rim: a peak over the brow and ragged flaps beside the cheeks.
+	k.wedge(Transform3D(Basis(Vector3.RIGHT, -0.25), Vector3(0, 0.292, -0.075)), Vector3(0.2, 0.05, 0.13), rag_light)
+	for side3: float in [-1.0, 1.0]:
+		k.box(Transform3D(Basis(Vector3.UP, side3 * 0.25) * Basis(Vector3.BACK, -side3 * 0.1), Vector3(0.108 * side3, 0.16, -0.03)), Vector3(0.022, 0.25, 0.075), rag)
+		k.wedge(Transform3D(Basis(Vector3.RIGHT, -PI * 0.5), Vector3(0.11 * side3, -0.005, -0.03)), Vector3(0.022, 0.07, 0.1), rag_dark)
+	k.wedge(Transform3D(Basis(Vector3.RIGHT, 0.45) * Basis(Vector3.UP, PI), Vector3(0, 0.32, 0.16)), Vector3(0.09, 0.05, 0.22), rag)  # Hood point.
 	_mesh(_head, k, false)
-	var eye := SphereMesh.new()
-	eye.radius = 0.022
-	eye.height = 0.044
-	eye.radial_segments = 6
-	eye.rings = 3
-	for side: float in [-1.0, 1.0]:
-		var e := MeshInstance3D.new()
-		e.mesh = eye
-		e.material_override = _eye_mat
-		e.position = Vector3(0.035 * side, 0.15, -0.085)
-		_head.add_child(e)
+	var eye_mi := MeshInstance3D.new()
+	eye_mi.mesh = eyes.commit()
+	eye_mi.material_override = _eye_mat
+	eye_mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_head.add_child(eye_mi)
 
+	# --- Arms: long and thin, torn sleeve, bone elbow, four-fingered claw hand ---
 	for arm: Node3D in [_arm_l, _arm_r]:
+		var as2: float = -1.0 if arm == _arm_l else 1.0
 		k = MeshKit.new()
-		# Long, thin arm: shoulder knob, wasted biceps, knobbly elbow, forearm, claw hand.
-		k.loft(I, [[0.03, 0.05, 0.05, 0.0, COL_BODY], [-0.08, 0.05, 0.05, 0.0, COL_BODY], [-0.3, 0.035, 0.035, 0.0, COL_BODY], [-0.36, 0.045, 0.045, 0.0, COL_BONE], [-0.42, 0.035, 0.035, 0.0, COL_DARK], [-0.72, 0.028, 0.026, 0.0, COL_DARK], [-0.78, 0.045, 0.025, 0.0, COL_DARK]], 7)
-		for c: int in 3:
-			var cx: float = (c - 1) * 0.03
-			k.wedge(Transform3D(Basis(Vector3.RIGHT, -PI * 0.5 + 0.15), Vector3(cx, -0.9, -0.02)), Vector3(0.022, 0.016, 0.24), COL_BONE)
-		# Rag sleeve.
-		k.loft(I, [[0.05, 0.07, 0.07, 0.0, rag], [-0.2, 0.075, 0.075, 0.01, rag.darkened(0.15)]], 7, false, false)
+		k.loft(I, [[0.03, 0.05, 0.05, 0.0, husk], [-0.08, 0.048, 0.048, 0.0, husk], [-0.3, 0.033, 0.033, 0.0, husk], [-0.36, 0.046, 0.046, 0.0, COL_BONE], [-0.42, 0.034, 0.034, 0.0, COL_DARK], [-0.72, 0.027, 0.025, 0.0, COL_DARK], [-0.79, 0.046, 0.024, 0.0, COL_DARK]], 7)
+		# Sleeve stump with hanging tatters.
+		k.loft(I, [[0.06, 0.072, 0.072, 0.0, rag], [-0.16, 0.078, 0.078, 0.01, rag_dark]], 7, false, false)
+		for t: int in 4:
+			var ta: float = TAU * t / 4.0 + 0.6 + as2 * 0.3
+			var tl: float = 0.14 + fmod(t * 0.41, 0.2)
+			var top := Vector3(cos(ta) * 0.078, -0.16, sin(ta) * 0.078 + 0.01)
+			var tang := Vector3(-sin(ta), 0, cos(ta)) * 0.04
+			k.tri(I, top - tang, top + tang, top + Vector3(cos(ta) * 0.02, -tl, sin(ta) * 0.02), rag if t % 2 == 0 else rag_dark, true)
+		# Wrist wrap, then the claw: finger bones fan out and end in long pale talons.
+		k.loft(I, [[-0.66, 0.034, 0.032, 0.0, rag_light], [-0.71, 0.033, 0.031, 0.0, rag_light]], 7, false, false)
+		for c: int in 4:
+			var spread: float = (c - 1.5) * 0.2
+			var fxf := Transform3D(Basis(Vector3.BACK, spread) * Basis(Vector3.RIGHT, 0.18), Vector3((c - 1.5) * 0.024, -0.79, 0.0))
+			k.box(fxf * Transform3D(Basis(), Vector3(0, -0.045, 0)), Vector3(0.017, 0.09, 0.017), COL_DARK.lightened(0.08))
+			var claw_len: float = 0.2 - absf(c - 1.5) * 0.025
+			k.wedge(fxf * Transform3D(Basis(Vector3.RIGHT, -PI * 0.5 + 0.35), Vector3(0, -0.09 - claw_len * 0.45, -claw_len * 0.17)), Vector3(0.02, 0.018, claw_len), COL_BONE)
+		# Thumb talon.
+		k.wedge(Transform3D(Basis(Vector3.BACK, -as2 * 0.9) * Basis(Vector3.RIGHT, -PI * 0.5 + 0.5), Vector3(-as2 * 0.06, -0.83, -0.02)), Vector3(0.02, 0.018, 0.13), COL_BONE)
 		_mesh(arm, k, false)
 
+	# --- Legs: thin shanks with a bone knee, rag wraps and clawed feet ---
 	for leg: Node3D in [_leg_l, _leg_r]:
 		k = MeshKit.new()
-		k.loft(I, [[0.03, 0.07, 0.07, 0.0, COL_DARK], [-0.4, 0.045, 0.045, 0.0, COL_DARK], [-0.46, 0.05, 0.05, -0.01, COL_BONE], [-0.85, 0.03, 0.03, 0.0, COL_DARK], [-0.9, 0.035, 0.08, -0.04, COL_DARK]], 7)
+		k.loft(I, [[0.03, 0.07, 0.07, 0.0, COL_DARK], [-0.4, 0.045, 0.045, 0.0, COL_DARK], [-0.46, 0.052, 0.052, -0.01, COL_BONE], [-0.52, 0.036, 0.036, 0.0, husk], [-0.85, 0.03, 0.03, 0.0, COL_DARK], [-0.9, 0.04, 0.085, -0.04, COL_DARK]], 7)
+		k.loft(I, [[-0.6, 0.04, 0.04, 0.0, rag], [-0.7, 0.037, 0.037, 0.0, rag_dark], [-0.74, 0.036, 0.036, 0.0, rag_dark]], 7, false, false)
+		for tc: int in 3:
+			k.wedge(Transform3D(Basis(Vector3.UP, (tc - 1) * -0.35), Vector3((tc - 1) * 0.028, -0.885, -0.14)), Vector3(0.022, 0.025, 0.08), COL_BONE)
 		_mesh(leg, k, false)
 
 	# Veil wisps drifting off the body.
@@ -215,6 +290,24 @@ func _build_model() -> void:
 	quad.material = wm
 	_wisps.mesh = quad
 	add_child(_wisps)
+
+
+## One tattered cloth strip hanging from an elliptical ring: a double-sided quad ending in a point.
+## `angle` around Y, `top_y` where it starts, `length` down, `width` at the top, `out` extra radius.
+func _rag_strip(k: MeshKit, angle: float, top_y: float, length: float, width: float, col: Color, out: float, flare: float = 0.14) -> void:
+	var dir := Vector3(cos(angle), 0, sin(angle))
+	var tang := Vector3(-sin(angle), 0, cos(angle))
+	var top: Vector3 = Vector3(dir.x * (0.15 + out), top_y, dir.z * (0.11 + out))
+	var bot: Vector3 = Vector3(dir.x * (0.15 + out + flare * length), top_y - length, dir.z * (0.11 + out + flare * length) + 0.02)
+	var hw: float = width * 0.5
+	var a: Vector3 = top - tang * hw
+	var b: Vector3 = top + tang * hw
+	var c: Vector3 = bot + tang * hw * 0.8
+	var d: Vector3 = bot - tang * hw * 0.8
+	var I := Transform3D.IDENTITY
+	k.quad(I, a, b, c, d, col, true)
+	# Torn end: an off-centre point.
+	k.tri(I, d, c, bot + tang * hw * 0.3 + Vector3(dir.x * 0.02, -0.07 - length * 0.12, dir.z * 0.02), col.darkened(0.12), true)
 
 
 ## Called by the player's attacks.
@@ -419,3 +512,6 @@ func _animate(delta: float, speed: float) -> void:
 	_torso.rotation.x = torso_x
 	_head.rotation.x = -torso_x * 0.4
 	_eye_mat.albedo_color = Color(COL_EYE.r * eye, COL_EYE.g * eye, COL_EYE.b * eye)
+	# Veil light in the cracks: slow pulse, flares with the eyes on a windup, dies with the husk.
+	var pulse: float = (0.62 + 0.2 * sin(_phase * 0.7)) * clampf(0.6 + eye * 0.4, 0.0, 1.6)
+	_glow_mat.albedo_color = Color(COL_VEIL.r * pulse, COL_VEIL.g * pulse, COL_VEIL.b * pulse)

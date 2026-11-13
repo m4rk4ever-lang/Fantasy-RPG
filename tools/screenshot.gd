@@ -188,4 +188,36 @@ func _run() -> void:
 	cam.look_at(Vector3(18.0, 26.0, -78.0))
 	await _wait(8)
 	await _save("05_avond.png")
+
+	# 11. The Warden's Stair winding up the crag, mid-morning.
+	dn.time_of_day = 10.0
+	dn.apply()
+	var arena2: TestArena = main.get("arena")
+	var crag := Vector3(TestArena.CLIFF_CENTER.x, 15.0, TestArena.CLIFF_CENTER.y)
+	cam.global_position = crag + Vector3(-34.0, 12.0, 34.0)
+	cam.look_at(crag + Vector3(0, 6.0, 0))
+	await _wait(8)
+	await _save("11_trap.png")
+	# 12. The sealed door at the top of the stair.
+	var door: Vector3 = arena2.spire_path.door_position
+	var outward := Vector3(door.x - crag.x, 0, door.z - crag.z).normalized()
+	cam.global_position = door + outward * 7.0 + Vector3.UP * 2.6 + outward.cross(Vector3.UP) * 2.0
+	cam.look_at(door + Vector3.UP * 2.0)
+	await _wait(8)
+	await _save("12_deur.png")
+	# 13. Inside the Veilspire: the first floor.
+	var spire: SpireInterior = main.get("spire_interior")
+	spire.fade_time = 0.0
+	if player.quests.state("the_dark_spire") == "none":
+		player.quests.start("the_dark_spire")
+	player.quests.set_flag("reached_spire")
+	spire.request_enter()
+	await _wait(12)
+	var hall: Vector3 = spire.entry_point()
+	cam.global_position = hall + Vector3(0, 3.2, 0) - (spire.global_transform.origin - hall).normalized() * 0.0
+	var centre: Vector3 = spire.global_transform.origin
+	cam.global_position = centre + (hall - centre).normalized() * 9.5 + Vector3.UP * 3.4
+	cam.look_at(centre + Vector3.UP * 2.0)
+	await _wait(10)
+	await _save("13_kerker.png")
 	quit(0)
