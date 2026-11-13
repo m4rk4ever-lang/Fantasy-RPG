@@ -406,6 +406,29 @@ func _run() -> void:
 		audio.set("_combat_hold", 2.0)
 		await _frames(60)
 		_check(audio.combat_mix > mix0 + 0.3, "combat music fades in (mix %.2f)" % audio.combat_mix)
+	# UI finishing (V.11): XP bar, target trail, skill locks, portraits, windows.
+	var ui_hud: Hud = _main.get_node("Hud")
+	var prog_ui: Progression = player.progression
+	_check(ui_hud.xp_bar.level == prog_ui.level, "XP bar shows the current level")
+	_check(absf(ui_hud.xp_bar.fraction() - float(prog_ui.xp) / float(prog_ui.xp_to_next())) < 0.001, "XP bar follows XP")
+	ui_hud.set_xp(0, 100, prog_ui.level + 1)
+	_check(ui_hud.xp_bar.is_shining(), "XP bar shines on level up")
+	ui_hud.set_xp(prog_ui.xp, prog_ui.xp_to_next(), prog_ui.level)
+	ui_hud.target_bar.set_health(100.0, 100.0, true)
+	ui_hud.target_bar.set_health(60.0, 100.0)
+	_check(ui_hud.target_bar.trail > ui_hud.target_bar.fraction(), "target bar keeps a trailing damage segment")
+	await create_timer(0.9).timeout
+	_check(absf(ui_hud.target_bar.trail - 0.6) < 0.01, "trailing segment catches up")
+	_check(dlg.portrait.kind == "brenna", "dialogue shows Brenna's portrait")
+	_check(Portrait.kind_for("Old Tam") == "Old Tam", "unknown speakers fall back to an initial")
+	for win_name: String in ["Backpack", "SkillTree"]:
+		var win: Node = _main.get_node(win_name)
+		var was: bool = win.call("is_open")
+		win.call("toggle")
+		var opened: bool = win.call("is_open")
+		win.call("toggle")
+		_check(not was and opened and not bool(win.call("is_open")), "%s window opens and closes" % win_name)
+	_check(ItemIcon.has_icon("coins") and ItemIcon.has_icon("salted_fish"), "items have their own icons")
 
 	# Frame time indication (headless, physics only).
 	var t0: int = Time.get_ticks_usec()

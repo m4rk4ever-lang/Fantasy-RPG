@@ -6,7 +6,7 @@ Blokken van ongeveer 60 minuten. De bouwagent pakt elke run het eerste niet-afge
 
 ## Eerst volgende run (uit zelfcontrole)
 
-- **Parkeerbranch `parkeer/2026-11-13-trap-ui-kerker` overzetten:** The Warden's Stair (V.6a) en UI-afwerking (V.11), aangepast aan de actiebalk.
+- **Parkeerbranch `parkeer/2026-11-13-trap-ui-kerker` overzetten:** The Warden's Stair (V.6a). De UI-afwerking (V.11) staat al op main.
 - **Geluid beluisteren** en mix bijstellen (V.8 en V.9 staan op main).
 
 - **Prestaties meten in de browser.** Eigenaar laten bevestigen of de haperingen bij treffers weg zijn. Zo niet: schaduwafstand en aantal schaduwcasters verlagen, grasdichtheid achter een kwaliteitsinstelling.
@@ -39,7 +39,7 @@ Doel: één gebied waarin de hele kernloop speelbaar is: praten, quest aannemen,
 - [ ] V.8 Geluid: voetstappen, zwaard, treffers, golven, meeuwen, eenvoudige muziek.
 - [ ] V.9 Modellen bijschaven: meer detail in held, Hollowed en huizen (RuneScape 3 is inmiddels gedetailleerd). Eventueel passende CC0-modellen zoeken.
 - [ ] V.10 Prestaties en kwaliteitsinstelling (laag, midden, hoog).
-- [ ] V.11 UI-afwerking volgens `docs/UI.md`: orbs voor health en resource, gebogen skillbalk met radiale cooldown, skilltree als echte boom, itemiconen, portretten.
+- [x] V.11 UI-afwerking volgens `docs/UI.md`: orbs voor health en resource, gebogen skillbalk met radiale cooldown, skilltree als echte boom, itemiconen, portretten.
 - [ ] V.12 Keuze-issue: resource per klasse (Fury, Focus, Mana, Faith, Corruption of anders).
 
 ## Fase 1: speelbare kern (snel en vloeiend)

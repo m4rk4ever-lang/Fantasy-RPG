@@ -6,9 +6,10 @@
 - **V.8 Geluid en muziek, volledig procedureel:** 28 geluiden (voetstappen, zwaard, treffers, Hollowed, skills, level-up, quest, munten, UI), ambience (zee, wind, meeuwen overdag, krekels 's nachts), verkenningsmuziek in D dorisch met harp en een gevechtslaag die invalt bij gevechten. Volumeschuiven en dempen in het pauzemenu.
 - **V.9 Modellen bijgeschaafd:** held met gezicht, haar, vingers, laarzen, riem, cape die achter de held wappert en een uitgewerkt zwaard. Hollowed met schedel, ribbenkast met blauwe gloed en gescheurde lappen. Drie outfits voor dorpelingen. Huizen met luiken, bloembakken en nokbalken.
 
+- **V.11 UI-afwerking (later in de run alsnog op main gezet):** paneelstijl met gouden hoekstukken, XP-lijn over de volle breedte met level-schildje, doelwitbalk met nasleep, eigen itemiconen, skilltree als echte boom (slepen naar de actiebalk werkt nog), portretten van held en Brenna. De gebogen skillbalk van de parkeerbranch is niet overgenomen: de actiebalk met 8 vakken vervangt hem.
+
 **Geparkeerd op branch `parkeer/2026-11-13-trap-ui-kerker`** (gebouwd en getest, maar botste met de parallelle sessie die de Undercroft en de actiebalk op main zette):
 - V.6a The Warden's Stair: pad om de klif naar een verzegelde deur boven, klif vrij in een kom, navigatie over looproutes, toren met echte botsing.
-- V.11 UI-afwerking volgens `docs/UI.md` (paneelstijl, XP-lijn, doelwitbalk met nasleep, itemiconen, skilltree als boom, portretten).
 - Een tweede kerker in de toren met minibaas "Warden-Husk Aldric": overlapt met de Undercroft en Aldric, the Lightless Keeper. Voorstel: niet overnemen, of later als verdieping 2 met een andere baas.
 
 **Feedback verwerkt**

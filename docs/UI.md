@@ -79,3 +79,11 @@ Dit is een smaakkeuze. Voorstel: eerst een keuze-issue openen voordat het gebouw
 | Skilltree | knoppen in kolommen | boom met iconen en verbindingslijnen |
 | Rugzak | gekleurde ruitjes | eigen itemiconen |
 | Dialoog | paneel zonder portret | paneel met portret |
+| Panelen | **gedeelde stijl in `scripts/ui/ui_style.gd`: leisteen, steenrand, gouden binnenrand en kroonpunten (gebouwd 13-11-2026)** | serif voor titels, pauzemenu in dezelfde stijl |
+| Skillbalk | **gebogen stenen balk, radiale cooldown, gouden flits bij klaar, slotje, tooltip in paneelstijl (gebouwd 13-11-2026)** | slepen vanuit de boom, 8 vakken, vak voor eten |
+| XP | **dunne gouden lijn over de volle breedte, level in schild, glans bij level-up (gebouwd 13-11-2026)** | klaar |
+| Doelwit | **paneel met naam, level en vuurbalk met witte nasleep (gebouwd 13-11-2026)** | type-icoon |
+| Skilltree | **boom: ronde knopen met verbindingslijnen, goud bij geleerd (gebouwd 13-11-2026)** | eigen icoon per skill |
+| Rugzak | **eigen itemiconen in code, ook in de meldingen (gebouwd 13-11-2026)** | klaar |
+| Dialoog | **paneel met portret: Brenna als silhouet, anders de beginletter (gebouwd 13-11-2026)** | render van het 3D-model |
+| Portret held | **helm-silhouet naast de health-orb (gebouwd 13-11-2026)** | render van het 3D-model |

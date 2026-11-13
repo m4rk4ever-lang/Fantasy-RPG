@@ -306,7 +306,7 @@ func _on_loot_picked(items: Array) -> void:
 	for it: Array in items:
 		if player.inventory.add(it[0], it[1]):
 			var item_name: String = "coins" if it[0] == "coins" else Inventory.item_data(it[0])["name"]
-			hud.toast("+%d %s" % [it[1], item_name])
+			hud.toast("+%d %s" % [it[1], item_name], it[0])
 		else:
 			hud.toast("Your backpack is full.")
 
