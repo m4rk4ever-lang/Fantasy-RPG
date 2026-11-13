@@ -89,7 +89,7 @@ func _run() -> void:
 	cam.far = 2500.0
 	main.add_child(cam)
 	cam.global_position = Vector3(-30.0, 14.0, -10.0)
-	cam.look_at(Vector3(18.0, 40.0, -78.0))
+	cam.look_at(Vector3(-2.0, 46.0, -100.0))
 	cam.current = true
 	await _wait(10)
 	await _save("03_landmark.png")
@@ -99,7 +99,7 @@ func _run() -> void:
 		f.process_mode = Node.PROCESS_MODE_DISABLED
 	var foe2: Hollow = get_nodes_in_group(&"enemies")[0]
 	foe2.global_position = Vector3(-6.0, arena.height_at(-6.0, -3.8) + 0.05, -3.8)
-	foe2.process_mode = Node.PROCESS_MODE_INHERIT
+	foe2.process_mode = Node.PROCESS_MODE_DISABLED
 	foe2.target = null
 	foe2.state = Hollow.State.IDLE
 	foe2.set("_facing", atan2(2.0, -2.2))

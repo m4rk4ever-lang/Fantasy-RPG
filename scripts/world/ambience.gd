@@ -71,11 +71,11 @@ func _build_butterflies() -> void:
 			b.add_child(pivot)
 			var w := MeshInstance3D.new()
 			var qm := QuadMesh.new()
-			qm.size = Vector2(0.14, 0.12)
+			qm.size = Vector2(0.09, 0.075)
 			w.mesh = qm
 			w.material_override = mat
 			w.rotation.x = -PI * 0.5
-			w.position.x = 0.07 * side
+			w.position.x = 0.045 * side
 			w.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			pivot.add_child(w)
 		b.set_meta("seed", _rng.randf() * 100.0)

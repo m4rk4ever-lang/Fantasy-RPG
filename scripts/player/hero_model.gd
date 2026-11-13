@@ -25,6 +25,10 @@ var col_steel: Color = COLOR_STEEL
 var col_gold: Color = COLOR_GOLD
 ## Villagers carry no sword.
 var with_sword: bool = true
+## Villagers wear no armor or cape.
+var armored: bool = true
+## Mesh kits per pivot while building; `metal` selects the shiny armor material.
+var _kits: Dictionary = {}
 
 ## Pose blending: 0 = full locomotion, 1 = upper body fully driven by `action_pose`.
 var action_weight: float = 0.0
@@ -54,37 +58,10 @@ var _lean: float = 0.0
 var _air_blend: float = 0.0
 var _dash_blend: float = 0.0
 var _time: float = 0.0
-var _materials: Dictionary = {}
 
 
 func _ready() -> void:
 	_build()
-
-
-func _mat(color: Color, roughness: float = 0.7, metallic: float = 0.0) -> StandardMaterial3D:
-	var key := "%s_%s_%s" % [color.to_html(), roughness, metallic]
-	if _materials.has(key):
-		return _materials[key]
-	var m := StandardMaterial3D.new()
-	m.albedo_color = color
-	m.roughness = roughness
-	m.metallic = metallic
-	m.rim_enabled = true
-	m.rim = 0.35
-	m.rim_tint = 0.6
-	_materials[key] = m
-	return m
-
-
-func _part(parent: Node3D, mesh: Mesh, mat: Material, pos: Vector3, rot: Vector3 = Vector3.ZERO, scl: Vector3 = Vector3.ONE) -> MeshInstance3D:
-	var mi := MeshInstance3D.new()
-	mi.mesh = mesh
-	mi.material_override = mat
-	mi.position = pos
-	mi.rotation = rot
-	mi.scale = scl
-	parent.add_child(mi)
-	return mi
 
 
 func _pivot(parent: Node3D, pos: Vector3, pivot_name: String) -> Node3D:
@@ -95,104 +72,184 @@ func _pivot(parent: Node3D, pos: Vector3, pivot_name: String) -> Node3D:
 	return n
 
 
-func _capsule(radius: float, height: float) -> CapsuleMesh:
-	var c := CapsuleMesh.new()
-	c.radius = radius
-	c.height = height
-	c.radial_segments = 16
-	c.rings = 6
-	return c
-
-
-func _sphere(radius: float) -> SphereMesh:
-	var s := SphereMesh.new()
-	s.radius = radius
-	s.height = radius * 2.0
-	s.radial_segments = 18
-	s.rings = 10
-	return s
-
-
-func _box(size: Vector3) -> BoxMesh:
-	var b := BoxMesh.new()
-	b.size = size
-	return b
-
-
 func _build() -> void:
+	# Low-poly anatomy: every body part is a faceted loft of elliptical rings with
+	# real proportions (about 7.5 heads tall). Clothing is painted per ring band, armor is
+	# a separate metallic shell. One cloth mesh + one metal mesh per animated pivot.
+	var sk: Color = col_skin
+	var skin_dark: Color = col_skin.darkened(0.12)
 	hips = _pivot(self, Vector3(0, 0.95, 0), "Hips")
-	_part(hips, _capsule(0.19, 0.42), _mat(col_leather), Vector3(0, 0.02, 0), Vector3(0, 0, PI / 2), Vector3(1, 1, 0.85))
-	# Belt with buckle.
-	_part(hips, _box(Vector3(0.44, 0.07, 0.3)), _mat(col_boot, 0.5), Vector3(0, 0.1, 0))
-	_part(hips, _box(Vector3(0.08, 0.07, 0.03)), _mat(col_gold, 0.3, 0.8), Vector3(0, 0.1, -0.16))
-	# Tunic skirt.
-	var skirt := CylinderMesh.new()
-	skirt.top_radius = 0.2
-	skirt.bottom_radius = 0.27
-	skirt.height = 0.3
-	skirt.radial_segments = 16
-	_part(hips, skirt, _mat(col_tunic), Vector3(0, -0.08, 0), Vector3.ZERO, Vector3(1, 1, 0.8))
-
 	torso = _pivot(hips, Vector3(0, 0.08, 0), "Torso")
-	_part(torso, _capsule(0.22, 0.62), _mat(col_tunic), Vector3(0, 0.3, 0), Vector3.ZERO, Vector3(1.05, 1, 0.75))
-	# Breastplate.
-	_part(torso, _capsule(0.2, 0.42), _mat(col_plate, 0.45, 0.3), Vector3(0, 0.36, -0.06), Vector3.ZERO, Vector3(1.0, 0.95, 0.62))
-	# Royal-blue sash across the plate.
-	_part(torso, _box(Vector3(0.08, 0.5, 0.3)), _mat(col_tunic, 0.6), Vector3(0.02, 0.36, -0.05), Vector3(0, 0, 0.7))
-	# Pauldrons.
-	for side: float in [-1.0, 1.0]:
-		_part(torso, _sphere(0.12), _mat(col_plate, 0.45, 0.3), Vector3(0.27 * side, 0.54, 0), Vector3.ZERO, Vector3(1.15, 0.8, 1.1))
-
-	head = _pivot(torso, Vector3(0, 0.64, 0), "Head")
-	_part(head, _capsule(0.06, 0.14), _mat(col_skin), Vector3(0, 0.02, 0))
-	_part(head, _sphere(0.135), _mat(col_skin, 0.8), Vector3(0, 0.15, 0), Vector3.ZERO, Vector3(0.95, 1.08, 1.0))
-	# Hair: cap plus a swept tail.
-	_part(head, _sphere(0.145), _mat(col_hair, 0.9), Vector3(0, 0.19, 0.025), Vector3(-0.2, 0, 0), Vector3(1.0, 0.85, 1.05))
-	_part(head, _capsule(0.05, 0.22), _mat(col_hair, 0.9), Vector3(0, 0.12, 0.13), Vector3(0.5, 0, 0))
-	# Eyes give the head a readable facing.
-	for side: float in [-1.0, 1.0]:
-		_part(head, _sphere(0.018), _mat(Color("1e2125"), 0.4), Vector3(0.045 * side, 0.16, -0.125))
-
-	cape = _pivot(torso, Vector3(0, 0.56, 0.15), "Cape")
-	_part(cape, _box(Vector3(0.46, 0.85, 0.03)), _mat(col_cloak, 0.85), Vector3(0, -0.42, 0))
-	_part(cape, _box(Vector3(0.5, 0.06, 0.05)), _mat(col_gold, 0.3, 0.8), Vector3(0, 0.0, -0.01))
-
-	arm_l = _pivot(torso, Vector3(-0.29, 0.5, 0), "ArmL")
-	arm_r = _pivot(torso, Vector3(0.29, 0.5, 0), "ArmR")
-	for arm: Node3D in [arm_l, arm_r]:
-		_part(arm, _capsule(0.07, 0.34), _mat(col_tunic), Vector3(0, -0.14, 0))
-	fore_l = _pivot(arm_l, Vector3(0, -0.3, 0), "ForeL")
-	fore_r = _pivot(arm_r, Vector3(0, -0.3, 0), "ForeR")
-	for fore: Node3D in [fore_l, fore_r]:
-		_part(fore, _capsule(0.065, 0.3), _mat(col_leather, 0.6), Vector3(0, -0.13, 0))
-		_part(fore, _sphere(0.065), _mat(col_skin), Vector3(0, -0.3, 0))
-
-	# Sword in the right hand. Blade points along the hand's local -Z when held forward.
-	sword = _pivot(fore_r, Vector3(0, -0.3, 0), "Sword")
-	sword_base = _pivot(sword, Vector3(0, 0, -0.18), "SwordBase")
-	sword_tip = _pivot(sword, Vector3(0, 0, -1.05), "SwordTip")
-	if with_sword:
-		_part(sword, _box(Vector3(0.045, 0.045, 0.2)), _mat(col_leather, 0.6), Vector3(0, 0, 0.0))
-		_part(sword, _box(Vector3(0.26, 0.05, 0.05)), _mat(col_gold, 0.3, 0.8), Vector3(0, 0, -0.12))
-		_part(sword, _box(Vector3(0.07, 0.018, 0.82)), _mat(col_steel, 0.2, 0.9), Vector3(0, 0, -0.55))
-		var tip := PrismMesh.new()
-		tip.size = Vector3(0.07, 0.14, 0.018)
-		_part(sword, tip, _mat(col_steel, 0.2, 0.9), Vector3(0, 0, -1.02), Vector3(-PI / 2, 0, 0))
-		_part(sword, _sphere(0.035), _mat(col_gold, 0.3, 0.8), Vector3(0, 0, 0.12))
-
-	leg_l = _pivot(hips, Vector3(-0.11, -0.04, 0), "LegL")
-	leg_r = _pivot(hips, Vector3(0.11, -0.04, 0), "LegR")
-	for leg: Node3D in [leg_l, leg_r]:
-		_part(leg, _capsule(0.085, 0.46), _mat(col_leather, 0.75), Vector3(0, -0.2, 0))
+	head = _pivot(torso, Vector3(0, 0.6, 0), "Head")
+	arm_l = _pivot(torso, Vector3(-0.215, 0.5, 0), "ArmL")
+	arm_r = _pivot(torso, Vector3(0.215, 0.5, 0), "ArmR")
+	fore_l = _pivot(arm_l, Vector3(0, -0.28, 0), "ForeL")
+	fore_r = _pivot(arm_r, Vector3(0, -0.28, 0), "ForeR")
+	leg_l = _pivot(hips, Vector3(-0.095, -0.05, 0), "LegL")
+	leg_r = _pivot(hips, Vector3(0.095, -0.05, 0), "LegR")
 	shin_l = _pivot(leg_l, Vector3(0, -0.43, 0), "ShinL")
 	shin_r = _pivot(leg_r, Vector3(0, -0.43, 0), "ShinR")
-	for shin: Node3D in [shin_l, shin_r]:
-		_part(shin, _capsule(0.08, 0.4), _mat(col_boot, 0.6), Vector3(0, -0.2, 0))
-		_part(shin, _box(Vector3(0.13, 0.08, 0.24)), _mat(col_boot, 0.6), Vector3(0, -0.43, -0.05))
-		_part(shin, _sphere(0.07), _mat(col_plate, 0.45, 0.3), Vector3(0, -0.02, -0.05), Vector3.ZERO, Vector3(1, 1, 0.8))
+	cape = _pivot(torso, Vector3(0, 0.53, 0.115), "Cape")
+	sword = _pivot(fore_r, Vector3(0, -0.27, 0), "Sword")
+	sword_base = _pivot(sword, Vector3(0, 0, -0.18), "SwordBase")
+	sword_tip = _pivot(sword, Vector3(0, 0, -1.12), "SwordTip")
 
-	for mi: Node in find_children("*", "MeshInstance3D", true, false):
-		(mi as MeshInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	var I := Transform3D.IDENTITY
+	var trousers: Color = col_leather
+	var shirt: Color = col_tunic
+
+	# --- Pelvis, belt, skirt ---
+	var k: MeshKit = _kit(hips)
+	k.loft(I, [[-0.13, 0.15, 0.105, 0.0, trousers], [-0.04, 0.165, 0.115, 0.0, trousers], [0.06, 0.155, 0.105, 0.0, shirt], [0.1, 0.145, 0.1, 0.0, shirt]], 10)
+	k.loft(I, [[0.03, 0.172, 0.122, 0.0, col_boot], [0.1, 0.168, 0.12, 0.0, col_boot]], 10, false, false)
+	k.box(Transform3D(Basis(), Vector3(0, 0.065, -0.125)), Vector3(0.07, 0.06, 0.02), col_gold)
+	k.box(Transform3D(Basis(Vector3.UP, 0.3), Vector3(0.15, 0.03, -0.085)), Vector3(0.08, 0.1, 0.05), col_leather.darkened(0.15))  # Pouch.
+	# Tabard skirt: flares out, gold hem.
+	var skirt_len: float = 0.36 if armored else 0.2
+	k.loft(I, [[0.06, 0.17, 0.125, 0.0, shirt], [0.06 - skirt_len, 0.22, 0.16, 0.0, col_gold], [0.06 - skirt_len - 0.025, 0.222, 0.162, 0.0, col_gold]], 10, false, false)
+
+	# --- Torso: waist, ribs, chest, shoulders, neck ---
+	k = _kit(torso)
+	k.loft(I, [
+		[0.0, 0.145, 0.1, 0.0, shirt], [0.12, 0.15, 0.105, -0.005, shirt], [0.25, 0.17, 0.115, -0.01, shirt],
+		[0.38, 0.19, 0.122, -0.015, shirt], [0.47, 0.2, 0.115, -0.01, shirt], [0.55, 0.16, 0.1, 0.0, sk],
+		[0.6, 0.065, 0.06, 0.005, sk],
+	], 10)
+	if armored:
+		var m: MeshKit = _kit(torso, true)
+		# Cuirass: sculpted breastplate and backplate shell with a gold rim.
+		m.loft(I, [[0.17, 0.165, 0.118, -0.01, col_gold], [0.2, 0.17, 0.122, -0.012, col_plate], [0.3, 0.183, 0.13, -0.022, col_plate], [0.4, 0.2, 0.136, -0.03, col_plate], [0.48, 0.2, 0.125, -0.018, col_gold], [0.5, 0.18, 0.11, -0.01, col_gold]], 10, false, false)
+		# Ridge down the breastplate.
+		m.wedge(Transform3D(Basis(Vector3.RIGHT, -PI * 0.5), Vector3(0, 0.33, -0.16)), Vector3(0.03, 0.025, 0.24), col_plate.lightened(0.1))
+		# Gorget.
+		m.loft(I, [[0.5, 0.12, 0.09, 0.0, col_plate], [0.57, 0.085, 0.07, 0.0, col_gold]], 10, false, false)
+	# Royal sash (diagonal) and collar.
+	k.box(Transform3D(Basis(Vector3.BACK, 0.75), Vector3(0.0, 0.32, -0.142)), Vector3(0.07, 0.5, 0.02), col_cloak if not armored else col_tunic.lightened(0.08))
+
+	# --- Head: neck, jaw, cheekbones, brow, crown ---
+	k = _kit(head)
+	k.loft(I, [
+		[0.0, 0.055, 0.05, 0.005, sk], [0.06, 0.05, 0.05, 0.0, sk], [0.085, 0.066, 0.07, -0.025, sk],
+		[0.13, 0.082, 0.09, -0.018, sk], [0.18, 0.088, 0.098, -0.008, sk], [0.225, 0.09, 0.102, 0.0, sk],
+		[0.28, 0.08, 0.094, 0.008, sk], [0.32, 0.05, 0.065, 0.012, sk], [0.34, 0.015, 0.02, 0.012, sk],
+	], 10, false, true)
+	# Chin, nose, brow ridge, ears, eyes.
+	k.box(Transform3D(Basis(), Vector3(0, 0.095, -0.085)), Vector3(0.05, 0.035, 0.03), skin_dark)
+	k.wedge(Transform3D(Basis(Vector3.RIGHT, -0.2), Vector3(0, 0.175, -0.108)), Vector3(0.028, 0.05, 0.035), skin_dark)
+	k.box(Transform3D(Basis(), Vector3(0, 0.218, -0.095)), Vector3(0.13, 0.018, 0.025), skin_dark)
+	for side: float in [-1.0, 1.0]:
+		k.box(Transform3D(Basis(Vector3.UP, side * 0.3), Vector3(0.088 * side, 0.18, 0.005)), Vector3(0.02, 0.05, 0.035), skin_dark)
+		k.box(Transform3D(Basis(), Vector3(0.036 * side, 0.198, -0.096)), Vector3(0.026, 0.013, 0.01), Color("1e2125"))
+		k.box(Transform3D(Basis(), Vector3(0.036 * side, 0.212, -0.098)), Vector3(0.034, 0.008, 0.012), col_hair)  # Brows.
+	# Hair: swept cap plus a tied tail.
+	k.loft(I, [[0.19, 0.097, 0.11, 0.022, col_hair], [0.25, 0.1, 0.112, 0.012, col_hair], [0.3, 0.088, 0.103, 0.012, col_hair], [0.345, 0.05, 0.07, 0.014, col_hair], [0.365, 0.01, 0.02, 0.014, col_hair]], 10, false, true)
+	k.box(Transform3D(Basis(Vector3.RIGHT, 0.25), Vector3(0, 0.14, 0.105)), Vector3(0.05, 0.16, 0.04), col_hair)
+
+	# --- Arms: deltoid, biceps, elbow / forearm, wrist, hand ---
+	for side2: float in [-1.0, 1.0]:
+		var arm: Node3D = arm_l if side2 < 0.0 else arm_r
+		var fore: Node3D = fore_l if side2 < 0.0 else fore_r
+		k = _kit(arm)
+		k.loft(I, [[0.03, 0.06, 0.06, 0.0, shirt], [-0.06, 0.066, 0.062, 0.0, shirt], [-0.16, 0.052, 0.054, -0.005, shirt], [-0.27, 0.043, 0.045, 0.0, shirt], [-0.3, 0.04, 0.042, 0.0, shirt]], 8)
+		if armored:
+			var pm: MeshKit = _kit(arm, true)
+			# Layered pauldron with a gold trim lip.
+			pm.loft(Transform3D(Basis(), Vector3(0.015 * side2, 0, 0)), [[0.09, 0.03, 0.03, 0.0, col_plate], [0.06, 0.085, 0.085, 0.0, col_plate], [-0.02, 0.105, 0.1, 0.0, col_plate], [-0.06, 0.108, 0.104, 0.0, col_gold], [-0.075, 0.1, 0.097, 0.0, col_gold]], 10, true, false)
+			pm.loft(Transform3D(Basis(), Vector3(0.02 * side2, 0, 0)), [[-0.07, 0.085, 0.085, 0.0, col_plate], [-0.12, 0.09, 0.088, 0.0, col_plate], [-0.13, 0.085, 0.083, 0.0, col_gold]], 10, false, false)
+		k = _kit(fore)
+		k.loft(I, [[0.0, 0.042, 0.044, 0.0, shirt], [-0.06, 0.047, 0.044, -0.004, col_leather], [-0.2, 0.036, 0.031, 0.0, col_leather], [-0.225, 0.034, 0.03, 0.0, sk]], 8, true, false)
+		# Bracer trim and hand (palm block, fingers, thumb).
+		k.loft(I, [[-0.19, 0.04, 0.035, 0.0, col_gold], [-0.205, 0.04, 0.035, 0.0, col_gold]], 8, false, false)
+		k.loft(I, [[-0.225, 0.036, 0.022, 0.0, sk], [-0.27, 0.04, 0.02, 0.0, sk], [-0.31, 0.034, 0.017, -0.004, skin_dark], [-0.325, 0.02, 0.012, -0.006, skin_dark]], 6, false, true)
+		k.box(Transform3D(Basis(Vector3.BACK, side2 * 0.4), Vector3(-0.03 * side2, -0.255, -0.012)), Vector3(0.016, 0.05, 0.018), sk)
+
+	# --- Legs: thigh, knee / calf, ankle, foot ---
+	for side3: float in [-1.0, 1.0]:
+		var leg: Node3D = leg_l if side3 < 0.0 else leg_r
+		var shin: Node3D = shin_l if side3 < 0.0 else shin_r
+		k = _kit(leg)
+		k.loft(I, [[0.04, 0.085, 0.09, 0.0, trousers], [-0.08, 0.083, 0.085, -0.005, trousers], [-0.25, 0.066, 0.068, -0.004, trousers], [-0.42, 0.05, 0.052, 0.0, trousers], [-0.45, 0.048, 0.05, 0.0, trousers]], 8)
+		k = _kit(shin)
+		var boot_top: float = -0.16 if armored else -0.26
+		k.loft(I, [[0.02, 0.05, 0.052, 0.0, trousers], [-0.1, 0.054, 0.058, 0.012, trousers], [boot_top, 0.052, 0.054, 0.008, col_boot], [-0.33, 0.04, 0.042, 0.0, col_boot], [-0.43, 0.04, 0.045, -0.005, col_boot]], 8, false, true)
+		k.loft(I, [[boot_top + 0.02, 0.06, 0.062, 0.008, col_boot.lightened(0.08)], [boot_top - 0.02, 0.058, 0.06, 0.008, col_boot.lightened(0.08)]], 8, false, false)
+		# Foot: heel block and tapered toe.
+		k.box(Transform3D(Basis(), Vector3(0, -0.425, -0.02)), Vector3(0.085, 0.07, 0.12), col_boot)
+		k.wedge(Transform3D(Basis(), Vector3(0, -0.435, -0.12)), Vector3(0.085, 0.05, 0.11), col_boot)
+		if armored:
+			var km: MeshKit = _kit(shin, true)
+			km.loft(Transform3D(Basis(), Vector3(0, 0, -0.02)), [[0.06, 0.03, 0.02, -0.03, col_plate], [0.02, 0.06, 0.05, -0.035, col_plate], [-0.04, 0.055, 0.045, -0.03, col_gold], [-0.05, 0.05, 0.04, -0.028, col_gold]], 8, true, false)
+
+	# --- Cape: two layered panels and a fringed hem ---
+	k = _kit(cape)
+	if armored:
+		var cape_len: float = 0.92
+		k.box(Transform3D(Basis(), Vector3(0, -cape_len * 0.5, 0)), Vector3(0.44, cape_len, 0.02), col_cloak)
+		k.box(Transform3D(Basis(), Vector3(0, -0.2, 0.012)), Vector3(0.48, 0.38, 0.02), col_cloak.darkened(0.12))
+		k.box(Transform3D(Basis(), Vector3(0, -cape_len + 0.03, 0.0)), Vector3(0.45, 0.04, 0.025), col_gold)
+		for f: int in 9:
+			var fx: float = -0.2 + f * 0.05
+			k.wedge(Transform3D(Basis(Vector3.RIGHT, -PI * 0.5), Vector3(fx, -cape_len - 0.03, 0)), Vector3(0.035, 0.012, 0.07), col_gold.darkened(0.15))
+		k.box(Transform3D(Basis(), Vector3(0, 0.0, -0.01)), Vector3(0.48, 0.05, 0.04), col_gold)
+
+	# --- Sword: fullered blade, swept crossguard, wrapped grip, gem pommel ---
+	if with_sword:
+		var sm: MeshKit = _kit(sword, true)
+		sm.box(Transform3D(Basis(), Vector3(0, 0, -0.6)), Vector3(0.07, 0.016, 0.86), col_steel)
+		sm.box(Transform3D(Basis(), Vector3(0, 0, -0.56)), Vector3(0.018, 0.02, 0.7), col_steel.darkened(0.3))  # Fuller.
+		sm.wedge(Transform3D(Basis(), Vector3(0, 0, -1.08)), Vector3(0.07, 0.016, 0.1), col_steel)
+		sm.box(Transform3D(Basis(), Vector3(0, 0, -0.14)), Vector3(0.24, 0.04, 0.045), col_gold)
+		for side4: float in [-1.0, 1.0]:
+			sm.wedge(Transform3D(Basis(Vector3.UP, -side4 * PI * 0.5), Vector3(0.14 * side4, 0, -0.16)), Vector3(0.045, 0.04, 0.07), col_gold)
+		sm.loft(Transform3D(Basis(Vector3.RIGHT, PI * 0.5), Vector3.ZERO), [[-0.12, 0.022, 0.022, 0.0, col_leather], [0.1, 0.02, 0.02, 0.0, col_leather]], 6)
+		sm.box(Transform3D(Basis(Vector3.UP, PI * 0.25), Vector3(0, 0, 0.12)), Vector3(0.05, 0.05, 0.05), col_gold)
+		var gem := MeshKit.new()
+		gem.box(Transform3D(Basis(Vector3.UP, PI * 0.25), Vector3(0, 0, 0.12)), Vector3(0.056, 0.03, 0.056), Color("6ec3f0"))
+		var gm := MeshInstance3D.new()
+		gm.mesh = gem.commit()
+		var gmat := StandardMaterial3D.new()
+		gmat.vertex_color_use_as_albedo = true
+		gmat.emission_enabled = true
+		gmat.emission = Color("6ec3f0")
+		gmat.emission_energy_multiplier = 1.5
+		gm.material_override = gmat
+		sword.add_child(gm)
+
+	_commit_kits()
+
+
+func _kit(pivot: Node3D, metal: bool = false) -> MeshKit:
+	var key: String = str(pivot.get_instance_id()) + ("m" if metal else "c")
+	if not _kits.has(key):
+		_kits[key] = [MeshKit.new(), pivot, metal]
+	return _kits[key][0]
+
+
+func _commit_kits() -> void:
+	var cloth := StandardMaterial3D.new()
+	cloth.vertex_color_use_as_albedo = true
+	cloth.roughness = 0.78
+	cloth.rim_enabled = true
+	cloth.rim = 0.3
+	cloth.rim_tint = 0.6
+	var metal := StandardMaterial3D.new()
+	metal.vertex_color_use_as_albedo = true
+	metal.roughness = 0.38
+	metal.metallic = 0.55
+	metal.rim_enabled = true
+	metal.rim = 0.4
+	metal.rim_tint = 0.4
+	for key: String in _kits.keys():
+		var entry: Array = _kits[key]
+		var kit: MeshKit = entry[0]
+		if kit.is_empty():
+			continue
+		var mi := MeshInstance3D.new()
+		mi.mesh = kit.commit()
+		mi.material_override = metal if entry[2] else cloth
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+		(entry[1] as Node3D).add_child(mi)
+	_kits.clear()
 
 
 ## Called by the controller every frame.

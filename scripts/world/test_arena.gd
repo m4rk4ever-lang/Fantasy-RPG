@@ -48,6 +48,12 @@ func _ready() -> void:
 	_scatter_trees()
 	_scatter_grass()
 	_build_water()
+	var shard := SkyShard.new()
+	shard.name = "SkyShard"
+	shard.position = Vector3(-62.0, 88.0, -175.0)
+	shard.scale = Vector3.ONE * 1.5
+	shard.rotation = Vector3(0.0, 0.0, 0.18)
+	add_child(shard)
 	var village := Village.new()
 	village.name = "Village"
 	add_child(village)

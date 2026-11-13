@@ -84,6 +84,66 @@ func cylinder(xf: Transform3D, radius_top: float, radius_bottom: float, height: 
 			_tri(xf, Vector3(0, h, 0), t0, t1, col.lightened(0.04))
 
 
+## Lofted body segment: elliptical cross-sections stacked along Y (faceted, low-poly anatomy).
+## Each ring: [y, radius_x, radius_z, offset_z, color] (+ optional offset_x as 6th entry).
+## The band between ring i and i+1 takes ring i's color. Rings may go up or down.
+func loft(xf: Transform3D, rings: Array, segs: int = 8, cap_start: bool = true, cap_end: bool = true) -> void:
+	var rs: Array = rings.duplicate()
+	var bands: Array[Color] = []
+	for i: int in rs.size() - 1:
+		bands.append(rs[i][4])
+	var caps: Array[bool] = [cap_start, cap_end]
+	if float(rs[0][0]) > float(rs[rs.size() - 1][0]):
+		rs.reverse()
+		bands.reverse()
+		caps.reverse()
+	var pts: Array[PackedVector3Array] = []
+	for r: Array in rs:
+		var row := PackedVector3Array()
+		var ox: float = r[5] if r.size() > 5 else 0.0
+		for i: int in segs:
+			# Offset by half a segment so a flat face points forward (-Z): reads cleaner.
+			var a: float = TAU * (float(i) + 0.5) / segs
+			row.append(Vector3(cos(a) * float(r[1]) + ox, float(r[0]), sin(a) * float(r[2]) + float(r[3])))
+		pts.append(row)
+	for k: int in rs.size() - 1:
+		for i: int in segs:
+			var j: int = (i + 1) % segs
+			_quad(xf, pts[k][i], pts[k + 1][i], pts[k + 1][j], pts[k][j], bands[k])
+	if caps[0]:
+		var c0 := Vector3.ZERO
+		for p: Vector3 in pts[0]:
+			c0 += p
+		c0 /= segs
+		for i: int in segs:
+			_tri(xf, c0, pts[0][(i + 1) % segs], pts[0][i], bands[0])
+	if caps[1]:
+		var last: int = rs.size() - 1
+		var c1 := Vector3.ZERO
+		for p: Vector3 in pts[last]:
+			c1 += p
+		c1 /= segs
+		for i: int in segs:
+			_tri(xf, c1, pts[last][i], pts[last][(i + 1) % segs], bands[bands.size() - 1])
+
+
+## Wedge (triangular prism) pointing along -Z: noses, claws, blade tips, fringe.
+func wedge(xf: Transform3D, size: Vector3, col: Color) -> void:
+	var w: float = size.x * 0.5
+	var h: float = size.y * 0.5
+	var d: float = size.z * 0.5
+	var a := Vector3(-w, -h, d)
+	var b := Vector3(w, -h, d)
+	var c := Vector3(w, h, d)
+	var e := Vector3(-w, h, d)
+	var tip := Vector3(0, 0, -d)
+	_quad(xf, a, b, c, e, col)  # back face (+Z)
+	_tri(xf, tip, a, b, col.darkened(0.15))  # bottom
+	_tri(xf, tip, c, e, col.lightened(0.05))  # top
+	_tri(xf, tip, b, c, col)  # right
+	_tri(xf, tip, e, a, col)  # left
+
+
 func is_empty() -> bool:
 	return _count == 0
 

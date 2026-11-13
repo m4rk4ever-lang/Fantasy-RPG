@@ -51,6 +51,7 @@ var _leg_r: Node3D
 var _eye_mat: StandardMaterial3D
 var _flash_mat: StandardMaterial3D
 var _flash_meshes: Array[MeshInstance3D] = []
+var _body_mat: StandardMaterial3D
 var _overlay_on: bool = false
 var _wisps: CPUParticles3D
 
@@ -81,45 +82,22 @@ func get_aim_point() -> Vector3:
 	return global_position + Vector3.UP * 1.3
 
 
-func _mat(c: Color, rough: float = 0.85) -> StandardMaterial3D:
-	var m := StandardMaterial3D.new()
-	m.albedo_color = c
-	m.roughness = rough
-	return m
-
-
-func _part(parent: Node3D, mesh: Mesh, mat: Material, pos: Vector3, rot: Vector3 = Vector3.ZERO, scl: Vector3 = Vector3.ONE) -> MeshInstance3D:
+func _mesh(parent: Node3D, kit: MeshKit, _metal: bool) -> void:
 	var mi := MeshInstance3D.new()
-	mi.mesh = mesh
-	mi.material_override = mat
-	_flash_meshes.append(mi)
-	mi.position = pos
-	mi.rotation = rot
-	mi.scale = scl
+	mi.mesh = kit.commit()
+	mi.material_override = _body_mat
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 	parent.add_child(mi)
-	return mi
-
-
-func _caps(r: float, h: float) -> CapsuleMesh:
-	var c := CapsuleMesh.new()
-	c.radius = r
-	c.height = h
-	c.radial_segments = 12
-	c.rings = 4
-	return c
+	_flash_meshes.append(mi)
 
 
 func _build_model() -> void:
+	_body_mat = MeshKit.vertex_color_material(0.85)
 	# Same material features as CombatFx's pre-warmed flash, so no shader compile on first hit.
 	_flash_mat = CombatFx.make_hit_flash_material()
 	_eye_mat = StandardMaterial3D.new()
 	_eye_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_eye_mat.albedo_color = COL_EYE
-
-	var body := _mat(COL_BODY)
-	var dark := _mat(COL_DARK)
-	var cloth := _mat(COL_CLOTH, 0.95)
-	var bone := _mat(COL_BONE, 0.6)
 
 	_model = Node3D.new()
 	_model.name = "Model"
@@ -127,69 +105,80 @@ func _build_model() -> void:
 	var hips := Node3D.new()
 	hips.position.y = 0.95
 	_model.add_child(hips)
-	# Tattered robe.
-	var robe := CylinderMesh.new()
-	robe.top_radius = 0.24
-	robe.bottom_radius = 0.42
-	robe.height = 0.75
-	robe.radial_segments = 9
-	_part(hips, robe, cloth, Vector3(0, -0.25, 0))
-
 	_torso = Node3D.new()
-	_torso.position.y = 0.1
+	_torso.position.y = 0.08
 	hips.add_child(_torso)
-	_part(_torso, _caps(0.25, 0.75), body, Vector3(0, 0.33, 0.0), Vector3(-0.3, 0, 0), Vector3(1.1, 1, 0.8))
-	# Bone ridge along the hunched back.
-	for i: int in 4:
-		_part(_torso, _caps(0.05, 0.16), bone, Vector3(0, 0.25 + i * 0.13, 0.25 + i * 0.03), Vector3(0.3, 0, 0))
-	# Ragged hood shoulders.
-	_part(_torso, _caps(0.17, 0.62), cloth, Vector3(0, 0.6, 0.12), Vector3(0, 0, PI / 2), Vector3(1, 1, 0.9))
-
 	_head = Node3D.new()
-	_head.position = Vector3(0, 0.66, -0.12)
+	_head.position = Vector3(0, 0.6, -0.1)
 	_torso.add_child(_head)
-	var hood := SphereMesh.new()
-	hood.radius = 0.2
-	hood.height = 0.42
-	hood.radial_segments = 10
-	hood.rings = 6
-	_part(_head, hood, cloth, Vector3(0, 0.1, 0.02), Vector3.ZERO, Vector3(1, 1.1, 1.15))
-	var face := SphereMesh.new()
-	face.radius = 0.14
-	face.height = 0.28
-	_part(_head, face, dark, Vector3(0, 0.08, -0.07))
-	var eye := SphereMesh.new()
-	eye.radius = 0.028
-	eye.height = 0.056
-	for side: float in [-1.0, 1.0]:
-		var e := _part(_head, eye, _eye_mat, Vector3(0.055 * side, 0.1, -0.19))
-		_flash_meshes.erase(e)
-
 	_arm_l = Node3D.new()
-	_arm_l.position = Vector3(-0.33, 0.55, 0.05)
+	_arm_l.position = Vector3(-0.23, 0.5, 0.03)
 	_arm_r = Node3D.new()
-	_arm_r.position = Vector3(0.33, 0.55, 0.05)
+	_arm_r.position = Vector3(0.23, 0.5, 0.03)
 	_torso.add_child(_arm_l)
 	_torso.add_child(_arm_r)
-	for arm: Node3D in [_arm_l, _arm_r]:
-		_part(arm, _caps(0.07, 0.5), body, Vector3(0, -0.22, 0))
-		_part(arm, _caps(0.06, 0.5), dark, Vector3(0, -0.62, 0))
-		# Long claws.
-		var claw := PrismMesh.new()
-		claw.size = Vector3(0.14, 0.32, 0.05)
-		_part(arm, claw, bone, Vector3(0, -0.98, 0), Vector3(PI, 0, 0))
-
 	_leg_l = Node3D.new()
-	_leg_l.position = Vector3(-0.14, -0.05, 0)
+	_leg_l.position = Vector3(-0.1, -0.05, 0)
 	_leg_r = Node3D.new()
-	_leg_r.position = Vector3(0.14, -0.05, 0)
+	_leg_r.position = Vector3(0.1, -0.05, 0)
 	hips.add_child(_leg_l)
 	hips.add_child(_leg_r)
-	for leg: Node3D in [_leg_l, _leg_r]:
-		_part(leg, _caps(0.08, 0.9), dark, Vector3(0, -0.45, 0))
 
-	for mi: Node in _model.find_children("*", "MeshInstance3D", true, false):
-		(mi as MeshInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	# Low-poly anatomy like the hero, but gaunt: thin waist, ribs, long arms, ragged Warden robes.
+	var I := Transform3D.IDENTITY
+	var rag: Color = COL_CLOTH
+	var k := MeshKit.new()
+	# Robe skirt with a tattered hem (wedges pointing down).
+	k.loft(I, [[0.08, 0.15, 0.11, 0.0, rag], [-0.2, 0.2, 0.15, 0.01, rag], [-0.62, 0.27, 0.21, 0.02, rag.darkened(0.15)]], 9, false, false)
+	for f: int in 11:
+		var a: float = TAU * f / 11.0
+		var len: float = 0.12 + fmod(f * 0.37, 0.14)
+		k.wedge(Transform3D(Basis(Vector3.RIGHT, -PI * 0.5).rotated(Vector3.UP, -a), Vector3(cos(a) * 0.26, -0.62 - len * 0.5, sin(a) * 0.2)), Vector3(0.1, 0.02, len), rag.darkened(0.2))
+	_mesh(hips, k, false)
+
+	k = MeshKit.new()
+	# Emaciated torso: narrow waist, visible rib bands, bony shoulders.
+	k.loft(I, [[0.0, 0.11, 0.08, 0.0, COL_BODY], [0.15, 0.12, 0.085, 0.0, COL_BODY], [0.25, 0.15, 0.1, -0.01, COL_DARK], [0.3, 0.155, 0.105, -0.01, COL_BODY], [0.36, 0.165, 0.11, -0.012, COL_DARK], [0.41, 0.17, 0.11, -0.012, COL_BODY], [0.5, 0.19, 0.11, 0.0, COL_BODY], [0.57, 0.12, 0.09, 0.0, COL_BODY], [0.62, 0.05, 0.05, -0.04, COL_BODY]], 9)
+	# Bone spurs along the spine.
+	for b: int in 5:
+		k.wedge(Transform3D(Basis(Vector3.RIGHT, PI - 0.5), Vector3(0, 0.18 + b * 0.09, 0.1 + b * 0.008)), Vector3(0.03, 0.03, 0.09 + b * 0.012), COL_BONE)
+	# Torn hood mantle over the shoulders.
+	k.loft(I, [[0.46, 0.2, 0.14, 0.02, rag], [0.58, 0.17, 0.13, 0.03, rag], [0.66, 0.08, 0.08, 0.0, rag]], 9, false, false)
+	_mesh(_torso, k, false)
+
+	k = MeshKit.new()
+	# Skull-like face in a deep hood.
+	k.loft(I, [[0.0, 0.05, 0.05, 0.0, COL_DARK], [0.06, 0.06, 0.07, -0.03, COL_DARK], [0.12, 0.075, 0.085, -0.02, COL_DARK], [0.2, 0.08, 0.09, 0.0, COL_DARK], [0.27, 0.06, 0.075, 0.01, COL_DARK], [0.3, 0.02, 0.03, 0.01, COL_DARK]], 8)
+	k.loft(I, [[0.04, 0.13, 0.13, 0.03, rag], [0.18, 0.125, 0.135, 0.02, rag], [0.3, 0.09, 0.11, 0.03, rag], [0.36, 0.02, 0.05, 0.05, rag]], 9, false, true)
+	k.wedge(Transform3D(Basis(Vector3.RIGHT, 0.2), Vector3(0, 0.33, 0.08)), Vector3(0.06, 0.03, 0.22), rag)  # Hood point.
+	_mesh(_head, k, false)
+	var eye := SphereMesh.new()
+	eye.radius = 0.022
+	eye.height = 0.044
+	eye.radial_segments = 6
+	eye.rings = 3
+	for side: float in [-1.0, 1.0]:
+		var e := MeshInstance3D.new()
+		e.mesh = eye
+		e.material_override = _eye_mat
+		e.position = Vector3(0.035 * side, 0.15, -0.085)
+		_head.add_child(e)
+
+	for arm: Node3D in [_arm_l, _arm_r]:
+		k = MeshKit.new()
+		# Long, thin arm: shoulder knob, wasted biceps, knobbly elbow, forearm, claw hand.
+		k.loft(I, [[0.03, 0.05, 0.05, 0.0, COL_BODY], [-0.08, 0.05, 0.05, 0.0, COL_BODY], [-0.3, 0.035, 0.035, 0.0, COL_BODY], [-0.36, 0.045, 0.045, 0.0, COL_BONE], [-0.42, 0.035, 0.035, 0.0, COL_DARK], [-0.72, 0.028, 0.026, 0.0, COL_DARK], [-0.78, 0.045, 0.025, 0.0, COL_DARK]], 7)
+		for c: int in 3:
+			var cx: float = (c - 1) * 0.03
+			k.wedge(Transform3D(Basis(Vector3.RIGHT, -PI * 0.5 + 0.15), Vector3(cx, -0.9, -0.02)), Vector3(0.022, 0.016, 0.24), COL_BONE)
+		# Rag sleeve.
+		k.loft(I, [[0.05, 0.07, 0.07, 0.0, rag], [-0.2, 0.075, 0.075, 0.01, rag.darkened(0.15)]], 7, false, false)
+		_mesh(arm, k, false)
+
+	for leg: Node3D in [_leg_l, _leg_r]:
+		k = MeshKit.new()
+		k.loft(I, [[0.03, 0.07, 0.07, 0.0, COL_DARK], [-0.4, 0.045, 0.045, 0.0, COL_DARK], [-0.46, 0.05, 0.05, -0.01, COL_BONE], [-0.85, 0.03, 0.03, 0.0, COL_DARK], [-0.9, 0.035, 0.08, -0.04, COL_DARK]], 7)
+		_mesh(leg, k, false)
 
 	# Veil wisps drifting off the body.
 	_wisps = CPUParticles3D.new()

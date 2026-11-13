@@ -19,6 +19,7 @@ func _ready() -> void:
 	_rng.randomize()
 	_model = HeroModel.new()
 	_model.with_sword = false
+	_model.armored = false
 	_model.col_tunic = outfit.get("tunic", HeroModel.COLOR_TUNIC)
 	_model.col_cloak = outfit.get("cloak", HeroModel.COLOR_CLOAK)
 	_model.col_hair = outfit.get("hair", HeroModel.COLOR_HAIR)
