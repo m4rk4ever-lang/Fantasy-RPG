@@ -8,6 +8,9 @@ signal leveled_up(level: int)
 signal ranks_changed
 signal allegiance_changed(faction_id: String)
 
+## Character levels in WoW style (owner, 13-11-2026): one level for the hero, cap 60.
+const MAX_LEVEL: int = 60
+
 var class_id: String = "vanguard"
 var faction_id: String = ""
 var level: int = 1
@@ -28,17 +31,32 @@ func _grant_free_nodes() -> void:
 				ranks[n["id"]] = 1
 
 
+## XP curve: quick early levels, steeper later (level 1: 100, level 10: ~3.200, level 59: ~59.000).
 func xp_to_next() -> int:
-	return 80 + 45 * (level - 1)
+	return int(round(100.0 * pow(float(level), 1.55)))
+
+
+## XP for defeating a monster, scaled by the level difference (grey mobs give little).
+static func kill_xp(mob_level: int, hero_level: int) -> int:
+	var base: float = 45.0 + 5.0 * mob_level
+	var diff: int = mob_level - hero_level
+	var mult: float = clampf(1.0 + 0.1 * diff, 0.1, 1.5)
+	if diff <= -8:
+		mult = 0.0
+	return int(round(base * mult))
 
 
 func add_xp(amount: int) -> void:
+	if level >= MAX_LEVEL:
+		return
 	xp += amount
-	while xp >= xp_to_next():
+	while level < MAX_LEVEL and xp >= xp_to_next():
 		xp -= xp_to_next()
 		level += 1
 		skill_points += 1
 		leveled_up.emit(level)
+	if level >= MAX_LEVEL:
+		xp = 0
 	xp_changed.emit(xp, xp_to_next(), level)
 
 

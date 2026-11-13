@@ -17,6 +17,7 @@ const COL_BONE := Color("c9c6b8")
 const COL_EYE := Color("bfe6ff")
 
 @export var display_name: String = "Hollowed Warden"
+@export var level: int = 2
 @export var max_health: float = 60.0
 @export var move_speed: float = 4.2
 @export var aggro_range: float = 13.0

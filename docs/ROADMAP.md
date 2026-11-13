@@ -15,6 +15,8 @@ Blokken van ongeveer 60 minuten. De bouwagent pakt elke run het eerste niet-afge
 
 **Eerst het eerste gebied en de grote stappen af, dan pas de wereld uitbouwen.** Geen nieuwe gebieden, chunk-streaming of extra landmarks tot de verticale slice hieronder klaar is. Zo verbranden we geen tijd aan wereld terwijl het concept nog niet vaststaat.
 
+**Structuur (eigenaar 13-11-2026):** RPG met MMORPG-gevoel, open wereld, deels lineaire questlijn, dungeons en raids onderweg, levelen in WoW-stijl tot **level 60**. Zie "Spelstructuur" in `docs/DESIGN.md`. De verticale slice dekt levels 1 tot ongeveer 5 en eindigt met de eerste kleine dungeon (de Veilspire zelf).
+
 ## Verticale slice: Warden's Vale en Saltwick (nu)
 
 Doel: één gebied waarin de hele kernloop speelbaar is: praten, quest aannemen, vechten met skills, belonen, sterker worden, opslaan.
@@ -26,7 +28,9 @@ Doel: één gebied waarin de hele kernloop speelbaar is: praten, quest aannemen,
 - [ ] V.3 Klassen en skilltree: keuze-issue over opzet (welke klassen, hoe de boom eruitziet, hoe skills op de balk komen). Dan eerste klasse uitwerken.
 - [ ] V.4 Stats, XP en levels, loot van Hollowed, eenvoudige inventaris.
 - [x] V.5 Dialoogsysteem, eerste quest "Ashes on the Shore" bij Brenna Gale in Saltwick, questlog (L) en tracker in beeld.
-- [ ] V.6 Pad naar de Veilspire, toren als eerste questdoel. Heiligdom met obelisken.
+- [x] V.1b Level cap 60, XP-curve in WoW-stijl, monster-XP geschaald op levelverschil, monsterlevel in de doelwitbalk.
+- [ ] V.6 Pad naar de Veilspire. De toren wordt de **eerste kleine dungeon** (3 verdiepingen, eindbaas), eind van hoofdstuk I. Heiligdom met obelisken.
+- [ ] V.13 Keuze-issue: raids solo met NPC-metgezellen, solo-geschaald of later echte multiplayer.
 - [ ] V.7 Opslaan en laden.
 - [ ] V.8 Geluid: voetstappen, zwaard, treffers, golven, meeuwen, eenvoudige muziek.
 - [ ] V.9 Modellen bijschaven: meer detail in held, Hollowed en huizen (RuneScape 3 is inmiddels gedetailleerd). Eventueel passende CC0-modellen zoeken.

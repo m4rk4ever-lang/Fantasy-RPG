@@ -166,7 +166,10 @@ func _spawn_enemy(index: int) -> void:
 
 
 func _on_enemy_died(index: int, en: Hollow) -> void:
-	player.progression.add_xp(40)
+	var gained: int = Progression.kill_xp(en.level, player.progression.level)
+	player.progression.add_xp(gained)
+	if gained > 0:
+		hud.toast("+%d XP" % gained)
 	_drop_loot(en.global_position)
 	camera_rig.add_trauma(0.35)
 	fx.hitstop(0.12)

@@ -213,6 +213,11 @@ func _run() -> void:
 	var lvl0: int = prog.level
 	prog.add_xp(1000)
 	_check(prog.level > lvl0 and prog.skill_points > 1, "XP gives levels and skill points (level %d, %d points)" % [prog.level, prog.skill_points])
+	var cap_test := Progression.new()
+	cap_test.add_xp(100000000)
+	_check(cap_test.level == Progression.MAX_LEVEL, "level caps at %d" % Progression.MAX_LEVEL)
+	cap_test.free()
+	_check(Progression.kill_xp(2, 20) == 0 and Progression.kill_xp(5, 5) > 0, "low-level monsters give no XP")
 	_check(prog.rank_up("keen_edge"), "rank up Keen Edge")
 	_check(is_equal_approx(prog.stat("damage_mult"), 0.08), "Keen Edge adds 8% damage")
 	_check(prog.rank_up("whirlwind"), "unlock Whirlwind after Keen Edge")

@@ -7,6 +7,23 @@ Episch third-person action-adventure RPG in een high-fantasy wereld. Godot 4, sp
 
 **Taal (eigenaar 13-11-2026):** het hele spel is Engels, ook alle namen van plaatsen, goden, facties en vijanden. De Engelse namen in dit document zijn de officiële. Documentatie blijft Nederlands.
 
+## Spelstructuur (eigenaar 13-11-2026)
+
+- **Genre:** RPG met MMORPG-gevoel in een open wereld. Een deels lineaire hoofdquestlijn leidt door de wereld, met side quests, dungeons en raids onderweg. Niet alleen aan het eind.
+- **Levelen in WoW-stijl:** één karakterlevel, geen RuneScape-vaardigheden. **Level cap 60.** XP komt uit quests (de hoofdbron), monsters (geschaald op levelverschil: grijze monsters geven niets) en dungeons. Per level 1 skillpunt in de klasse-boom. De bomen groeien mee, zodat er tot 60 iets te kiezen blijft.
+- **Gebieden per levelbereik** (voorstel):
+
+| Levels | Gebied | Hoofdstuk |
+|---|---|---|
+| 1-10 | Warden's Vale en Saltwick | I: The Last Warden |
+| 10-20 | Highweald-bossen en de rivier | II |
+| 20-30 | Ashen Host-smidsestad (gloeiende runen) | III |
+| 30-45 | Bergen van de High Hold | IV |
+| 45-60 | Rand van de Hush, de ontbrekende Veilspires | V |
+
+- **Dungeons:** instanties met eigen sfeer (donker en grimmig volgens `SMAAK.md`), 3 tot 5 bazen, ongeveer 20 tot 40 minuten. Eén per gebied, plus een paar optionele.
+- **Raids:** grote dungeons met bazen in fases, voor het einde van een hoofdstuk en op level 60. **Open vraag:** het spel is nu singleplayer in de browser. Raids kunnen voorlopig met NPC-metgezellen (tank, healer) of solo-geschaald. Echte multiplayer is een grote technische keuze en vraagt een eigen keuze-issue.
+
 ## Pitch
 
 Aldmere werd niet gebouwd maar gezongen. Zeven hogere machten, the Ascendants, zongen de wereld uit the Hush. Daarna vochten ze om wie de laatste noot mocht zingen. Die oorlog, the Dissonance, verbrandde halve continenten. Hij eindigde met een pact: elke Ascendant legde een deel van zijn stem in een kroon, de Crown of Seven Heavens, en zweeg. Sindsdien spreken de goden alleen nog via hun volgelingen.

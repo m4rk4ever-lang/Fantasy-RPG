@@ -362,7 +362,8 @@ func set_target(enemy: Node) -> void:
 		_target_root.visible = false
 		return
 	_target = enemy
-	_target_label.text = str(enemy.get("display_name"))
+	var lvl: Variant = enemy.get("level")
+	_target_label.text = str(enemy.get("display_name")) + ("  (Level %d)" % int(lvl) if lvl != null else "")
 	_on_target_health_changed(float(enemy.get("health")), float(enemy.get("max_health")))
 	if enemy.has_signal("health_changed"):
 		enemy.health_changed.connect(_on_target_health_changed)
