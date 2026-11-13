@@ -72,9 +72,9 @@ Dit is een smaakkeuze. Voorstel: eerst een keuze-issue openen voordat het gebouw
 
 | Onderdeel | Nu | Doel (V.11) |
 |---|---|---|
-| Health en stamina | platte balken | orbs met vloeistof-shader en een stamina-boog |
+| Health en stamina | **health-orb met golvende vloeistof en een stamina-boog (gebouwd 13-11-2026)** | afwerking: textuur op de rand, waarschuwing bij lage health |
 | Resource | ontbreekt | orb per klasse (eerst een keuze-issue) |
-| Skillbalk | 4 vlakke vakken, verticale cooldown | gebogen balk, radiale sweep, slepen vanuit de boom |
+| Skillbalk | 4 vlakke vakken, **radiale cooldown (gebouwd 13-11-2026)** | gebogen balk, slepen vanuit de boom |
 | Skilltree | knoppen in kolommen | boom met iconen en verbindingslijnen |
 | Rugzak | gekleurde ruitjes | eigen itemiconen |
 | Dialoog | paneel zonder portret | paneel met portret |

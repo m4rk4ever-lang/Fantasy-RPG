@@ -68,11 +68,23 @@ class Sweep:
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
 		set_anchors_preset(Control.PRESET_FULL_RECT)
 
+	## Radial sweep (clockwise from 12 o'clock) over the remaining cooldown, like RuneScape.
 	func _draw() -> void:
-		var inset := 3.0
-		var full := size.y - inset * 2.0
-		var h := full * clampf(fraction, 0.0, 1.0)
-		draw_rect(Rect2(inset, inset, size.x - inset * 2.0, h), Color(0, 0, 0, 0.62))
+		var f: float = clampf(fraction, 0.0, 1.0)
+		if f <= 0.0:
+			return
+		var c: Vector2 = size * 0.5
+		var r: float = size.length() * 0.5
+		var pts := PackedVector2Array([c])
+		var steps: int = maxi(2, int(48 * f))
+		var start: float = -PI * 0.5 + TAU * (1.0 - f)
+		for i: int in steps + 1:
+			var a: float = start + TAU * f * float(i) / steps
+			var p: Vector2 = c + Vector2(cos(a), sin(a)) * r
+			p.x = clampf(p.x, 3.0, size.x - 3.0)
+			p.y = clampf(p.y, 3.0, size.y - 3.0)
+			pts.append(p)
+		draw_colored_polygon(pts, Color(0, 0, 0, 0.62))
 
 
 class Slot:

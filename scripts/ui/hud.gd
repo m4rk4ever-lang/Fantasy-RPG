@@ -8,6 +8,7 @@ const COL_FRAME := Color("e6e1d3")
 const COL_BACK := Color(0.12, 0.13, 0.16, 0.65)
 
 var skill_bar: SkillBar
+var health_orb: Orb
 ## Emitted when the player clicks the auto-retaliate button.
 signal retaliate_clicked
 signal skills_clicked
@@ -44,14 +45,17 @@ func _ready() -> void:
 	box.position = Vector2(32, 0)
 	box.anchor_top = 1.0
 	box.anchor_bottom = 1.0
-	box.offset_top = -86
-	box.offset_left = 32
+	box.offset_top = -150
+	box.offset_left = 28
 	box.add_theme_constant_override("separation", 6)
 	root.add_child(box)
 	_health_bar = _make_bar(COL_HEALTH, Vector2(300, 16))
 	_stamina_bar = _make_bar(COL_STAMINA, Vector2(220, 10))
-	box.add_child(_health_bar)
-	box.add_child(_stamina_bar)
+	# Health orb with the stamina arc around it (see docs/UI.md). The bars stay as data holders.
+	health_orb = Orb.new()
+	health_orb.custom_minimum_size = Vector2(104, 104)
+	health_orb.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	box.add_child(health_orb)
 	var xp_row := HBoxContainer.new()
 	xp_row.add_theme_constant_override("separation", 8)
 	box.add_child(xp_row)
@@ -257,11 +261,14 @@ func _make_bar(fill: Color, size: Vector2) -> ProgressBar:
 func set_health(value: float, max_value: float) -> void:
 	_health_bar.max_value = max_value
 	_health_bar.value = value
+	health_orb.value = value
+	health_orb.max_value = max_value
 
 
 func set_stamina(value: float, max_value: float) -> void:
 	_stamina_bar.max_value = max_value
 	_stamina_bar.value = value
+	health_orb.arc_value = value / maxf(max_value, 1.0)
 
 
 ## Small message bottom-left (loot, eating). Fades after a few seconds.
