@@ -34,6 +34,7 @@ var village: Village
 var undercroft_door: Interactable
 var undercroft_door_outside: Vector3
 var beacon_light: OmniLight3D
+var spire_path: SpirePath
 
 
 func _ready() -> void:
@@ -47,6 +48,10 @@ func _ready() -> void:
 	_build_far_mountains()
 	_build_crag()
 	_build_watchtower()
+	spire_path = SpirePath.new()
+	spire_path.name = "SpirePath"
+	add_child(spire_path)
+	spire_path.build(self)
 	_build_ruins()
 	_build_arena_props()
 	_scatter_trees()
@@ -73,6 +78,8 @@ func height_at(x: float, z: float) -> float:
 	var h: float = flat_blend * (hills + walls)
 	var cd: float = Vector2(x, z).distance_to(CLIFF_CENTER)
 	# Gentle mound under the crag; the rock itself is a separate faceted mesh (see _build_crag).
+	# The crag stands free: the valley wall dips into a grassy hollow around it, so the stair stays in the open.
+	h = lerpf(h, minf(h, 6.5 + maxf(cd - 30.0, 0.0) * 0.6), smoothstep(56.0, 30.0, cd))
 	var mound: float = smoothstep(36.0, 18.0, cd) * 7.0
 	h = maxf(h, mound)
 	# Coast: the valley walls fall away toward the bay, then a beach slopes into the sea.
@@ -358,7 +365,7 @@ func _build_crag() -> void:
 
 	var body := StaticBody3D.new()
 	body.name = "Crag"
-	body.collision_layer = 1
+	body.collision_layer = 1 | SpirePath.WALKWAY_LAYER  # Plateau on top is walkable for the nav grid.
 	body.position = Vector3(CLIFF_CENTER.x, 0.0, CLIFF_CENTER.y)
 	add_child(body)
 	var mi := MeshInstance3D.new()
@@ -444,7 +451,10 @@ func _build_watchtower() -> void:
 	var stone_dark := _stone_mat(Color("b9b3a3"))
 	var roof := _stone_mat(Color("3d5ba9"), 0.55)
 	var trim := _stone_mat(Color("5b6c9e"), 0.7)
-	_add_static(root, _cyl(4.6, 5.4, 4.0, 24), stone_dark, Transform3D(Basis(), Vector3(0, 2.0, 0)), CylinderShape3D.new())
+	var base_shape := CylinderShape3D.new()
+	base_shape.radius = 5.0
+	base_shape.height = 4.0
+	_add_static(root, _cyl(4.6, 5.4, 4.0, 24), stone_dark, Transform3D(Basis(), Vector3(0, 2.0, 0)), base_shape)
 	_add_static(root, _cyl(3.4, 4.0, 22.0, 24), stone, Transform3D(Basis(), Vector3(0, 15.0, 0)))
 	_add_static(root, _cyl(4.3, 3.6, 2.0, 24), stone_dark, Transform3D(Basis(), Vector3(0, 27.0, 0)))
 	# Crenellations.

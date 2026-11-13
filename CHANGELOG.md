@@ -8,9 +8,9 @@
 
 - **V.11 UI-afwerking (later in de run alsnog op main gezet):** paneelstijl met gouden hoekstukken, XP-lijn over de volle breedte met level-schildje, doelwitbalk met nasleep, eigen itemiconen, skilltree als echte boom (slepen naar de actiebalk werkt nog), portretten van held en Brenna. De gebogen skillbalk van de parkeerbranch is niet overgenomen: de actiebalk met 8 vakken vervangt hem.
 
-**Geparkeerd op branch `parkeer/2026-11-13-trap-ui-kerker`** (gebouwd en getest, maar botste met de parallelle sessie die de Undercroft en de actiebalk op main zette):
-- V.6a The Warden's Stair: pad om de klif naar een verzegelde deur boven, klif vrij in een kom, navigatie over looproutes, toren met echte botsing.
-- Een tweede kerker in de toren met minibaas "Warden-Husk Aldric": overlapt met de Undercroft en Aldric, the Lightless Keeper. Voorstel: niet overnemen, of later als verdieping 2 met een andere baas.
+- **V.6a The Warden's Stair (alsnog op main):** stenen pad om de klif naar een verzegelde deur boven, met poort, borstwering en lantaarns. De klif staat vrij in een kom, de navigatie plant over de trap, de toren heeft echte botsing. Het pad begint naast de deur van de Undercroft en loopt ervan weg.
+- **Hall of the First Oath (optioneel):** de kerker in de toren uit de parkeerbranch staat nu ook op main, als extra zaal boven de Undercroft. De deur boven opent zodra The Dark Spire loopt en je boven bent geweest. De minibaas heet nu **Warden-Husk Corvane**, zodat hij niet botst met Aldric, the Lightless Keeper. Hij verandert de hoofdquest niet: alleen XP, loot en een vlag.
+- Mijn eigen opslagsysteem (V.7) is vervallen: main heeft er al een. De zaal haakt in op dat systeem.
 
 **Feedback verwerkt**
 - Geen open issues of feedbackbestanden. Live verzoek van de eigenaar: zwaar werk parallel laten doen tot 15:00. Gedaan met vier Fable-subagents (kerker, geluid, UI, modellen) plus één Sonnet-subagent (opslaan).

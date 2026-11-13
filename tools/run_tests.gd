@@ -430,6 +430,87 @@ func _run() -> void:
 		_check(not was and opened and not bool(win.call("is_open")), "%s window opens and closes" % win_name)
 	_check(ItemIcon.has_icon("coins") and ItemIcon.has_icon("salted_fish"), "items have their own icons")
 
+	# --- The Warden's Stair (V.6a) ---
+	var arena: TestArena = _main.get_node("World")
+	var stair: SpirePath = arena.spire_path
+	_check(stair != null, "Warden's Stair exists")
+	var navg: NavGrid = _main.get_node("NavGrid")
+	var foot: Vector3 = stair.foot()
+	var door_goal: Vector3 = stair.door_position + (Vector3(stair.door_position.x, 0, stair.door_position.z) - Vector3(TestArena.CLIFF_CENTER.x, 0, TestArena.CLIFF_CENTER.y)).normalized() * 2.0
+	var stair_path: PackedVector3Array = navg.find_path(foot + Vector3(0, 0, 0), door_goal)
+	_check(stair_path.size() > 20, "nav grid finds a path up the stair (%d waypoints)" % stair_path.size())
+	var mid_open: int = 0
+	for uu: float in [0.3, 0.5, 0.7]:
+		var mp: Vector3 = stair.point_at(uu)
+		for off: Vector3 in [Vector3.ZERO, Vector3(1, 0, 0), Vector3(-1, 0, 0), Vector3(0, 0, 1), Vector3(0, 0, -1)]:
+			if not navg.is_blocked(mp + off):
+				mid_open += 1
+				break
+	_check(mid_open == 3, "the stair is walkable along its length")
+	player.revive(foot + Vector3.UP * 0.6)
+	player.set_run(true)
+	await _frames(5)
+	player.set_move_target(door_goal)
+	var climbed: bool = false
+	var best_y: float = player.global_position.y
+	for k: int in 240:
+		await _frames(10)  # Short polls: right behind the "reached" trigger the door now lets the hero in (V.6b).
+		best_y = maxf(best_y, player.global_position.y)
+		if player.quests.has_flag("reached_spire"):
+			climbed = true
+			break
+	print("  INFO  stair climb: highest point %.1f m, at %s" % [best_y, str(player.global_position)])
+	_check(climbed, "hero climbs the stair and reaches the sealed door")
+
+	# --- The Veilspire, first floor (V.6b) ---
+	var spire: SpireInterior = _main.get("spire_interior")
+	_check(spire != null, "Veilspire interior exists")
+	spire.fade_time = 0.0
+	var env_bg: int = arena.environment.background_mode
+	_check(not spire.is_inside and spire.can_enter(), "the door opens for a Warden on The Dark Spire")
+	player.set_move_target(door_goal)
+	for k: int in 20:
+		if spire.is_inside:
+			break
+		await _frames(30)
+	if not spire.is_inside:
+		print("  INFO  hero did not walk into the door trigger, placing him there")
+		player.global_position = door_goal + Vector3.UP * 0.5
+		await _frames(10)
+	_check(spire.is_inside and player.global_position.distance_to(spire.entry_point()) < 3.0, "walking into the sealed door teleports the hero inside")
+	for e: Hollow in spire.enemies:
+		e.process_mode = Node.PROCESS_MODE_DISABLED
+	await _frames(40)
+	_check(player.is_on_floor() and absf(player.global_position.y - SpireInterior.ORIGIN.y) < 0.6, "hero stands on the hall floor")
+	_check(arena.environment.background_mode == Environment.BG_COLOR and not arena.sun.visible, "dungeon environment is active inside")
+	_check(spire.boss != null and spire.boss.display_name == "Warden-Husk Corvane" and spire.boss.max_health > 200.0, "Warden-Husk Corvane waits on the first floor")
+	_check(spire.enemies.size() == 4, "three Hollowed guard the hall with him (%d enemies)" % spire.enemies.size())
+	var z_in: float = player.global_position.z
+	player.set_move_target(player.global_position + Vector3(1.5, 0, -3.0))
+	await _frames(60)
+	_check(player.global_position.z < z_in - 1.5, "click-to-move works inside the hall")
+	var xp_b: int = player.progression.xp + player.progression.level * 100000
+	var hp_b: float = spire.boss.health
+	spire.boss.take_hit(20.0, Vector3.ZERO, spire.boss.global_position)
+	_check(spire.boss.health < hp_b and not spire.boss.is_dead() and not player.quests.has_flag("spire_floor_1_cleared"), "the Husk takes damage and survives a normal hit")
+	spire.boss.take_hit(9999.0, Vector3.ZERO, spire.boss.global_position)
+	_check(player.quests.has_flag("spire_floor_1_cleared"), "killing the Warden-Husk sets spire_floor_1_cleared")
+	_check(player.progression.xp + player.progression.level * 100000 > xp_b, "the Warden-Husk grants XP")
+	player.set_move_target(SpireInterior.ORIGIN + Vector3(0.0, 0.0, SpireInterior.RADIUS - 0.8))
+	for k: int in 20:
+		if not spire.is_inside:
+			break
+		await _frames(30)
+	if spire.is_inside:
+		print("  INFO  hero did not walk into the exit trigger, requesting exit")
+		spire.request_exit()
+	await _frames(40)
+	var door_flat: Vector3 = stair.door_position
+	_check(not spire.is_inside and Vector2(player.global_position.x - door_flat.x, player.global_position.z - door_flat.z).length() < 6.0, "leaving returns the hero to the sealed door")
+	_check(player.is_on_floor() and player.global_position.y > TestArena.CRAG_TOP - 2.0, "hero stands on the crag after leaving (y %.1f)" % player.global_position.y)
+	_check(arena.environment.background_mode == env_bg and player.nav != null, "overworld environment and nav grid are restored")
+	spire.fade_time = 0.45
+
 	# Frame time indication (headless, physics only).
 	var t0: int = Time.get_ticks_usec()
 	await _frames(60)

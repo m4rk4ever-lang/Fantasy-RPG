@@ -23,6 +23,7 @@ var _undercroft_spawned: bool = false
 var dialogue: DialogueWindow
 var brenna_talk: BrennaDialogue
 var ambience: Ambience
+var spire_interior: SpireInterior
 var _last_night: float = -1.0
 var _area: String = ""
 var _step_timer: float = 0.0
@@ -158,6 +159,8 @@ func _ready() -> void:
 		player.quests.set_flag("keeper_defeated")
 		hud.show_banner("The Keeper falls", "Relight the beacon"))
 	undercroft.beacon_lit.connect(_on_beacon_lit)
+	arena.spire_path.reached_door.connect(_on_spire_door)
+	_setup_spire_interior()
 	_load_save.call_deferred()
 	# --- Audio (V.8): procedural sound, ambience and music; see scripts/audio/ ---
 	var audio := AudioDirector.new()
@@ -215,7 +218,8 @@ func _on_hit_landed(_target: Node3D, pos: Vector3, attack: Dictionary) -> void:
 
 
 func _on_heavy_impact(pos: Vector3) -> void:
-	pos.y = arena.height_at(pos.x, pos.z)
+	if pos.y > -100.0:  # Dungeons sit far below; their floor is not the terrain.
+		pos.y = arena.height_at(pos.x, pos.z)
 	fx.slam(pos)
 	camera_rig.add_trauma(0.45)
 
@@ -253,11 +257,15 @@ func _process(delta: float) -> void:
 		_save()
 	# Area names (English in-game names).
 	var area: String = "Saltwick" if arena.sea_distance(player.global_position.x, player.global_position.z) > 12.0 else "Warden's Vale"
+	if player.global_position.y > 14.0 and Vector2(player.global_position.x, player.global_position.z).distance_to(TestArena.CLIFF_CENTER) < 30.0:
+		area = "The Warden's Stair"
 	if in_dungeon:
 		area = "Undercroft of the Veilspire"
+	if spire_interior != null and spire_interior.is_inside:
+		area = _area
 	if area != _area:
 		_area = area
-		hud.show_banner(area, "Fishing village of the Saltbound" if area == "Saltwick" else ("Dungeon · Level 3-5" if in_dungeon else "Beneath the first Veilspire"))
+		hud.show_banner(area, "Fishing village of the Saltbound" if area == "Saltwick" else ("Dungeon · Level 3-5" if in_dungeon else ("The way up to the first Veilspire" if area == "The Warden's Stair" else "Beneath the first Veilspire")))
 	var night: float = arena.day_night.night_factor
 	if absf(night - _last_night) > 0.02:
 		_last_night = night
@@ -286,7 +294,7 @@ func _is_walkable(from: Vector3, to: Vector3) -> bool:
 
 
 ## Loot table of a Hollowed: always dust and coins, sometimes claws or a sigil.
-func _drop_loot(at: Vector3) -> void:
+func _drop_loot(at: Vector3, extra: Array = []) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
 	var items: Array = [["coins", rng.randi_range(5, 15)], ["veil_dust", rng.randi_range(1, 2)]]
@@ -294,6 +302,7 @@ func _drop_loot(at: Vector3) -> void:
 		items.append(["hollow_fang", 1])
 	if rng.randf() < 0.12:
 		items.append(["warden_sigil", 1])
+	items.append_array(extra)
 	var drop := LootDrop.new()
 	drop.items = items
 	add_child(drop)
@@ -399,6 +408,52 @@ func _save() -> bool:
 	return SaveGame.save(player, hud.action_bar)
 
 
+## Reaching the sealed door at the top of the Warden's Stair.
+func _on_spire_door() -> void:
+	if player.quests.has_flag("reached_spire"):
+		return
+	player.quests.set_flag("reached_spire")
+	if spire_interior.can_enter():
+		hud.show_banner("The Veilspire", "The runes of the Veil stir")
+	else:
+		hud.show_banner("The Veilspire", "The door is sealed by the Veil")
+
+
+# --- Veilspire, first floor (V.6b): optional hall above the Undercroft ---
+func _setup_spire_interior() -> void:
+	spire_interior = SpireInterior.new()
+	spire_interior.name = "SpireInterior"
+	add_child(spire_interior)
+	spire_interior.setup(player, arena, camera_rig)
+	spire_interior.entered.connect(func() -> void:
+		ambience.visible = false
+		_area = "The Veilspire"
+		if spire_interior.is_cleared():
+			hud.show_banner("The Veilspire", "The Hall of the First Oath lies silent")
+		else:
+			hud.show_banner("The Veilspire", "Hall of the First Oath"))
+	spire_interior.exited.connect(func() -> void: ambience.visible = true)
+	player.died.connect(func() -> void: ambience.visible = true)
+	spire_interior.enemy_died.connect(_on_spire_enemy_died)
+	spire_interior.boss_slammed.connect(func(pos: Vector3) -> void:
+		fx.slam(pos)
+		camera_rig.add_trauma(0.6))
+	spire_interior.floor_cleared.connect(func() -> void:
+		hud.show_banner("The Hall of the First Oath", "Warden-Husk Corvane is at rest. The stair above is broken."))
+
+
+func _on_spire_enemy_died(en: Hollow, is_boss: bool) -> void:
+	var gained: int = Progression.kill_xp(en.level, player.progression.level) * (4 if is_boss else 1)
+	player.progression.add_xp(gained)
+	if gained > 0:
+		hud.toast("+%d XP" % gained)
+	var extra: Array = [["coins", 60], ["veil_dust", 4], ["warden_sigil", 1]] if is_boss else []
+	_drop_loot(en.global_position, extra)
+	camera_rig.add_trauma(0.6 if is_boss else 0.35)
+	fx.hitstop(0.2 if is_boss else 0.12)
+# --- End Veilspire, first floor ---
+
+
 ## Load after the world, nav grid and UI exist. Called deferred from _ready.
 func _load_save() -> void:
 	if not use_save:
@@ -408,6 +463,7 @@ func _load_save() -> void:
 		return
 	SaveGame.apply(data, player, hud.action_bar)
 	player._apply_progression()
+	spire_interior.handle_game_loaded()
 	hud.toast("Welcome back, Warden.")
 
 
