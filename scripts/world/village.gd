@@ -412,9 +412,17 @@ func _villagers() -> void:
 		[Vector2(31.0, -6.0), Vector2(TestArena.SHORE_S + 12.0, -4.0)],
 		[Vector2(33.0, 6.0), Vector2(33.5, 30.0), Vector2(29.0, 20.0)],
 	]
+	var barks: Array = [
+		["Fresh fish! Well. Fresh-ish.", "The gulls have unionised again. They want more bread.", "If you see a Hollow, tell it we're closed.", "Morvaine gives, Morvaine takes. Mostly my nets."],
+		["Mind the third plank. And the fourth. Actually, mind all of them.", "A Warden? I thought your lot were a bedtime story.", "The sea remembers everything. Unlike my brother-in-law."],
+		["Back in my day the Veil only took your keys.", "That shard has hung there since Tuesday. Rude, really.", "Gods singing the world into being. Can't even hum, myself.", "They say the Unsung had a lovely voice. Nobody remembers."],
+	]
 	for i: int in outfits.size():
 		var v := Villager.new()
 		v.outfit = outfits[i]
+		var bl: Array[String] = []
+		bl.assign(barks[i])
+		v.lines = bl
 		var pts: Array[Vector3] = []
 		for r: Vector2 in routes[i]:
 			var p: Vector3 = _sea() * r.x + _along() * r.y

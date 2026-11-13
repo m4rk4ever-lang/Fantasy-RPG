@@ -16,8 +16,7 @@ De Kroon van Zeven Hemelen is gebroken. Uit de scheuren in de lucht kruipt de Sl
 | Camera draaien | middelste muisknop slepen of pijltjes | rechterstick |
 | Zoomen | scrollwiel of + en - | - |
 | Sprinten | Shift | linkerstick indrukken |
-| Springen | Spatie | A |
-| Ontwijken | rechtermuis / Alt / C | B |
+| Ontwijken | Spatie / rechtermuis / Alt / C | B of A |
 | Dichtstbijzijnde doelwit | Q | rechterstick indrukken |
 | Pauze | Esc / P | Start |
 

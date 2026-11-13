@@ -11,12 +11,14 @@ Feedback van de eigenaar verwerkt: besturing in RuneScape-stijl, haperingen bij 
 - **Prestaties:** effecten zitten in pools en materialen worden bij de start voorverwarmd (geen shadercompilatie midden in een gevecht). Treffer-flits op vijanden alleen actief tijdens de flits. Hitstop vertraagt tot 20% in plaats van bijna te bevriezen. Bomen in 5 MultiMeshes, dorp in 2 draw calls.
 - **Lore** herschreven: Aldmere gezongen door zeven Ascendanten, zes facties met elk een eigen gelijk, een gewiste zevende god, de speler als neutrale Wachter die moet kiezen.
 - **Wereld:** de vallei loopt uit op een baai met zee, golven, schuimranden en strand. Vissersdorp Zoutwijk (Havenhythe als richting): vakwerkhuizen op stenen voeten, steigers met lantaarn, deinende boten, rook, vissenrekken, meeuwen, drie dorpelingen die rondlopen. Stuifmeel en vlinders overdag, vuurvliegjes 's nachts. Een zwevende scherf van de Kroon met runenringen boven de vallei.
+- **Geen springen meer:** paste niet bij klik-om-te-lopen. De held stapt zelf over randen tot 0,5 m. Spatie is nu ontwijken. Springblokken bij de arena vervangen door een trap naar een uitkijkplatform.
+- **Humor:** dorpelingen zeggen droge zinnen als je dichtbij staat. Het verhaal blijft episch.
 - **Personages:** held, dorpelingen en Leeghulzen opnieuw opgebouwd als gefacetteerde low-poly lichamen met echte verhoudingen (naar de anatomie-referentie). Held met kuras met goudrand, gelaagde schouderstukken, tabard, cape met franje en een sierlijk zwaard met gloeiende steen. Leeghulzen mager en gebogen, met gescheurde gewaden en klauwen.
 
 **Feedback verwerkt**
 - `feedback/` (tekstbestand 1): framedrops, RuneScape-camera met zoom, klikgevecht met skills, lore met goden en facties, omgeving statisch en niet mooi, Havenhythe. Zie `feedback/verwerkt/2026-11-13-feedback.md`.
 - `feedback/` (beelden): anatomie, sfeer, uitrusting. Zie `feedback/verwerkt/2026-11-13-beelden.md`.
-- `feedback/` (tekstbestand 2): auto retaliate. Zie `feedback/verwerkt/2026-11-13-auto-retaliate.md`.
+- `feedback/` (tekstbestand 2): auto retaliate, springen eruit, humor toegestaan. Zie `feedback/verwerkt/2026-11-13-auto-retaliate.md`.
 
 **Speel het:** https://m4rk4ever-lang.github.io/Fantasy-RPG/
 
@@ -27,6 +29,7 @@ Feedback van de eigenaar verwerkt: besturing in RuneScape-stijl, haperingen bij 
 ![Held en Leeghuls](docs/screenshots/2026-11-13b/04_held.png)
 ![Avond in Zoutwijk](docs/screenshots/2026-11-13b/05_avond.png)
 ![Zoutwijk](docs/screenshots/2026-11-13b/06_dorp.png)
+![Dorpeling met een grap](docs/screenshots/2026-11-13b/07_dorpeling.png)
 
 **Zelfcontrole**
 - Diepte: ja, sterk in het dorpsbeeld (steiger, huizen, heuvels, bergen). | Landmark: Veilspire en de zwevende kroonscherf. | Palet: ja. Koningsblauwe daken, steenkleurige muren, hemelblauw water. Gras van dichtbij is nog wat fel. | Game of demo: game. Het dorp en de avond zien eruit als een spel. | Zwakste deel: het gras dichtbij (fel en egaal) en de bergring overdag.
@@ -38,6 +41,8 @@ Feedback van de eigenaar verwerkt: besturing in RuneScape-stijl, haperingen bij 
 - Onder **Grafische stijl**: "Personages als gefacetteerde low-poly lichamen met echte verhoudingen."
 - Een regel voor de camera: "Camera draait niet zelf mee, de speler draait en zoomt (RuneScape)."
 - Onder **Sfeer per gebied** eventueel de kust en Havenhythe als referentie toevoegen.
+- Onder **Toon**: "Serieus en episch, met af en toe een grap" in plaats van "weinig humor".
+- Onder **Gevecht**: "Geen springen; de held stapt zelf over kleine randen."
 
 **Problemen en beslissingen**
 - Gevecht in RuneScape-stijl botst met SMAAK.md ("combo's, veel beweging"). Gevraagd aan de eigenaar en gekozen voor hybride: klik en skills, met behoud van ontwijken en combo's.

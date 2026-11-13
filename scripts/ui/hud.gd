@@ -54,7 +54,7 @@ func _ready() -> void:
 	root.add_child(_fps_label)
 
 	_hint = Label.new()
-	_hint.text = "WASD move · Click monster to attack · 1-4 skills · RMB dodge · Middle mouse / arrows rotate · Scroll zoom · R auto retaliate · Esc pause"
+	_hint.text = "WASD move · Click monster to attack · 1-4 skills · Space/RMB dodge · Middle mouse / arrows rotate · Scroll zoom · R auto retaliate · Esc pause"
 	_hint.anchor_left = 0.5
 	_hint.anchor_right = 0.5
 	_hint.offset_left = -560

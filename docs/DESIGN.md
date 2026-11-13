@@ -41,7 +41,7 @@ Richting (feedback eigenaar 13-11-2026): een wereld geschapen door goden en hoge
 - Vergeten is letterlijk: plekken, namen en NPC's kunnen uit de wereld verdwijnen als de Sluier wint. Het Archief kan ze terughalen.
 - Geen goed-tegen-kwaad. Elke factie heeft gelijk vanuit haar eigen stem.
 
-Toon: serieus en episch, weinig humor.
+Toon: serieus en episch, met af en toe een grap (feedback eigenaar 13-11-2026). Humor zit in de mensen, niet in de goden: dorpelingen en reizigers mogen droog zijn, de grote verhaallijn blijft ernstig.
 
 ### Eerste gebied: Wachtersvallei en Zoutwijk
 
@@ -68,8 +68,7 @@ Het hoofdpersonage draagt koningsblauw (tunic), leisteenblauw (cape) en licht st
 | Camera draaien | middelste muisknop slepen of pijltjes | rechterstick |
 | Zoomen | scrollwiel of + en - | - |
 | Sprinten | Shift | linkerstick indrukken |
-| Springen | Spatie | A |
-| Ontwijken (dash) | rechtermuis / Alt / C | B |
+| Ontwijken (dash) | Spatie / rechtermuis / Alt / C | B of A |
 | Dichtstbijzijnde doelwit | Q | rechterstick indrukken |
 | Pauze | Esc / P | Start |
 
@@ -94,6 +93,8 @@ Gevecht: snel en vloeiend, combo's, ontwijken kan altijd en annuleert aanvallen.
 - **Vijand:** `Hollow` (Leeghuls), state machine idle, chase, windup, attack, recover, stagger, dead. Elke treffer onderbreekt de vijand (vergevingsgezind). Duidelijke telegraph: ogen lichten op, arm gaat omhoog.
 - **Doelwit en klikken:** `ClickController` kiest monsters onder de muis (vergevingsgezind, 0,9 m rond de muisstraal) of loopt naar een aangeklikt punt. `LockOn` toont marker, rode ring en HUD-balk; Q wisselt naar het dichtstbijzijnde monster. De camera draait nooit zelf (RuneScape-stijl).
 - **Skills:** `PlayerCombat.SKILLS`: Cleave (1), Surge Strike (2, dash naar doelwit met onkwetsbaarheid), Whirlwind (3), Second Wind (4, heal). Cooldowns in de skillbalk (`SkillBar`).
+- **Geen springen** (feedback 13-11-2026): springen paste niet bij klik-om-te-lopen. De held stapt zelf over randen tot 0,5 m (`Player._try_step`). Spatie is nu ontwijken. Trappen en steigers zijn op lopen ontworpen.
+- **Dorpelingen praten:** korte zinnen boven hun hoofd als de held dichtbij staat (`Villager.lines`), met droge humor.
 - **Auto retaliate:** standaard aan (R of knop rechtsonder). Een stilstaande held zonder opdracht valt het monster aan dat hem raakt.
 - **Personages:** `HeroModel` bouwt held en dorpelingen uit `MeshKit.loft`: elliptische ringen per lichaamsdeel, gefacetteerd (flat shading), kleding per ringband via vertex colors, harnas als aparte metalen schil. Per bewegend lichaamsdeel één stof- en één metaal-mesh. `armored` en `with_sword` schakelen harnas, cape en zwaard. De Leeghuls gebruikt dezelfde techniek met magere verhoudingen.
 - **MeshKit:** samengevoegde meshes met vertex colors (box, gable, cylinder, loft, wedge). Het hele dorp is twee draw calls (hout/steen en gloeiende ramen).

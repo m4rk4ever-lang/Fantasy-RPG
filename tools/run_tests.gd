@@ -51,14 +51,32 @@ func _run() -> void:
 	var moved: float = Vector2(player.global_position.x - start.x, player.global_position.z - start.z).length()
 	_check(moved > 3.0, "player walks forward (moved %.2f m)" % moved)
 
-	# Jump: should leave the ground then land again.
+	# No jumping: the hero steps up a 0.4 m ledge by walking into it.
 	await _frames(20)
-	var y0: float = player.global_position.y
-	player.request_jump()
-	await _frames(12)
-	_check(player.global_position.y > y0 + 0.5, "player jumps (dy %.2f)" % (player.global_position.y - y0))
-	await _frames(90)
-	_check(player.is_on_floor(), "player lands after jump")
+	var ledge := StaticBody3D.new()
+	var lcs := CollisionShape3D.new()
+	var lbox := BoxShape3D.new()
+	lbox.size = Vector3(4.0, 0.8, 4.0)
+	lcs.shape = lbox
+	ledge.add_child(lcs)
+	root.add_child(ledge)
+	var yaw_node: Node3D = (_main.get("camera_rig") as CameraRig).get_yaw_node()
+	var fwd0: Vector3 = -yaw_node.global_transform.basis.z
+	fwd0.y = 0.0
+	fwd0 = fwd0.normalized()
+	ledge.global_position = player.global_position + fwd0 * 3.2
+	var y_before: float = player.global_position.y
+	await _frames(3)
+	player.debug_move_input = Vector2(0, -1)
+	var max_y: float = y_before
+	for _i: int in 60:
+		await _frames(1)
+		max_y = maxf(max_y, player.global_position.y)
+	player.debug_move_input = Vector2.ZERO
+	_check(max_y > y_before + 0.3, "hero steps up a 0.4 m ledge without jumping (dy %.2f)" % (max_y - y_before))
+	ledge.queue_free()
+	await _frames(60)
+	_check(player.is_on_floor(), "hero back on the ground")
 
 	# Dash: fast burst, costs stamina, grants i-frames.
 	var st0: float = player.stamina

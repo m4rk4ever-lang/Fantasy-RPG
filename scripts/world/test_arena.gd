@@ -470,18 +470,35 @@ func _build_arena_props() -> void:
 	add_child(root)
 	var stone := _stone_mat(Color("d8d2c2"))
 	var trim := _stone_mat(Color("5b6c9e"), 0.7)
-	var steps: Array[Vector4] = [Vector4(10, 0.5, 6, 3.0), Vector4(13, 1.3, 8.5, 2.6), Vector4(15.5, 2.2, 11.5, 2.4), Vector4(17.5, 3.2, 15, 3.4)]
-	for s: Vector4 in steps:
-		var size := Vector3(s.w, s.y * 2.0, s.w)
+	# Overlook: a stone stair up to a small platform. Steps are low enough to walk up (no jumping).
+	var top := Vector3(17.5, 0, 14.5)
+	var base_y: float = height_at(top.x, top.z)
+	var plat_h: float = 2.8
+	var psize := Vector3(4.6, plat_h + 2.0, 4.6)
+	var pm := BoxMesh.new()
+	pm.size = psize
+	var ps := BoxShape3D.new()
+	ps.size = psize
+	_add_static(root, pm, stone, Transform3D(Basis(), Vector3(top.x, base_y + plat_h - psize.y * 0.5, top.z)), ps)
+	var prim := BoxMesh.new()
+	prim.size = Vector3(4.8, 0.16, 4.8)
+	_add_static(root, prim, trim, Transform3D(Basis(), Vector3(top.x, base_y + plat_h - 0.07, top.z)))
+	var d := Vector3(-0.707, 0, -0.707)
+	var yaw: float = atan2(d.x, d.z)
+	var n_steps: int = 8
+	for i: int in n_steps:
+		var rise: float = plat_h - (i + 1) * (plat_h / (n_steps + 1))
+		var c: Vector3 = top + d * (2.3 + 0.45 + i * 0.9)
+		var gy: float = height_at(c.x, c.z)
+		var h: float = base_y + rise - gy + 1.0
+		if h <= 1.05:
+			break
+		var sz := Vector3(2.4, h, 0.92)
 		var bm := BoxMesh.new()
-		bm.size = size
+		bm.size = sz
 		var sh := BoxShape3D.new()
-		sh.size = size
-		var gy: float = height_at(s.x, s.z)
-		_add_static(root, bm, stone, Transform3D(Basis(), Vector3(s.x, gy, s.z)), sh)
-		var rim := BoxMesh.new()
-		rim.size = Vector3(s.w + 0.1, 0.15, s.w + 0.1)
-		_add_static(root, rim, trim, Transform3D(Basis(), Vector3(s.x, gy + s.y - 0.07, s.z)))
+		sh.size = sz
+		_add_static(root, bm, stone, Transform3D(Basis(Vector3.UP, yaw), Vector3(c.x, base_y + rise - h * 0.5, c.z)), sh)
 	# Rounded boulders.
 	var rock_mat := _stone_mat(Color("a9a597"), 0.95)
 	var rng := RandomNumberGenerator.new()

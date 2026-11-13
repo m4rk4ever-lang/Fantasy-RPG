@@ -7,6 +7,12 @@ var route: Array[Vector3] = []
 var outfit: Dictionary = {}
 var arena: TestArena
 var speed: float = 1.7
+## Things this villager says when the hero is near. Epic world, but people still joke.
+var lines: Array[String] = []
+
+var _label: Label3D
+var _line_timer: float = 0.0
+var _line_index: int = 0
 
 var _model: HeroModel
 var _index: int = 0
@@ -30,6 +36,19 @@ func _ready() -> void:
 		global_position = _ground(route[0])
 		_index = 1 % route.size()
 	_wait = _rng.randf_range(0.0, 3.0)
+	_label = Label3D.new()
+	_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_label.position.y = 2.25
+	_label.font_size = 40
+	_label.pixel_size = 0.004
+	_label.outline_size = 10
+	_label.modulate = Color("e6e1d3")
+	_label.outline_modulate = Color(0.12, 0.13, 0.16, 0.9)
+	_label.width = 600.0
+	_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_label.visible = false
+	add_child(_label)
+	_line_index = _rng.randi() % maxi(lines.size(), 1)
 
 
 func _ground(p: Vector3) -> Vector3:
@@ -40,6 +59,7 @@ func _ground(p: Vector3) -> Vector3:
 
 
 func _process(delta: float) -> void:
+	_update_bark(delta)
 	if route.size() < 2:
 		_model.animate(delta, 0.0, true, 0.0, 0.0, false)
 		return
@@ -60,3 +80,20 @@ func _process(delta: float) -> void:
 			moving = speed / 10.5 * 1.15
 	_model.rotation.y = _facing
 	_model.animate(delta, moving, true, 0.0, 0.0, false)
+
+
+func _update_bark(delta: float) -> void:
+	if lines.is_empty():
+		return
+	var hero: Node3D = get_tree().get_first_node_in_group(&"player") as Node3D
+	var near: bool = hero != null and hero.global_position.distance_to(global_position) < 6.0
+	if not near:
+		_label.visible = false
+		_line_timer = 0.0
+		return
+	_line_timer -= delta
+	if _line_timer <= 0.0:
+		_label.text = lines[_line_index % lines.size()]
+		_line_index += 1
+		_line_timer = 7.0
+	_label.visible = _line_timer > 1.5  # Short pause between lines.

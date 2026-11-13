@@ -1,6 +1,8 @@
 class_name Player
 extends CharacterBody3D
-## Third-person hero controller: walk, sprint, jump (coyote time + buffer), dash with i-frames.
+## Third-person hero controller: walk, sprint, dash with i-frames, click orders.
+## No jumping (owner feedback 13-11-2026): the hero steps up ledges up to `step_height` by itself,
+## so click-to-move never gets stuck on stairs, piers or rocks.
 ## Movement is camera-relative and keeps momentum through acceleration curves.
 
 signal stamina_changed(value: float, max_value: float)
@@ -20,6 +22,7 @@ signal auto_retaliate_changed(on: bool)
 @export var air_accel: float = 16.0
 @export var turn_speed: float = 14.0
 @export var jump_velocity: float = 9.5
+@export var step_height: float = 0.5
 @export var gravity: float = 26.0
 @export var fall_gravity_mult: float = 1.45
 @export var coyote_time: float = 0.13
@@ -75,6 +78,7 @@ var _wish: Vector3 = Vector3.ZERO
 
 
 func _ready() -> void:
+	add_to_group(&"player")
 	collision_layer = 2
 	collision_mask = 1
 	floor_snap_length = 0.35
@@ -133,11 +137,7 @@ func _camera_relative(input: Vector2) -> Vector3:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("jump"):
-		_jump_buffer = jump_buffer_time
-	elif event.is_action_released("jump") and velocity.y > 0.0 and not is_dashing:
-		velocity.y *= 0.5  # Variable jump height.
-	elif event.is_action_pressed("dodge"):
+	if event.is_action_pressed("dodge"):
 		try_dash()
 	elif event.is_action_pressed("toggle_retaliate"):
 		set_auto_retaliate(not auto_retaliate)
@@ -323,7 +323,11 @@ func _physics_process(delta: float) -> void:
 		if model:
 			model.impulse_squash(-0.35)
 
+	var pre_move_h := Vector3(velocity.x, 0, velocity.z)
 	move_and_slide()
+	# Auto step-up: blocked by a low ledge while walking on the ground -> climb it.
+	if on_floor and is_on_wall() and pre_move_h.length() > 0.5 and not is_dashing:
+		_try_step(pre_move_h * delta * 1.5)
 
 	var now_on_floor: bool = is_on_floor()
 	if now_on_floor and not _was_on_floor:
@@ -393,6 +397,25 @@ func _update_model(delta: float) -> void:
 	var accel_lean: float = clampf(accel.dot(fwd) / 60.0, -0.6, 0.6)
 	var ratio: float = hvel.length() / sprint_speed * 1.15
 	model.animate(delta, ratio if is_on_floor() else 0.4, is_on_floor(), velocity.y, accel_lean, is_dashing)
+
+
+func _try_step(h_motion: Vector3) -> bool:
+	if h_motion.length() < 0.001:
+		return false
+	var up := Vector3.UP * step_height
+	if test_move(global_transform, up):
+		return false
+	var t: Transform3D = global_transform.translated(up)
+	if test_move(t, h_motion):
+		return false
+	t = t.translated(h_motion)
+	var col := KinematicCollision3D.new()
+	if test_move(t, Vector3.DOWN * (step_height + 0.05), col):
+		var landing: Vector3 = t.origin + col.get_travel()
+		if landing.y > global_position.y + 0.02 and col.get_normal().y > 0.7:
+			global_position = landing
+			return true
+	return false
 
 
 func get_speed_ratio() -> float:

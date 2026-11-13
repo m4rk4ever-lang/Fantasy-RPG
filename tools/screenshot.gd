@@ -122,6 +122,26 @@ func _run() -> void:
 	await _wait(8)
 	await _save("06_dorp.png")
 
+	# 5c. A villager talking to the hero (humor in the world).
+	var villager: Villager = null
+	for c: Node in arena.get_node("Village").get_children():
+		if c is Villager:
+			villager = c  # The last one walks the beach: open view from the sea side.
+	if villager:
+		villager.process_mode = Node.PROCESS_MODE_DISABLED
+		var vp: Vector3 = villager.global_position
+		player.global_position = vp + along * 1.7 + Vector3.UP * 0.3
+		player.face_direction(-along)
+		await _wait(10)
+		villager.process_mode = Node.PROCESS_MODE_INHERIT
+		villager.speed = 0.0
+		await _wait(4)
+		cam.fov = 50.0
+		cam.global_position = vp + sea * 4.5 + along * 0.9 + Vector3.UP * 2.0
+		cam.look_at(vp + along * 0.9 + Vector3.UP * 1.5)
+		await _wait(4)
+		await _save("07_dorpeling.png")
+
 	# 5. Dusk over the valley: day-night cycle.
 	dn.time_of_day = 19.2
 	dn.apply()
