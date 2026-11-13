@@ -318,6 +318,81 @@ func _run() -> void:
 	_main.call("_on_item_used", "salted_fish")
 	_check(player.health > hp_f, "eating salted fish heals")
 
+	# --- Save and load ---
+	var sg := SaveGame.new()
+	sg.path = "user://save_test.json"
+	sg.setup(player)
+	_main.add_child(sg)
+	var prog_s: Progression = player.progression
+	prog_s.level = 7
+	prog_s.xp = 123
+	prog_s.skill_points = 4
+	inv.coins = 777
+	var fangs0: int = inv.count_of("hollow_fang")
+	inv.add("hollow_fang", 3)
+	ql.set_flag("test_flag_x")
+	ql.states["the_dark_spire"] = "active"
+	var pos_s: Vector3 = player.global_position
+	_check(sg.save_now(), "save writes the test file")
+	prog_s.level = 1
+	prog_s.xp = 0
+	prog_s.skill_points = 0
+	inv.coins = 0
+	inv.remove("hollow_fang", 3)
+	ql.flags.erase("test_flag_x")
+	ql.states.erase("the_dark_spire")
+	player.global_position = pos_s + Vector3(5.0, 0.0, 5.0)
+	_check(sg.load_game(), "load reads the test file")
+	_check(prog_s.level == 7 and prog_s.xp == 123 and prog_s.skill_points == 4, "load restores level, xp and skill points")
+	_check(inv.coins == 777 and inv.count_of("hollow_fang") == fangs0 + 3, "load restores coins and items")
+	_check(ql.has_flag("test_flag_x") and ql.state("the_dark_spire") == "active", "load restores quest flag and state")
+	_check(ql.state("ashes_on_the_shore") == "done", "load keeps finished quests")
+	_check(player.global_position.distance_to(pos_s + Vector3.UP * 0.3) < 0.01, "load restores position")
+	var bad: FileAccess = FileAccess.open(sg.path, FileAccess.WRITE)
+	bad.store_string("{not json")
+	bad.close()
+	_check(not sg.load_game(), "corrupt save is ignored without crashing")
+	bad = FileAccess.open(sg.path, FileAccess.WRITE)
+	bad.store_string('{"version": 99}')
+	bad.close()
+	_check(not sg.load_game(), "wrong save version is ignored")
+	sg.delete_save()
+	_check(not sg.has_save() and not sg.load_game(), "missing save file is handled")
+	sg.queue_free()
+
+	# --- The Warden's Stair (V.6a) ---
+	var arena: TestArena = _main.get_node("World")
+	var stair: SpirePath = arena.spire_path
+	_check(stair != null, "Warden's Stair exists")
+	var navg: NavGrid = _main.get_node("NavGrid")
+	var foot: Vector3 = stair.foot()
+	var door_goal: Vector3 = stair.door_position + (Vector3(stair.door_position.x, 0, stair.door_position.z) - Vector3(TestArena.CLIFF_CENTER.x, 0, TestArena.CLIFF_CENTER.y)).normalized() * 2.0
+	var stair_path: PackedVector3Array = navg.find_path(foot + Vector3(0, 0, 0), door_goal)
+	_check(stair_path.size() > 20, "nav grid finds a path up the stair (%d waypoints)" % stair_path.size())
+	var mid_open: int = 0
+	for uu: float in [0.3, 0.5, 0.7]:
+		var mp: Vector3 = stair.point_at(uu)
+		for off: Vector3 in [Vector3.ZERO, Vector3(1, 0, 0), Vector3(-1, 0, 0), Vector3(0, 0, 1), Vector3(0, 0, -1)]:
+			if not navg.is_blocked(mp + off):
+				mid_open += 1
+				break
+	_check(mid_open == 3, "the stair is walkable along its length")
+	player.revive(foot + Vector3.UP * 0.6)
+	player.set_run(true)
+	await _frames(5)
+	player.set_move_target(door_goal)
+	var climbed: bool = false
+	var best_y: float = player.global_position.y
+	for k: int in 40:
+		await _frames(60)
+		best_y = maxf(best_y, player.global_position.y)
+		if player.quests.has_flag("reached_spire"):
+			climbed = true
+			break
+	print("  INFO  stair climb: highest point %.1f m, at %s" % [best_y, str(player.global_position)])
+	_check(climbed, "hero climbs the stair and reaches the sealed door")
+	_check(player.quests.current_step("the_dark_spire").begins_with("Find a way past") or player.quests.state("the_dark_spire") != "active", "quest moves to the sealed door step")
+
 	# Frame time indication (headless, physics only).
 	var t0: int = Time.get_ticks_usec()
 	await _frames(60)

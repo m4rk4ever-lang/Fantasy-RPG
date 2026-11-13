@@ -121,3 +121,25 @@ func is_skill_unlocked(skill_id: String) -> bool:
 func set_allegiance(id: String) -> void:
 	faction_id = id
 	allegiance_changed.emit(id)
+
+
+func to_dict() -> Dictionary:
+	return {"class_id": class_id, "faction_id": faction_id, "level": level, "xp": xp, "skill_points": skill_points, "ranks": ranks.duplicate()}
+
+
+## Restores saved state (JSON numbers arrive as floats) and refreshes listeners.
+func load_dict(d: Dictionary) -> void:
+	class_id = str(d.get("class_id", class_id))
+	faction_id = str(d.get("faction_id", ""))
+	level = clampi(int(d.get("level", 1)), 1, MAX_LEVEL)
+	xp = maxi(int(d.get("xp", 0)), 0)
+	skill_points = maxi(int(d.get("skill_points", 0)), 0)
+	ranks = {}
+	var saved_ranks: Variant = d.get("ranks", {})
+	if saved_ranks is Dictionary:
+		for k: Variant in (saved_ranks as Dictionary).keys():
+			ranks[str(k)] = int((saved_ranks as Dictionary)[k])
+	_grant_free_nodes()
+	ranks_changed.emit()
+	allegiance_changed.emit(faction_id)
+	xp_changed.emit(xp, xp_to_next(), level)

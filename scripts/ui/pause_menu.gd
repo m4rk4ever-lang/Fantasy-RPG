@@ -23,6 +23,8 @@ const CONTROLS: Array[Array] = [
 	["Pause", "Esc or P", "Start"],
 ]
 
+var save_game: SaveGame
+var hud: Hud
 var mouse_sensitivity: float = 0.005
 var stick_sensitivity: float = 3.2
 
@@ -33,6 +35,9 @@ var _controls_panel: PanelContainer
 var _mouse_slider: HSlider
 var _stick_slider: HSlider
 var _open: bool = false
+var _new_game_button: Button
+var _new_game_armed: bool = false
+var _save_label: Label
 
 
 func _ready() -> void:
@@ -88,6 +93,20 @@ func _build_ui() -> void:
 	var restart_button := _make_button("Restart")
 	restart_button.pressed.connect(_on_restart_pressed)
 	box.add_child(restart_button)
+
+	var save_button := _make_button("Save game")
+	save_button.pressed.connect(_on_save_pressed)
+	box.add_child(save_button)
+
+	_new_game_button = _make_button("New game")
+	_new_game_button.pressed.connect(_on_new_game_pressed)
+	box.add_child(_new_game_button)
+
+	_save_label = Label.new()
+	_save_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_save_label.add_theme_color_override("font_color", COL_STONE)
+	_save_label.add_theme_font_size_override("font_size", 16)
+	box.add_child(_save_label)
 
 	_mouse_slider = _add_slider(box, "Mouse sensitivity", 0.001, 0.012, 0.0002, mouse_sensitivity)
 	_stick_slider = _add_slider(box, "Stick sensitivity", 1.0, 6.0, 0.1, stick_sensitivity)
@@ -201,6 +220,7 @@ func open() -> void:
 	_mouse_slider.set_value_no_signal(mouse_sensitivity)
 	_stick_slider.set_value_no_signal(stick_sensitivity)
 	_controls_panel.visible = false
+	_save_label.text = ""
 	_root.visible = true
 	get_tree().paused = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -228,6 +248,38 @@ func _on_restart_pressed() -> void:
 	_open = false
 	get_tree().paused = false
 	get_tree().reload_current_scene()
+
+
+func _on_save_pressed() -> void:
+	if save_game == null:
+		return
+	var ok: bool = save_game.save_now()
+	var msg: String = "Game saved" if ok else "Could not save"
+	_save_label.text = msg
+	if hud != null and ok:
+		hud.toast(msg)
+
+
+## New game: first click arms, a second click within 3 s deletes the save and reloads.
+func _on_new_game_pressed() -> void:
+	if not _new_game_armed:
+		_new_game_armed = true
+		_new_game_button.text = "Click again to confirm"
+		get_tree().create_timer(3.0, true, false, true).timeout.connect(_disarm_new_game)
+		return
+	_new_game_armed = false
+	if save_game != null:
+		save_game.autosave = false
+		save_game.delete_save()
+	_open = false
+	get_tree().paused = false
+	get_tree().reload_current_scene()
+
+
+func _disarm_new_game() -> void:
+	_new_game_armed = false
+	if is_instance_valid(_new_game_button):
+		_new_game_button.text = "New game"
 
 
 func _on_slider_changed(_value: float) -> void:

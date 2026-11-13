@@ -14,6 +14,7 @@ var nav: NavGrid
 var dialogue: DialogueWindow
 var brenna_talk: BrennaDialogue
 var ambience: Ambience
+var save_game: SaveGame
 var _last_night: float = -1.0
 var _area: String = ""
 var _step_timer: float = 0.0
@@ -133,7 +134,37 @@ func _ready() -> void:
 	pause_menu.stick_sensitivity = camera_rig.stick_sensitivity
 	add_child(pause_menu)
 	pause_menu.sensitivity_changed.connect(_on_sensitivity_changed)
+	_setup_save_game(pause_menu)
+	arena.spire_path.reached_door.connect(_on_spire_door)
 	# --- End pause menu ---
+
+
+## Save and load. Persistence is off in headless test runs. Autosave: every 60 s (in SaveGame),
+## on quest changes, on level up and when the window closes.
+func _setup_save_game(pause_menu: PauseMenu) -> void:
+	save_game = SaveGame.new()
+	save_game.name = "SaveGame"
+	add_child(save_game)
+	save_game.setup(player)
+	pause_menu.save_game = save_game
+	pause_menu.hud = hud
+	save_game.autosave = DisplayServer.get_name() != "headless"
+	if save_game.autosave:
+		player.quests.changed.connect(save_game.save_now)
+		player.progression.leveled_up.connect(func(_lvl: int) -> void: save_game.save_now())
+
+
+## Reaching the sealed door of the Veilspire (quest "The Dark Spire").
+func _on_spire_door() -> void:
+	if player.quests.has_flag("reached_spire"):
+		return
+	player.quests.set_flag("reached_spire")
+	hud.show_banner("The Veilspire", "The door is sealed by the Veil")
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST and save_game != null and save_game.autosave:
+		save_game.save_now()
 
 
 func _on_player_dashed() -> void:
@@ -215,9 +246,11 @@ func _on_skill_used(id: String) -> void:
 func _process(delta: float) -> void:
 	# Area names (English in-game names).
 	var area: String = "Saltwick" if arena.sea_distance(player.global_position.x, player.global_position.z) > 12.0 else "Warden's Vale"
+	if player.global_position.y > 14.0 and Vector2(player.global_position.x, player.global_position.z).distance_to(TestArena.CLIFF_CENTER) < 30.0:
+		area = "The Warden's Stair"
 	if area != _area:
 		_area = area
-		hud.show_banner(area, "Fishing village of the Saltbound" if area == "Saltwick" else "Beneath the first Veilspire")
+		hud.show_banner(area, {"Saltwick": "Fishing village of the Saltbound", "The Warden's Stair": "The way up to the first Veilspire"}.get(area, "Beneath the first Veilspire"))
 	var night: float = arena.day_night.night_factor
 	if absf(night - _last_night) > 0.02:
 		_last_night = night
@@ -296,4 +329,6 @@ func _build_nav() -> void:
 	var t0: int = Time.get_ticks_msec()
 	nav.build(arena)
 	player.nav = nav
+	if save_game != null and save_game.autosave and save_game.load_game():
+		hud.toast("Game loaded")
 	print("NavGrid built in %d ms" % (Time.get_ticks_msec() - t0))

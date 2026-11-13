@@ -72,3 +72,23 @@ func remove(id: String, count: int = 1) -> bool:
 				slots[i] = {}
 	changed.emit()
 	return true
+
+
+func to_dict() -> Dictionary:
+	var out: Array = []
+	for s: Dictionary in slots:
+		out.append(s.duplicate())
+	return {"coins": coins, "slots": out}
+
+
+func load_dict(d: Dictionary) -> void:
+	coins = maxi(int(d.get("coins", 0)), 0)
+	for i: int in SLOTS:
+		slots[i] = {}
+	var saved: Variant = d.get("slots", [])
+	if saved is Array:
+		for i: int in mini((saved as Array).size(), SLOTS):
+			var s: Variant = (saved as Array)[i]
+			if s is Dictionary and not item_data(str((s as Dictionary).get("id", ""))).is_empty():
+				slots[i] = {"id": str(s["id"]), "count": maxi(int(s.get("count", 1)), 1)}
+	changed.emit()
