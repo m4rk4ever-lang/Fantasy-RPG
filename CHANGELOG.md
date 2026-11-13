@@ -1,5 +1,40 @@
 # Changelog
 
+## 13-11-2026 (derde sessie, wekelijkse run)
+
+**Gebouwd (op main)**
+- **V.8 Geluid en muziek, volledig procedureel:** 28 geluiden (voetstappen, zwaard, treffers, Hollowed, skills, level-up, quest, munten, UI), ambience (zee, wind, meeuwen overdag, krekels 's nachts), verkenningsmuziek in D dorisch met harp en een gevechtslaag die invalt bij gevechten. Volumeschuiven en dempen in het pauzemenu.
+- **V.9 Modellen bijgeschaafd:** held met gezicht, haar, vingers, laarzen, riem, cape die achter de held wappert en een uitgewerkt zwaard. Hollowed met schedel, ribbenkast met blauwe gloed en gescheurde lappen. Drie outfits voor dorpelingen. Huizen met luiken, bloembakken en nokbalken.
+
+**Geparkeerd op branch `parkeer/2026-11-13-trap-ui-kerker`** (gebouwd en getest, maar botste met de parallelle sessie die de Undercroft en de actiebalk op main zette):
+- V.6a The Warden's Stair: pad om de klif naar een verzegelde deur boven, klif vrij in een kom, navigatie over looproutes, toren met echte botsing.
+- V.11 UI-afwerking volgens `docs/UI.md` (paneelstijl, XP-lijn, doelwitbalk met nasleep, itemiconen, skilltree als boom, portretten).
+- Een tweede kerker in de toren met minibaas "Warden-Husk Aldric": overlapt met de Undercroft en Aldric, the Lightless Keeper. Voorstel: niet overnemen, of later als verdieping 2 met een andere baas.
+
+**Feedback verwerkt**
+- Geen open issues of feedbackbestanden. Live verzoek van de eigenaar: zwaar werk parallel laten doen tot 15:00. Gedaan met vier Fable-subagents (kerker, geluid, UI, modellen) plus één Sonnet-subagent (opslaan).
+
+**Speel het:** https://m4rk4ever-lang.github.io/Fantasy-RPG/
+
+**Screenshots** (van de geparkeerde stand, held en sfeer gelden ook voor main)
+![Held, nieuw model](docs/screenshots/2026-11-13c/04_held.png)
+
+**Zelfcontrole**
+- Diepte: ja | Landmark: Veilspire | Palet: ja | Game of demo: game | Zwakste deel: de kom achter de klif op de geparkeerde branch (grijze steile wand); op main de bergring overdag.
+
+**Prestaties:** niet meetbaar hier. Geluid wordt bij de start in ongeveer 0,17 s gegenereerd. Headless 16,7 ms per frame.
+
+**Voorstellen voor SMAAK.md**
+- Geluid: "Rustig en episch, modaal, harp en strijkers; gevechtsmuziek alleen tijdens gevechten."
+
+**Problemen en beslissingen**
+- Main was tijdens deze run door een andere sessie bijgewerkt (actiebalk, opslaan, Undercroft). Niet geforceerd. Geluid en modellen zijn erop gezet; de rest staat op de parkeerbranch. Eigen opslaan (V.7) vervalt: main heeft al een opslagsysteem.
+- Niemand heeft het geluid beluisterd. Graag in de browser luisteren.
+- Run eindigde vroeg in verband met het gebruikslimiet.
+
+**Volgende run**
+- Trap en UI-afwerking van de parkeerbranch overzetten op main (UI aanpassen aan de nieuwe actiebalk met 8 vakken). Kom achter de klif mooier maken.
+
 ## 13-11-2026 (tweede sessie, met de eigenaar live)
 
 Feedback van de eigenaar verwerkt: besturing in RuneScape-stijl, haperingen bij gevechten, lore, een mooiere en levendigere wereld, betere personages en auto retaliate.

@@ -6,6 +6,9 @@ Blokken van ongeveer 60 minuten. De bouwagent pakt elke run het eerste niet-afge
 
 ## Eerst volgende run (uit zelfcontrole)
 
+- **Parkeerbranch `parkeer/2026-11-13-trap-ui-kerker` overzetten:** The Warden's Stair (V.6a) en UI-afwerking (V.11), aangepast aan de actiebalk.
+- **Geluid beluisteren** en mix bijstellen (V.8 en V.9 staan op main).
+
 - **Prestaties meten in de browser.** Eigenaar laten bevestigen of de haperingen bij treffers weg zijn. Zo niet: schaduwafstand en aantal schaduwcasters verlagen, grasdichtheid achter een kwaliteitsinstelling.
 
 - **Pad naar de Veilspire.** De rots heeft nu richels, maar je kunt er nog niet op. Een pad of trap langs de richels omhoog.
