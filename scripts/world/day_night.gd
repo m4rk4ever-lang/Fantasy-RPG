@@ -11,6 +11,8 @@ var sun: DirectionalLight3D
 var moon: DirectionalLight3D
 var environment: Environment
 var sky_material: ShaderMaterial
+## 0 = day, 1 = night. Read by ambient effects.
+var night_factor: float = 0.0
 
 ## hour, sky top, horizon, fog, ambient, sun color, sun energy, cloud color, cloud shade, stars
 var _keys: Array = [
@@ -57,6 +59,7 @@ func apply() -> void:
 	sun.visible = k[6] > 0.01
 	sun.shadow_enabled = sun.visible
 	var night_w: float = 1.0 - clampf(k[6] / 0.6, 0.0, 1.0)
+	night_factor = night_w
 	moon.light_energy = 0.45 * night_w
 	moon.visible = moon.light_energy > 0.01
 	moon.rotation = Vector3(deg_to_rad(-50.0), azim + PI, 0)

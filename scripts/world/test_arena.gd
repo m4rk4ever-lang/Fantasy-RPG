@@ -8,6 +8,12 @@ const TERRAIN_SIZE: float = 240.0
 const CELL: float = 2.0
 const CLIFF_CENTER := Vector2(18.0, -78.0)
 const CRAG_TOP: float = 32.0
+## The valley opens to the sea toward the south-east. `s` = distance along SEA_DIR.
+const SEA_DIR := Vector2(0.781, 0.625)
+const SHORE_S: float = 42.0
+const WATER_LEVEL: float = -0.6
+## Inland ground sits this far above the sea, so sand only shows on the beach.
+const LAND_BASE: float = 1.3
 ## Crag profile: (height, radius) rings from base to top. Short steep steps make grassy ledges.
 const CRAG_PROFILE: Array[Vector2] = [
 	Vector2(-1.0, 22.0), Vector2(5.0, 20.5), Vector2(9.0, 19.5), Vector2(9.8, 17.6),
@@ -41,6 +47,11 @@ func _ready() -> void:
 	_build_arena_props()
 	_scatter_trees()
 	_scatter_grass()
+	_build_water()
+	var village := Village.new()
+	village.name = "Village"
+	add_child(village)
+	village.build(self)
 
 
 ## Terrain height at world x/z. Flat arena in the middle, rising valley walls, a cliff plateau.
@@ -54,7 +65,17 @@ func height_at(x: float, z: float) -> float:
 	# Gentle mound under the crag; the rock itself is a separate faceted mesh (see _build_crag).
 	var mound: float = smoothstep(36.0, 18.0, cd) * 7.0
 	h = maxf(h, mound)
+	# Coast: the valley walls fall away toward the bay, then a beach slopes into the sea.
+	var sd: float = sea_distance(x, z)
+	h *= 1.0 - smoothstep(14.0, SHORE_S - 6.0, sd) * 0.92
+	var sea_t: float = smoothstep(SHORE_S - 6.0, SHORE_S + 10.0, sd)
+	h = lerpf(h + LAND_BASE, -6.0, sea_t)
 	return h
+
+
+## Signed distance toward the sea, with a wavy shoreline.
+func sea_distance(x: float, z: float) -> float:
+	return x * SEA_DIR.x + z * SEA_DIR.y + _noise.get_noise_2d(x * 1.7 + 300.0, z * 1.7) * 7.0
 
 
 func _build_environment() -> void:
@@ -156,6 +177,7 @@ func _build_terrain() -> void:
 	terrain_material = ShaderMaterial.new()
 	terrain_material.shader = preload("res://shaders/terrain.gdshader")
 	terrain_material.set_shader_parameter("snow_height", 70.0)
+	terrain_material.set_shader_parameter("sand_height", 0.9)
 	terrain_material.set_shader_parameter("rock_slope", 0.6)
 	terrain_material.set_shader_parameter("strata_freq", 0.7)
 
@@ -203,6 +225,9 @@ func _build_far_mountains() -> void:
 			# One dominant snow peak as a far landmark.
 			var dang: float = absf(angle_difference(ang, PEAK_DIR))
 			h += exp(-dang * dang * 40.0) * exp(-pow((r - 420.0) / 120.0, 2.0)) * 260.0
+			# Open the ring toward the sea so the bay has a horizon.
+			var sea_ang: float = absf(angle_difference(ang, atan2(SEA_DIR.y, SEA_DIR.x)))
+			h = lerpf(-30.0, h, smoothstep(0.35, 0.95, sea_ang))
 			st.add_vertex(Vector3(x, h - 4.0, z))
 	for k: int in rings:
 		for s: int in seg:
@@ -292,6 +317,7 @@ func _build_crag() -> void:
 		pts.append(row)
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_smooth_group(0xFFFFFFFF)
 	for k: int in rings - 1:
 		for i: int in seg:
 			var j: int = (i + 1) % seg
@@ -419,7 +445,7 @@ func _build_ruins() -> void:
 	var mid: Vector3 = (a + b) * 0.5
 	var dir: Vector3 = (b - a)
 	var basis := Basis(Vector3.UP, atan2(dir.x, dir.z))
-	_add_static(root, lintel, stone, Transform3D(basis, Vector3(mid.x, 4.4, mid.z)))
+	_add_static(root, lintel, stone, Transform3D(basis, Vector3(mid.x, minf(height_at(a.x, a.z), height_at(b.x, b.z)) + 4.4, mid.z)))
 	# Fallen blocks.
 	for k: int in 6:
 		var q := Vector3(-12.0 + k * 2.7, 0, -15.0 - (k % 3) * 2.0)
@@ -445,10 +471,11 @@ func _build_arena_props() -> void:
 		bm.size = size
 		var sh := BoxShape3D.new()
 		sh.size = size
-		_add_static(root, bm, stone, Transform3D(Basis(), Vector3(s.x, 0, s.z)), sh)
+		var gy: float = height_at(s.x, s.z)
+		_add_static(root, bm, stone, Transform3D(Basis(), Vector3(s.x, gy, s.z)), sh)
 		var rim := BoxMesh.new()
 		rim.size = Vector3(s.w + 0.1, 0.15, s.w + 0.1)
-		_add_static(root, rim, trim, Transform3D(Basis(), Vector3(s.x, s.y - 0.07, s.z)))
+		_add_static(root, rim, trim, Transform3D(Basis(), Vector3(s.x, gy + s.y - 0.07, s.z)))
 	# Rounded boulders.
 	var rock_mat := _stone_mat(Color("a9a597"), 0.95)
 	var rng := RandomNumberGenerator.new()
@@ -499,6 +526,7 @@ func _scatter_trees() -> void:
 	rng.seed = 2024
 	var placed: int = 0
 	var tries: int = 0
+	var parts: Dictionary = {"trunk": [], "crown": [], "cone_a": [], "cone_b": [], "cone_c": []}
 	while placed < 70 and tries < 600:
 		tries += 1
 		var ang: float = rng.randf() * TAU
@@ -510,6 +538,8 @@ func _scatter_trees() -> void:
 		if x > -22.0 and x < 10.0 and z < -8.0 and z > -28.0:
 			continue  # Keep the ruins readable.
 		var y: float = height_at(x, z)
+		if y < 1.6 or sea_distance(x, z) > SHORE_S - 16.0:
+			continue  # Keep beach and village clear.
 		# Avoid steep slopes.
 		var slope: float = absf(height_at(x + 1.5, z) - y) + absf(height_at(x, z + 1.5) - y)
 		if slope > 2.0:
@@ -521,26 +551,16 @@ func _scatter_trees() -> void:
 		tree.scale = Vector3.ONE * s
 		root.add_child(tree)
 		var is_pine: bool = y > 9.0 or rng.randf() < 0.35
-		var tmi := MeshInstance3D.new()
-		tmi.mesh = trunk
-		tmi.material_override = trunk_mat
-		tmi.position.y = 1.5
-		tree.add_child(tmi)
+		var txf: Transform3D = tree.transform
+		parts["trunk"].append(txf * Transform3D(Basis(), Vector3(0, 1.5, 0)))
 		if is_pine:
-			for layer: Array in [[cone_a, 3.6], [cone_b, 5.2], [cone_c, 6.6]]:
-				var c := MeshInstance3D.new()
-				c.mesh = layer[0]
-				c.material_override = leaf_pine
-				c.position.y = layer[1]
-				tree.add_child(c)
+			parts["cone_a"].append(txf * Transform3D(Basis(), Vector3(0, 3.6, 0)))
+			parts["cone_b"].append(txf * Transform3D(Basis(), Vector3(0, 5.2, 0)))
+			parts["cone_c"].append(txf * Transform3D(Basis(), Vector3(0, 6.6, 0)))
 		else:
 			for off: Vector3 in [Vector3(0, 4.2, 0), Vector3(0.9, 3.6, 0.3), Vector3(-0.7, 3.8, -0.6)]:
-				var c2 := MeshInstance3D.new()
-				c2.mesh = crown
-				c2.material_override = leaf_round
-				c2.position = off
-				c2.scale = Vector3.ONE * (1.0 if off.x == 0.0 else 0.7)
-				tree.add_child(c2)
+				var cs2: float = 1.0 if off.x == 0.0 else 0.7
+				parts["crown"].append(txf * Transform3D(Basis().scaled(Vector3.ONE * cs2), off))
 		var body := StaticBody3D.new()
 		body.collision_layer = 1
 		var cs := CollisionShape3D.new()
@@ -552,6 +572,21 @@ func _scatter_trees() -> void:
 		body.add_child(cs)
 		tree.add_child(body)
 		placed += 1
+	# One MultiMesh per part: the whole forest is five draw calls.
+	var sets: Array = [["trunk", trunk, trunk_mat], ["crown", crown, leaf_round], ["cone_a", cone_a, leaf_pine], ["cone_b", cone_b, leaf_pine], ["cone_c", cone_c, leaf_pine]]
+	for entry: Array in sets:
+		var xfs: Array = parts[entry[0]]
+		var mm := MultiMesh.new()
+		mm.transform_format = MultiMesh.TRANSFORM_3D
+		mm.mesh = entry[1]
+		mm.instance_count = xfs.size()
+		for i: int in xfs.size():
+			mm.set_instance_transform(i, xfs[i])
+		var mmi := MultiMeshInstance3D.new()
+		mmi.name = "Trees_" + str(entry[0])
+		mmi.multimesh = mm
+		mmi.material_override = entry[2]
+		root.add_child(mmi)
 
 
 func _grass_tuft_mesh() -> ArrayMesh:
@@ -593,6 +628,8 @@ func _scatter_grass() -> void:
 		var x: float = cos(a) * r
 		var z: float = sin(a) * r
 		var y: float = height_at(x, z)
+		if y < 0.9:
+			continue  # No grass on the beach.
 		var slope: float = absf(height_at(x + 1.0, z) - y) + absf(height_at(x, z + 1.0) - y)
 		if slope > 0.9:
 			continue
@@ -613,3 +650,50 @@ func _scatter_grass() -> void:
 	mmi.material_override = mat
 	mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(mmi)
+
+
+## Sea: a detailed wave grid over the bay plus a flat far plane to the horizon.
+## Water depth per vertex (from the terrain) drives shallow color and shore foam without a depth texture.
+func _build_water() -> void:
+	var mat := ShaderMaterial.new()
+	mat.shader = preload("res://shaders/water.gdshader")
+	var size: float = 220.0
+	var cell: float = 2.0
+	var n: int = int(size / cell)
+	var center := Vector2(SEA_DIR.x, SEA_DIR.y) * (SHORE_S + 40.0)
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for j: int in n + 1:
+		for i: int in n + 1:
+			var x: float = center.x - size * 0.5 + i * cell
+			var z: float = center.y - size * 0.5 + j * cell
+			var depth: float = WATER_LEVEL - height_at(x, z) if absf(x) < 120.0 and absf(z) < 120.0 else 8.0
+			st.set_color(Color(clampf(depth / 6.0, 0.0, 1.0), 0, 0))
+			st.add_vertex(Vector3(x, WATER_LEVEL, z))
+	for j: int in n:
+		for i: int in n:
+			var a: int = j * (n + 1) + i
+			st.add_index(a)
+			st.add_index(a + 1)
+			st.add_index(a + n + 1)
+			st.add_index(a + 1)
+			st.add_index(a + n + 2)
+			st.add_index(a + n + 1)
+	var near := MeshInstance3D.new()
+	near.name = "WaterNear"
+	near.mesh = st.commit()
+	near.material_override = mat
+	near.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(near)
+
+	var far := MeshInstance3D.new()
+	far.name = "WaterFar"
+	var pm := PlaneMesh.new()
+	pm.size = Vector2(3000, 3000)
+	far.mesh = pm
+	var far_mat: ShaderMaterial = mat.duplicate()
+	far_mat.set_shader_parameter("flat_far", true)
+	far.material_override = far_mat
+	far.position = Vector3(0, WATER_LEVEL - 0.25, 0)
+	far.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(far)

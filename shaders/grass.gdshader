@@ -3,7 +3,7 @@ render_mode cull_disabled;
 // Grass tufts (MultiMesh): wind sway, color variation per instance, fade-out with distance.
 
 uniform vec3 root_color : source_color = vec3(0.17, 0.45, 0.25);
-uniform vec3 tip_color : source_color = vec3(0.40, 0.72, 0.40);
+uniform vec3 tip_color : source_color = vec3(0.36, 0.64, 0.36);
 uniform vec3 dry_tip : source_color = vec3(0.62, 0.74, 0.40);
 uniform float wind_strength = 0.18;
 uniform float wind_speed = 1.6;

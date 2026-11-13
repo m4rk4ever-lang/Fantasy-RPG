@@ -13,6 +13,19 @@ const COLOR_BOOT := Color("3a2c24")
 const COLOR_STEEL := Color("cfd6df")
 const COLOR_GOLD := Color("d9a441")
 
+## Per-instance colors (villagers reuse this rig with their own clothes).
+var col_tunic: Color = COLOR_TUNIC
+var col_cloak: Color = COLOR_CLOAK
+var col_plate: Color = COLOR_PLATE
+var col_skin: Color = COLOR_SKIN
+var col_hair: Color = COLOR_HAIR
+var col_leather: Color = COLOR_LEATHER
+var col_boot: Color = COLOR_BOOT
+var col_steel: Color = COLOR_STEEL
+var col_gold: Color = COLOR_GOLD
+## Villagers carry no sword.
+var with_sword: bool = true
+
 ## Pose blending: 0 = full locomotion, 1 = upper body fully driven by `action_pose`.
 var action_weight: float = 0.0
 ## Rotations (radians) for upper body joints while an action plays. Keys: torso, r_arm, r_fore, l_arm, l_fore.
@@ -108,74 +121,75 @@ func _box(size: Vector3) -> BoxMesh:
 
 func _build() -> void:
 	hips = _pivot(self, Vector3(0, 0.95, 0), "Hips")
-	_part(hips, _capsule(0.19, 0.42), _mat(COLOR_LEATHER), Vector3(0, 0.02, 0), Vector3(0, 0, PI / 2), Vector3(1, 1, 0.85))
+	_part(hips, _capsule(0.19, 0.42), _mat(col_leather), Vector3(0, 0.02, 0), Vector3(0, 0, PI / 2), Vector3(1, 1, 0.85))
 	# Belt with buckle.
-	_part(hips, _box(Vector3(0.44, 0.07, 0.3)), _mat(COLOR_BOOT, 0.5), Vector3(0, 0.1, 0))
-	_part(hips, _box(Vector3(0.08, 0.07, 0.03)), _mat(COLOR_GOLD, 0.3, 0.8), Vector3(0, 0.1, -0.16))
+	_part(hips, _box(Vector3(0.44, 0.07, 0.3)), _mat(col_boot, 0.5), Vector3(0, 0.1, 0))
+	_part(hips, _box(Vector3(0.08, 0.07, 0.03)), _mat(col_gold, 0.3, 0.8), Vector3(0, 0.1, -0.16))
 	# Tunic skirt.
 	var skirt := CylinderMesh.new()
 	skirt.top_radius = 0.2
 	skirt.bottom_radius = 0.27
 	skirt.height = 0.3
 	skirt.radial_segments = 16
-	_part(hips, skirt, _mat(COLOR_TUNIC), Vector3(0, -0.08, 0), Vector3.ZERO, Vector3(1, 1, 0.8))
+	_part(hips, skirt, _mat(col_tunic), Vector3(0, -0.08, 0), Vector3.ZERO, Vector3(1, 1, 0.8))
 
 	torso = _pivot(hips, Vector3(0, 0.08, 0), "Torso")
-	_part(torso, _capsule(0.22, 0.62), _mat(COLOR_TUNIC), Vector3(0, 0.3, 0), Vector3.ZERO, Vector3(1.05, 1, 0.75))
+	_part(torso, _capsule(0.22, 0.62), _mat(col_tunic), Vector3(0, 0.3, 0), Vector3.ZERO, Vector3(1.05, 1, 0.75))
 	# Breastplate.
-	_part(torso, _capsule(0.2, 0.42), _mat(COLOR_PLATE, 0.45, 0.3), Vector3(0, 0.36, -0.06), Vector3.ZERO, Vector3(1.0, 0.95, 0.62))
+	_part(torso, _capsule(0.2, 0.42), _mat(col_plate, 0.45, 0.3), Vector3(0, 0.36, -0.06), Vector3.ZERO, Vector3(1.0, 0.95, 0.62))
 	# Royal-blue sash across the plate.
-	_part(torso, _box(Vector3(0.08, 0.5, 0.3)), _mat(COLOR_TUNIC, 0.6), Vector3(0.02, 0.36, -0.05), Vector3(0, 0, 0.7))
+	_part(torso, _box(Vector3(0.08, 0.5, 0.3)), _mat(col_tunic, 0.6), Vector3(0.02, 0.36, -0.05), Vector3(0, 0, 0.7))
 	# Pauldrons.
 	for side: float in [-1.0, 1.0]:
-		_part(torso, _sphere(0.12), _mat(COLOR_PLATE, 0.45, 0.3), Vector3(0.27 * side, 0.54, 0), Vector3.ZERO, Vector3(1.15, 0.8, 1.1))
+		_part(torso, _sphere(0.12), _mat(col_plate, 0.45, 0.3), Vector3(0.27 * side, 0.54, 0), Vector3.ZERO, Vector3(1.15, 0.8, 1.1))
 
 	head = _pivot(torso, Vector3(0, 0.64, 0), "Head")
-	_part(head, _capsule(0.06, 0.14), _mat(COLOR_SKIN), Vector3(0, 0.02, 0))
-	_part(head, _sphere(0.135), _mat(COLOR_SKIN, 0.8), Vector3(0, 0.15, 0), Vector3.ZERO, Vector3(0.95, 1.08, 1.0))
+	_part(head, _capsule(0.06, 0.14), _mat(col_skin), Vector3(0, 0.02, 0))
+	_part(head, _sphere(0.135), _mat(col_skin, 0.8), Vector3(0, 0.15, 0), Vector3.ZERO, Vector3(0.95, 1.08, 1.0))
 	# Hair: cap plus a swept tail.
-	_part(head, _sphere(0.145), _mat(COLOR_HAIR, 0.9), Vector3(0, 0.19, 0.025), Vector3(-0.2, 0, 0), Vector3(1.0, 0.85, 1.05))
-	_part(head, _capsule(0.05, 0.22), _mat(COLOR_HAIR, 0.9), Vector3(0, 0.12, 0.13), Vector3(0.5, 0, 0))
+	_part(head, _sphere(0.145), _mat(col_hair, 0.9), Vector3(0, 0.19, 0.025), Vector3(-0.2, 0, 0), Vector3(1.0, 0.85, 1.05))
+	_part(head, _capsule(0.05, 0.22), _mat(col_hair, 0.9), Vector3(0, 0.12, 0.13), Vector3(0.5, 0, 0))
 	# Eyes give the head a readable facing.
 	for side: float in [-1.0, 1.0]:
 		_part(head, _sphere(0.018), _mat(Color("1e2125"), 0.4), Vector3(0.045 * side, 0.16, -0.125))
 
 	cape = _pivot(torso, Vector3(0, 0.56, 0.15), "Cape")
-	_part(cape, _box(Vector3(0.46, 0.85, 0.03)), _mat(COLOR_CLOAK, 0.85), Vector3(0, -0.42, 0))
-	_part(cape, _box(Vector3(0.5, 0.06, 0.05)), _mat(COLOR_GOLD, 0.3, 0.8), Vector3(0, 0.0, -0.01))
+	_part(cape, _box(Vector3(0.46, 0.85, 0.03)), _mat(col_cloak, 0.85), Vector3(0, -0.42, 0))
+	_part(cape, _box(Vector3(0.5, 0.06, 0.05)), _mat(col_gold, 0.3, 0.8), Vector3(0, 0.0, -0.01))
 
 	arm_l = _pivot(torso, Vector3(-0.29, 0.5, 0), "ArmL")
 	arm_r = _pivot(torso, Vector3(0.29, 0.5, 0), "ArmR")
 	for arm: Node3D in [arm_l, arm_r]:
-		_part(arm, _capsule(0.07, 0.34), _mat(COLOR_TUNIC), Vector3(0, -0.14, 0))
+		_part(arm, _capsule(0.07, 0.34), _mat(col_tunic), Vector3(0, -0.14, 0))
 	fore_l = _pivot(arm_l, Vector3(0, -0.3, 0), "ForeL")
 	fore_r = _pivot(arm_r, Vector3(0, -0.3, 0), "ForeR")
 	for fore: Node3D in [fore_l, fore_r]:
-		_part(fore, _capsule(0.065, 0.3), _mat(COLOR_LEATHER, 0.6), Vector3(0, -0.13, 0))
-		_part(fore, _sphere(0.065), _mat(COLOR_SKIN), Vector3(0, -0.3, 0))
+		_part(fore, _capsule(0.065, 0.3), _mat(col_leather, 0.6), Vector3(0, -0.13, 0))
+		_part(fore, _sphere(0.065), _mat(col_skin), Vector3(0, -0.3, 0))
 
 	# Sword in the right hand. Blade points along the hand's local -Z when held forward.
 	sword = _pivot(fore_r, Vector3(0, -0.3, 0), "Sword")
 	sword_base = _pivot(sword, Vector3(0, 0, -0.18), "SwordBase")
 	sword_tip = _pivot(sword, Vector3(0, 0, -1.05), "SwordTip")
-	_part(sword, _box(Vector3(0.045, 0.045, 0.2)), _mat(COLOR_LEATHER, 0.6), Vector3(0, 0, 0.0))
-	_part(sword, _box(Vector3(0.26, 0.05, 0.05)), _mat(COLOR_GOLD, 0.3, 0.8), Vector3(0, 0, -0.12))
-	_part(sword, _box(Vector3(0.07, 0.018, 0.82)), _mat(COLOR_STEEL, 0.2, 0.9), Vector3(0, 0, -0.55))
-	var tip := PrismMesh.new()
-	tip.size = Vector3(0.07, 0.14, 0.018)
-	_part(sword, tip, _mat(COLOR_STEEL, 0.2, 0.9), Vector3(0, 0, -1.02), Vector3(-PI / 2, 0, 0))
-	_part(sword, _sphere(0.035), _mat(COLOR_GOLD, 0.3, 0.8), Vector3(0, 0, 0.12))
+	if with_sword:
+		_part(sword, _box(Vector3(0.045, 0.045, 0.2)), _mat(col_leather, 0.6), Vector3(0, 0, 0.0))
+		_part(sword, _box(Vector3(0.26, 0.05, 0.05)), _mat(col_gold, 0.3, 0.8), Vector3(0, 0, -0.12))
+		_part(sword, _box(Vector3(0.07, 0.018, 0.82)), _mat(col_steel, 0.2, 0.9), Vector3(0, 0, -0.55))
+		var tip := PrismMesh.new()
+		tip.size = Vector3(0.07, 0.14, 0.018)
+		_part(sword, tip, _mat(col_steel, 0.2, 0.9), Vector3(0, 0, -1.02), Vector3(-PI / 2, 0, 0))
+		_part(sword, _sphere(0.035), _mat(col_gold, 0.3, 0.8), Vector3(0, 0, 0.12))
 
 	leg_l = _pivot(hips, Vector3(-0.11, -0.04, 0), "LegL")
 	leg_r = _pivot(hips, Vector3(0.11, -0.04, 0), "LegR")
 	for leg: Node3D in [leg_l, leg_r]:
-		_part(leg, _capsule(0.085, 0.46), _mat(COLOR_LEATHER, 0.75), Vector3(0, -0.2, 0))
+		_part(leg, _capsule(0.085, 0.46), _mat(col_leather, 0.75), Vector3(0, -0.2, 0))
 	shin_l = _pivot(leg_l, Vector3(0, -0.43, 0), "ShinL")
 	shin_r = _pivot(leg_r, Vector3(0, -0.43, 0), "ShinR")
 	for shin: Node3D in [shin_l, shin_r]:
-		_part(shin, _capsule(0.08, 0.4), _mat(COLOR_BOOT, 0.6), Vector3(0, -0.2, 0))
-		_part(shin, _box(Vector3(0.13, 0.08, 0.24)), _mat(COLOR_BOOT, 0.6), Vector3(0, -0.43, -0.05))
-		_part(shin, _sphere(0.07), _mat(COLOR_PLATE, 0.45, 0.3), Vector3(0, -0.02, -0.05), Vector3.ZERO, Vector3(1, 1, 0.8))
+		_part(shin, _capsule(0.08, 0.4), _mat(col_boot, 0.6), Vector3(0, -0.2, 0))
+		_part(shin, _box(Vector3(0.13, 0.08, 0.24)), _mat(col_boot, 0.6), Vector3(0, -0.43, -0.05))
+		_part(shin, _sphere(0.07), _mat(col_plate, 0.45, 0.3), Vector3(0, -0.02, -0.05), Vector3.ZERO, Vector3(1, 1, 0.8))
 
 	for mi: Node in find_children("*", "MeshInstance3D", true, false):
 		(mi as MeshInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON

@@ -103,7 +103,7 @@ func _run() -> void:
 	foe2.target = null
 	foe2.state = Hollow.State.IDLE
 	foe2.set("_facing", atan2(2.0, -2.2))
-	player.global_position = Vector3(-4.0, 0.05, -6.0)
+	player.global_position = Vector3(-4.0, arena.height_at(-4.0, -6.0) + 0.05, -6.0)
 	player.velocity = Vector3.ZERO
 	player.face_direction(Vector3(2.2, 0, -3.2))
 	await _wait(30)
@@ -113,12 +113,21 @@ func _run() -> void:
 	await _wait(5)
 	await _save("04_held.png")
 
+	# 5b. Village on the bay (by day).
+	var sea := Vector3(TestArena.SEA_DIR.x, 0, TestArena.SEA_DIR.y)
+	var along := Vector3(-TestArena.SEA_DIR.y, 0, TestArena.SEA_DIR.x)
+	cam.fov = 60.0
+	cam.global_position = sea * (TestArena.SHORE_S + 14.0) + along * -26.0 + Vector3.UP * 7.0
+	cam.look_at(sea * 24.0 + along * 2.0 + Vector3.UP * 2.0)
+	await _wait(8)
+	await _save("06_dorp.png")
+
 	# 5. Dusk over the valley: day-night cycle.
 	dn.time_of_day = 19.2
 	dn.apply()
 	cam.fov = 62.0
-	cam.global_position = Vector3(8.0, 6.0, 26.0)
-	cam.look_at(Vector3(10.0, 18.0, -70.0))
+	cam.global_position = sea * (TestArena.SHORE_S + 17.0) + along * -10.0 + Vector3.UP * 4.5
+	cam.look_at(Vector3(18.0, 26.0, -78.0))
 	await _wait(8)
 	await _save("05_avond.png")
 	quit(0)

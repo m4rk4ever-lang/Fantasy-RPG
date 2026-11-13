@@ -7,18 +7,45 @@ Episch third-person action-adventure RPG in een high-fantasy wereld. Godot 4, sp
 
 ## Pitch
 
-Het rijk Aldmere hield duizend jaar stand onder de Kroon van Zeven Hemelen. Toen de kroon brak, scheurde de lucht. Uit de scheuren komt de Sluier: een stille mist die steen laat vergeten wat het was en mensen wat ze waren. Langs de randen van het rijk staan de Veilspires, oude wachttorens op kliffen, gebouwd om de Sluier tegen te houden. Hun lichten gaan één voor één uit.
+Aldmere werd niet gebouwd maar gezongen. Zeven hogere machten, de Ascendanten, zongen de wereld uit de Stilte. Daarna vochten ze om wie de laatste noot mocht zingen. Die oorlog, de Dissonant, verbrandde halve continenten. Hij eindigde met een pact: elke Ascendant legde een deel van zijn stem in een kroon, de Kroon van Zeven Hemelen, en zweeg. Sindsdien spreken de goden alleen nog via hun volgelingen.
 
-De speler is een Wachter zonder naam, gewekt in een vallei onder de eerste toren. Doel: de scherven van de kroon terugvinden voordat de Sluier het hart van Aldmere bereikt.
+Duizend jaar later is de kroon gebroken. De stemmen keren terug, de facties van de Ascendanten wapenen zich, en waar hun stemmen botsen kruipt de Stilte de wereld weer in: de Sluier, een mist die alles laat vergeten wat het was. De speler is de laatste Wachter, hoeder van een kroon die niet meer bestaat. Neutraal, voorlopig.
 
 ## Lore op hoofdlijnen
 
-- **De Gebroken Kroon.** Zeven scherven, elk gebonden aan een hemelstreek en een oude macht. Wie een scherf draagt krijgt een gave (later: glijden, klimmen, tijd vertragen).
-- **De Sluier.** Geen leger maar een kracht. Ze maakt van levende wezens Leeghulzen (Hollowed): wezens die alleen nog de vorm van hun vroegere zelf herhalen. Eerste vijandtype.
-- **De Wachters.** Een orde die de torens bemande. Uitgestorven, op de speler na.
-- **Hoofdconflict.** De Sluier wordt gestuurd door de Vergeten Koning, die de kroon zelf brak om de dood te ontlopen. Uitwerking in fase 4.
+Richting (feedback eigenaar 13-11-2026): een wereld geschapen door goden en hogere machten, met volgelingen en facties. Raakvlakken met RuneScape, World of Warcraft en Elden Ring, maar met een eigen kern: **schepping door zang, vergeten als vijand, en een neutrale hoeder die moet kiezen.**
+
+### De Ascendanten en hun facties
+
+| Ascendant | Domein | Factie | Karakter van de factie |
+|---|---|---|---|
+| **Aurel, de Dageraadsmaker** | licht, orde, wet | **De Gouden Lantaarn** | paladijnen en rechters in witte steden. Willen de kroon herbouwen, onder hun wet. |
+| **Morvaine, de Getijdenmoeder** | zee, verandering, handel | **De Zoutgebondenen** | kustclans, vissers, kapers. Vrijheid boven alles. Wantrouwen elke kroon. |
+| **Vyrr, de Doornvader** | groei, verval, het wilde | **De Wortelgezworenen** | druïden en dierenvolk. Zien de Sluier als een noodzakelijke herfst. |
+| **Kaeloth, de Sintelkoning** | oorlog, smidse, ambitie | **De Asheer** | legers en smeden. Willen de scherven als wapens. |
+| **Isseth, de Gesluierde** | geheimen, dood, herinnering | **Het Bleke Archief** | geleerden en dodenbezweerders. Bewaren alles wat de Sluier wil wissen, tegen elke prijs. |
+| **Orun, de Steenwachter** | bergen, volharding | **De Hoge Hold** | bergclans. Bouwden ooit de Veilspires met de Wachters. |
+| **De Ongezongene** | onbekend | geen (nog) | de zevende stem is uit elke herinnering gewist. De Sluier klinkt als zijn zwijgen. |
+
+### Kernconflict
+
+- **Wie brak de kroon?** De Vergeten Koning, kampioen van de Ongezongene. Hij is uit de geschiedenis gewist, ook uit de herinnering van zijn eigen volk. Ontdekken wie hij was is de rode draad van het hoofdverhaal.
+- **De scherven.** Zeven scherven, elk met een stem. Wie een scherf draagt krijgt een gave (later: glijden, klimmen, tijd vertragen) en hoort zijn Ascendant fluisteren.
+- **De Sluier.** Wist herinnering. Levende wezens worden Leeghulzen (Hollowed): ze herhalen nog alleen de vorm van wat ze waren. De eerste vijanden zijn gevallen Wachters.
+- **De Wachters.** Neutrale orde die de kroon bewaakte, bemand door volgelingen van alle zeven. Uitgestorven, op de speler na.
+- **Keuze (fase 4 en later).** Elke factie wil de scherven. De speler kan ze teruggeven, de kroon herbouwen of de goden laten ontwaken. Reputatie per factie bepaalt welke quests, uitrusting en eindes openstaan.
+
+### Wat het eigen maakt
+
+- Goden zijn geen verre beelden maar stemmen die je hoort via scherven. Ze liegen soms.
+- Vergeten is letterlijk: plekken, namen en NPC's kunnen uit de wereld verdwijnen als de Sluier wint. Het Archief kan ze terughalen.
+- Geen goed-tegen-kwaad. Elke factie heeft gelijk vanuit haar eigen stem.
 
 Toon: serieus en episch, weinig humor.
+
+### Eerste gebied: Wachtersvallei en Zoutwijk
+
+Een groene vallei die uitkomt op een baai. Aan de kust ligt **Zoutwijk**, een vissersdorp van de Zoutgebondenen: houten huizen op stenen voeten, steigers, bootjes, rook uit de schoorstenen. Boven de vallei de eerste Veilspire op een rots. Bij de ruïnes dwalen de Leeghulzen. Inspiratie voor sfeer en opbouw: de kustregio Havenhythe in RuneScape (alleen als richting, niets overgenomen).
 
 ## Art direction per gebied
 
@@ -35,14 +62,15 @@ Het hoofdpersonage draagt koningsblauw (tunic), leisteenblauw (cape) en licht st
 
 | Actie | Toetsenbord en muis | Gamepad |
 |---|---|---|
-| Lopen | WASD / pijltjes | linkerstick |
-| Camera | muis (klik om te vangen) | rechterstick |
+| Lopen | WASD, of klik op de grond | linkerstick |
+| Aanvallen | klik op een monster (lopen en auto-aanval) | X |
+| Skills | 1, 2, 3, 4 (of klik op de balk) | Y, RB, LB, Back |
+| Camera draaien | middelste muisknop slepen of pijltjes | rechterstick |
+| Zoomen | scrollwiel of + en - | - |
 | Sprinten | Shift | linkerstick indrukken |
 | Springen | Spatie | A |
 | Ontwijken (dash) | rechtermuis / Alt / C | B |
-| Lichte aanval | linkermuis / J | X |
-| Zware aanval | E / K | Y |
-| Lock-on | Q / middelste muis | rechterstick indrukken |
+| Dichtstbijzijnde doelwit | Q | rechterstick indrukken |
 | Pauze | Esc / P | Start |
 
 ## Kernloop
@@ -64,7 +92,9 @@ Gevecht: snel en vloeiend, combo's, ontwijken kan altijd en annuleert aanvallen.
 - **Gras:** één `MultiMeshInstance3D` met plukjes van 5 sprieten, windshader, vervaagt tussen 34 en 52 m.
 - **Gevecht:** `PlayerCombat` met aanvallen als data (windup, active, recovery, pose van/naar). Treffers via een vergevingsgezinde boog voor de held, met zachte auto-aim. Ontwijken annuleert altijd. Hitstop via `Engine.time_scale`, elke frame in real time gecontroleerd zodat hij nooit kan blijven hangen.
 - **Vijand:** `Hollow` (Leeghuls), state machine idle, chase, windup, attack, recover, stagger, dead. Elke treffer onderbreekt de vijand (vergevingsgezind). Duidelijke telegraph: ogen lichten op, arm gaat omhoog.
-- **Lock-on:** `LockOn` kiest het beste doel voor de camera, wisselt met een flick van muis of rechterstick.
+- **Doelwit en klikken:** `ClickController` kiest monsters onder de muis (vergevingsgezind, 0,9 m rond de muisstraal) of loopt naar een aangeklikt punt. `LockOn` toont marker, rode ring en HUD-balk; Q wisselt naar het dichtstbijzijnde monster. De camera draait nooit zelf (RuneScape-stijl).
+- **Skills:** `PlayerCombat.SKILLS`: Cleave (1), Surge Strike (2, dash naar doelwit met onkwetsbaarheid), Whirlwind (3), Second Wind (4, heal). Cooldowns in de skillbalk (`SkillBar`).
+- **Prestaties:** effecten zitten in pools en alle materialen worden in de eerste frames voorverwarmd, zodat WebGL tijdens gevechten geen shaders compileert. Hitstop vertraagt tot 20% in plaats van bijna te bevriezen.
 - **Tests:** `tools/run_tests.gd` (headless rooktests). Screenshots: `tools/screenshot.gd`.
 
 ## Bestandsoverzicht

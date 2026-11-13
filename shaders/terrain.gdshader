@@ -8,6 +8,8 @@ uniform vec3 grass_dry : source_color = vec3(0.60, 0.72, 0.30);
 uniform vec3 rock_color : source_color = vec3(0.46, 0.49, 0.58);
 uniform vec3 rock_light : source_color = vec3(0.80, 0.77, 0.70);
 uniform vec3 snow_color : source_color = vec3(0.95, 0.97, 1.0);
+uniform vec3 sand_color : source_color = vec3(0.89, 0.84, 0.69);
+uniform float sand_height = -100.0;
 uniform float snow_height = 60.0;
 uniform float snow_blend = 12.0;
 uniform float rock_slope = 0.78;
@@ -65,6 +67,11 @@ void fragment() {
 	float slope = world_nrm.y;
 	float rock_w = 1.0 - smoothstep(rock_slope - 0.06, rock_slope + 0.06, slope + (n - 0.5) * 0.12);
 	vec3 col = mix(grass, rock, rock_w);
+
+	float sand_w = 1.0 - smoothstep(sand_height - 0.4, sand_height + 0.5, world_pos.y + (n2 - 0.5) * 0.6);
+	col = mix(col, sand_color * (0.92 + n2 * 0.12), sand_w);
+	// Wet sand darkens toward the waterline.
+	col *= mix(1.0, 0.78, 1.0 - smoothstep(-0.9, -0.2, world_pos.y));
 
 	float snow_w = smoothstep(snow_height - snow_blend, snow_height + snow_blend, world_pos.y + (n - 0.5) * 18.0);
 	snow_w *= smoothstep(0.35, 0.6, slope);

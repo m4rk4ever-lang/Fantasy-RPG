@@ -10,6 +10,8 @@ var hud: Hud
 var fx: CombatFx
 var lock_on: LockOn
 var clicks: ClickController
+var ambience: Ambience
+var _last_night: float = -1.0
 var _step_timer: float = 0.0
 var _enemy_spawns: Array[Vector3] = [Vector3(-6.0, 0.0, -10.0), Vector3(7.0, 0.0, -14.0), Vector3(-1.0, 0.0, -24.0)]
 
@@ -66,6 +68,11 @@ func _ready() -> void:
 	for i: int in _enemy_spawns.size():
 		_spawn_enemy(i)
 	# --- End combat ---
+
+	ambience = Ambience.new()
+	ambience.name = "Ambience"
+	add_child(ambience)
+	ambience.setup(player, arena)
 
 	# --- Pause menu ---
 	var pause_menu := PauseMenu.new()
@@ -149,6 +156,10 @@ func _on_skill_used(id: String) -> void:
 
 
 func _process(delta: float) -> void:
+	var night: float = arena.day_night.night_factor
+	if absf(night - _last_night) > 0.02:
+		_last_night = night
+		ambience.set_night(night)
 	for sk: Dictionary in PlayerCombat.SKILLS:
 		var id: String = sk["id"]
 		hud.skill_bar.set_cooldown(id, player.combat.get_cooldown(id), sk["cooldown"])

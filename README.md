@@ -10,14 +10,15 @@ De Kroon van Zeven Hemelen is gebroken. Uit de scheuren in de lucht kruipt de Sl
 
 | Actie | Toetsenbord en muis | Gamepad |
 |---|---|---|
-| Lopen | WASD | linkerstick |
-| Camera | muis (klik in het spel om de muis te vangen) | rechterstick |
+| Lopen | WASD, of klik op de grond | linkerstick |
+| Aanvallen | klik op een monster (lopen en auto-aanval) | X |
+| Skills | 1, 2, 3, 4 (of klik op de balk) | Y, RB, LB, Back |
+| Camera draaien | middelste muisknop slepen of pijltjes | rechterstick |
+| Zoomen | scrollwiel of + en - | - |
 | Sprinten | Shift | linkerstick indrukken |
 | Springen | Spatie | A |
 | Ontwijken | rechtermuis / Alt / C | B |
-| Lichte aanval | linkermuis / J | X |
-| Zware aanval | E / K | Y |
-| Lock-on | Q / middelste muis | rechterstick indrukken |
+| Dichtstbijzijnde doelwit | Q | rechterstick indrukken |
 | Pauze | Esc / P | Start |
 
 ## Feedback geven
