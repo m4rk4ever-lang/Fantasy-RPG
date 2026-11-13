@@ -29,6 +29,8 @@ Doel: één gebied waarin de hele kernloop speelbaar is: praten, quest aannemen,
 - [ ] V.8 Geluid: voetstappen, zwaard, treffers, golven, meeuwen, eenvoudige muziek.
 - [ ] V.9 Modellen bijschaven: meer detail in held, Hollowed en huizen (RuneScape 3 is inmiddels gedetailleerd). Eventueel passende CC0-modellen zoeken.
 - [ ] V.10 Prestaties en kwaliteitsinstelling (laag, midden, hoog).
+- [ ] V.11 UI-afwerking volgens `docs/UI.md`: orbs voor health en resource, gebogen skillbalk met radiale cooldown, skilltree als echte boom, itemiconen, portretten.
+- [ ] V.12 Keuze-issue: resource per klasse (Fury, Focus, Mana, Faith, Corruption of anders).
 
 ## Fase 1: speelbare kern (snel en vloeiend)
 

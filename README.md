@@ -35,6 +35,7 @@ Alleen issues en reacties van de eigenaar (`m4rk4ever-lang`) worden als opdracht
 - [docs/SMAAK.md](docs/SMAAK.md): smaakprofiel van de eigenaar
 - [docs/DESIGN.md](docs/DESIGN.md): ontwerp en techniek
 - [docs/ROADMAP.md](docs/ROADMAP.md): planning
+- [docs/UI.md](docs/UI.md): UI-ontwerp (stijl, HUD, menu's)
 - [CHANGELOG.md](CHANGELOG.md): wat er per run gebouwd is
 - [CREDITS.md](CREDITS.md): bronnen en licenties
 

@@ -3,7 +3,7 @@
 Werktitel: **Veilspire: The Sundered Crown**.
 Episch third-person action-adventure RPG in een high-fantasy wereld. Godot 4, speelbaar in de browser.
 
-`docs/SMAAK.md` is leidend. Dit document volgt het en werkt het uit.
+`docs/SMAAK.md` is leidend. Dit document volgt het en werkt het uit. UI-ontwerp staat apart in [`docs/UI.md`](UI.md).
 
 **Taal (eigenaar 13-11-2026):** het hele spel is Engels, ook alle namen van plaatsen, goden, facties en vijanden. De Engelse namen in dit document zijn de officiële. Documentatie blijft Nederlands.
 
