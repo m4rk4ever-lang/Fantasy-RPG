@@ -125,6 +125,23 @@ func _run() -> void:
 	_check(died2[0], "auto-attack walks to the clicked monster and kills it")
 	_check(player.attack_target == null, "auto-attack stops after the kill")
 
+	# Auto retaliate: an idle hero hit by a monster targets it; switched off, nothing happens.
+	var foe3 := Hollow.new()
+	root.add_child(foe3)
+	foe3.global_position = player.global_position + Vector3(3.0, 0.2, 0.0)
+	await _frames(40)
+	player.attack_target = null
+	player.set_auto_retaliate(false)
+	player.take_damage(1.0, Vector3.ZERO, foe3)
+	_check(player.attack_target == null, "auto retaliate off: no counterattack")
+	await _frames(40)
+	player.set_auto_retaliate(true)
+	player.take_damage(1.0, Vector3.ZERO, foe3)
+	_check(player.attack_target == foe3, "auto retaliate on: hero targets the attacker")
+	foe3.queue_free()
+	player.attack_target = null
+	await _frames(5)
+
 	# Skills: use, then cooldown blocks reuse.
 	await _frames(30)
 	_check(player.combat.use_skill("whirlwind"), "skill Whirlwind activates")

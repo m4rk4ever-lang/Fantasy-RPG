@@ -309,7 +309,7 @@ func _physics_process(delta: float) -> void:
 				if dist < attack_range + 0.6 and fwd.dot(to_target.normalized()) > 0.35:
 					_hit_done = true
 					if target.has_method("take_damage"):
-						target.call("take_damage", attack_damage, fwd * 9.0)
+						target.call("take_damage", attack_damage, fwd * 9.0, self)
 			if _t >= attack_time:
 				_enter(State.RECOVER)
 		State.RECOVER:

@@ -94,6 +94,11 @@ Gevecht: snel en vloeiend, combo's, ontwijken kan altijd en annuleert aanvallen.
 - **Vijand:** `Hollow` (Leeghuls), state machine idle, chase, windup, attack, recover, stagger, dead. Elke treffer onderbreekt de vijand (vergevingsgezind). Duidelijke telegraph: ogen lichten op, arm gaat omhoog.
 - **Doelwit en klikken:** `ClickController` kiest monsters onder de muis (vergevingsgezind, 0,9 m rond de muisstraal) of loopt naar een aangeklikt punt. `LockOn` toont marker, rode ring en HUD-balk; Q wisselt naar het dichtstbijzijnde monster. De camera draait nooit zelf (RuneScape-stijl).
 - **Skills:** `PlayerCombat.SKILLS`: Cleave (1), Surge Strike (2, dash naar doelwit met onkwetsbaarheid), Whirlwind (3), Second Wind (4, heal). Cooldowns in de skillbalk (`SkillBar`).
+- **Auto retaliate:** standaard aan (R of knop rechtsonder). Een stilstaande held zonder opdracht valt het monster aan dat hem raakt.
+- **Personages:** `HeroModel` bouwt held en dorpelingen uit `MeshKit.loft`: elliptische ringen per lichaamsdeel, gefacetteerd (flat shading), kleding per ringband via vertex colors, harnas als aparte metalen schil. Per bewegend lichaamsdeel één stof- en één metaal-mesh. `armored` en `with_sword` schakelen harnas, cape en zwaard. De Leeghuls gebruikt dezelfde techniek met magere verhoudingen.
+- **MeshKit:** samengevoegde meshes met vertex colors (box, gable, cylinder, loft, wedge). Het hele dorp is twee draw calls (hout/steen en gloeiende ramen).
+- **Wereld:** `TestArena.height_at` heeft nu een kust: alles verder dan ~42 m richting de baai (`SEA_DIR`) zakt naar de zeebodem. Land ligt 1,3 m boven zeeniveau, zand alleen op het strand. `Village` bouwt Zoutwijk, `Villager` laat dorpelingen routes lopen, `SkyShard` is de zwevende kroonscherf, `Ambience` geeft stuifmeel, vuurvliegjes en vlinders rond de speler. Bomen staan in 5 MultiMeshes.
+- **Water:** `shaders/water.gdshader`. Diepte per vertex uit het terrein (vertex color R) stuurt kleur en schuim, zonder depth texture. Ver weg een vlak met dezelfde shader.
 - **Prestaties:** effecten zitten in pools en alle materialen worden in de eerste frames voorverwarmd, zodat WebGL tijdens gevechten geen shaders compileert. Hitstop vertraagt tot 20% in plaats van bijna te bevriezen.
 - **Tests:** `tools/run_tests.gd` (headless rooktests). Screenshots: `tools/screenshot.gd`.
 
@@ -107,8 +112,11 @@ Gevecht: snel en vloeiend, combo's, ontwijken kan altijd en annuleert aanvallen.
 - `scripts/enemies/hollow.gd` Leeghuls
 - `scripts/fx/combat_fx.gd` hitstop, vonken, stof, slam-ring; `sword_trail.gd` zwaardspoor
 - `scripts/world/day_night.gd` dag-nachtcyclus
+- `scripts/world/mesh_kit.gd` samengevoegde low-poly meshes; `village.gd`, `villager.gd`, `sky_shard.gd`, `ambience.gd`
+- `scripts/player/click_controller.gd` klikken op monsters en grond
+- `scripts/ui/skill_bar.gd` skillbalk
 - `scripts/ui/hud.gd` HUD; `pause_menu.gd` pauzemenu
-- `shaders/terrain.gdshader`, `foliage.gdshader`, `grass.gdshader`, `sky.gdshader`
+- `shaders/terrain.gdshader`, `foliage.gdshader`, `grass.gdshader`, `sky.gdshader`, `water.gdshader`
 
 ## Lore: de Leeghulzen
 

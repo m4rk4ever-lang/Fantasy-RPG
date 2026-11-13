@@ -9,6 +9,9 @@ signal dashed
 signal landed(impact: float)
 signal hurt(amount: float, from_dir: Vector3)
 signal died
+## Fired when auto-retaliate makes the hero fight back against `attacker`.
+signal retaliated(attacker: Node3D)
+signal auto_retaliate_changed(on: bool)
 
 @export var walk_speed: float = 6.5
 @export var sprint_speed: float = 10.5
@@ -48,6 +51,8 @@ var combat: PlayerCombat
 var lock_target: Node3D
 ## Monster the hero walks to and auto-attacks (set by clicking it). Null = no auto combat.
 var attack_target: Node3D
+## RuneScape-style: when idle and hit by a monster, target it and fight back.
+var auto_retaliate: bool = true
 ## Distance at which auto-attacks start.
 @export var auto_attack_range: float = 2.1
 var _move_target: Vector3 = Vector3.ZERO
@@ -134,6 +139,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		velocity.y *= 0.5  # Variable jump height.
 	elif event.is_action_pressed("dodge"):
 		try_dash()
+	elif event.is_action_pressed("toggle_retaliate"):
+		set_auto_retaliate(not auto_retaliate)
 	elif event.is_action_pressed("attack_light"):
 		combat.request_light()
 	else:
@@ -193,7 +200,12 @@ func _spend_stamina(amount: float) -> void:
 	stamina_changed.emit(stamina, max_stamina)
 
 
-func take_damage(amount: float, knockback: Vector3 = Vector3.ZERO) -> bool:
+func set_auto_retaliate(on: bool) -> void:
+	auto_retaliate = on
+	auto_retaliate_changed.emit(on)
+
+
+func take_damage(amount: float, knockback: Vector3 = Vector3.ZERO, attacker: Node3D = null) -> bool:
 	if is_invulnerable() or health <= 0.0:
 		return false
 	health = maxf(health - amount, 0.0)
@@ -205,6 +217,10 @@ func take_damage(amount: float, knockback: Vector3 = Vector3.ZERO) -> bool:
 	if model:
 		model.impulse_squash(0.3)
 	hurt.emit(amount, knockback.normalized())
+	# Only retaliate when the player isn't busy with their own orders or direct control.
+	if auto_retaliate and attacker and is_instance_valid(attacker) and attack_target == null and not _has_move_target and get_move_input().length() < 0.2:
+		attack_target = attacker
+		retaliated.emit(attacker)
 	if health <= 0.0:
 		died.emit()
 	return true

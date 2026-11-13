@@ -6,6 +6,8 @@ Blokken van ongeveer 60 minuten. De bouwagent pakt elke run het eerste niet-afge
 
 ## Eerst volgende run (uit zelfcontrole)
 
+- **Prestaties meten in de browser.** Eigenaar laten bevestigen of de haperingen bij treffers weg zijn. Zo niet: schaduwafstand en aantal schaduwcasters verlagen, grasdichtheid achter een kwaliteitsinstelling.
+
 - **Pad naar de Veilspire.** De rots heeft nu richels, maar je kunt er nog niet op. Een pad of trap langs de richels omhoog.
 - **Bergring overdag** is te vlak grijs-wit. Meer leisteenblauw in de flanken, scherpere sneeuwgrens.
 
@@ -17,18 +19,26 @@ Blokken van ongeveer 60 minuten. De bouwagent pakt elke run het eerste niet-afge
 - [x] **1.4 Treffergevoel en lock-on.** Hitstop, impactdeeltjes, camera shake bij treffers, knockback, lock-on met doelwissel.
 - [x] **1.5 HUD en pauzemenu.** Vijandbalk boven doelwit, pauzemenu (hervatten, besturing, gevoeligheid), muisvangst netjes regelen.
 - [x] **1.6a Afwerking kern.** Stof bij sprintstappen, landen en ontwijken.
-- [ ] **1.6b Afwerking kern.** Ontwijk-nabeeld, betere idle-pose, gamepad-test, hero-gezicht verfijnen.
+- [x] **1.7 RuneScape-besturing (feedback).** Camera draait niet zelf (middelste muisknop, pijltjes), zoomen met scrollwiel, klik op monster om te lopen en aan te vallen, klik op de grond om te lopen, skills 1-4 met cooldowns en skillbalk, auto retaliate (R).
+- [x] **1.8 Prestaties gevecht (feedback).** Effecten in pools, materialen voorverwarmd, zachtere hitstop, bomen en dorp samengevoegd.
+- [x] **1.9 Low-poly anatomie (feedback).** Held, dorpelingen en Leeghulzen als gefacetteerde lichamen met echte verhoudingen. Rijkere uitrusting.
+- [ ] **1.6b Afwerking kern.** Ontwijk-nabeeld, betere idle-pose, gamepad-test.
+- [ ] **1.10 Skills uitbreiden.** Skill-effecten per skill (Whirlwind-spoor, Surge-streep, groene heal-gloed), adrenaline of resource zoals in RuneScape (eerst keuze-issue).
 
 ## Fase 2: open wereld (episch en helder)
 
 - [ ] 2.1 Terrein in chunks met streaming en LOD, groter dan de testvallei.
 - [x] 2.2a Gras met wind (MultiMesh, 14.000 plukjes rond de arena, vervaagt op afstand).
 - [ ] 2.2b Terreinshader verfijnen (paden, rotsrichels). Klif onder de toren is al vervangen door een gefacetteerde rots met grasrichels.
-- [ ] 2.3 Water (meer en rivier) met golvende shader.
+- [x] 2.3a Zee in de baai met golven, schuimranden en strand (diepte per vertex, geen depth texture).
+- [ ] 2.3b Rivier met kapotte brug (Havenhythe-inspiratie), waterval vanaf de bergen.
 - [x] 2.4 Hemel met wolken (eigen sky-shader), dag-nachtcyclus van 16 minuten met maan en sterren, mist en ambient per tijdstip.
-- [ ] 2.5 Landmarks: hoofdberg, Veilspire, ruïnes, een dorp.
+- [x] 2.5a Vissersdorp Zoutwijk aan de baai: vakwerkhuizen, steigers, boten, rook, meeuwen, dorpelingen. Zwevende kroonscherf boven de vallei.
+- [ ] 2.5b Pad omhoog naar de Veilspire, interieur van de toren. Heiligdom met obelisken (Ascendanten).
+- [ ] 2.5c Tweede gebied met monumentale architectuur en gloeiende runen (sfeerreferentie eigenaar 13-11-2026): bijvoorbeeld een smidsestad van de Asheer.
 - [ ] 2.6 Snelle verplaatsing: glijden (glider) of klimmen.
-- [ ] 2.7 Deeltjes in de wereld: bladeren, vuurvliegjes, stof.
+- [x] 2.7a Leven rond de speler: stuifmeel overdag, vuurvliegjes 's nachts, vlinders.
+- [ ] 2.7b Vallende bladeren bij bomen, vogels in het bos, dieren (herten, konijnen).
 
 ## Fase 3: RPG-systemen en character creator
 
@@ -40,7 +50,7 @@ Blokken van ongeveer 60 minuten. De bouwagent pakt elke run het eerste niet-afge
 
 ## Fase 4: verhaal (serieus en episch)
 
-- [ ] 4.1 Lore en hoofdconflict uitwerken in DESIGN.md.
+- [x] 4.1 Lore en hoofdconflict uitwerken in DESIGN.md (Ascendanten, facties, de Ongezongene).
 - [ ] 4.2 NPC's en dialoogsysteem.
 - [ ] 4.3 Questsysteem met quest-log.
 - [ ] 4.4 Hoofdquest van 3 tot 5 quests.
@@ -49,7 +59,7 @@ Blokken van ongeveer 60 minuten. De bouwagent pakt elke run het eerste niet-afge
 
 - [ ] 5.1 Eerste kerker: gedempt licht, fakkels, vervallen steen.
 - [ ] 5.2 Meer vijandtypes.
-- [ ] 5.3 Eindbaas met fases.
+- [ ] 5.3 Eindbaas met fases. Sfeer: groots en dreigend, stormlucht, sierlijke stof met goudrand (referentie eigenaar 13-11-2026), eigen ontwerp.
 
 ## Fase 6: geluid en afwerking
 

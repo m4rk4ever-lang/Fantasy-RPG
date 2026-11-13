@@ -8,6 +8,10 @@ const COL_FRAME := Color("e6e1d3")
 const COL_BACK := Color(0.12, 0.13, 0.16, 0.65)
 
 var skill_bar: SkillBar
+## Emitted when the player clicks the auto-retaliate button.
+signal retaliate_clicked
+var _retaliate_button: Button
+var _retaliate_style: StyleBoxFlat
 var _health_bar: ProgressBar
 var _stamina_bar: ProgressBar
 var _fps_label: Label
@@ -50,7 +54,7 @@ func _ready() -> void:
 	root.add_child(_fps_label)
 
 	_hint = Label.new()
-	_hint.text = "WASD move · Click monster to attack · 1-4 skills · RMB dodge · Middle mouse / arrows rotate · Scroll zoom · Esc pause"
+	_hint.text = "WASD move · Click monster to attack · 1-4 skills · RMB dodge · Middle mouse / arrows rotate · Scroll zoom · R auto retaliate · Esc pause"
 	_hint.anchor_left = 0.5
 	_hint.anchor_right = 0.5
 	_hint.offset_left = -560
@@ -96,6 +100,31 @@ func _ready() -> void:
 	skill_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bar_holder.add_child(skill_bar)
 
+	# Auto-retaliate toggle (RuneScape style), bottom right.
+	_retaliate_button = Button.new()
+	_retaliate_button.focus_mode = Control.FOCUS_NONE
+	_retaliate_button.anchor_left = 1.0
+	_retaliate_button.anchor_right = 1.0
+	_retaliate_button.anchor_top = 1.0
+	_retaliate_button.anchor_bottom = 1.0
+	_retaliate_button.offset_left = -208
+	_retaliate_button.offset_right = -24
+	_retaliate_button.offset_top = -84
+	_retaliate_button.offset_bottom = -32
+	_retaliate_button.tooltip_text = "Auto retaliate (R): fight back automatically when a monster attacks you."
+	_retaliate_style = StyleBoxFlat.new()
+	_retaliate_style.bg_color = COL_BACK
+	_retaliate_style.set_border_width_all(2)
+	_retaliate_style.set_corner_radius_all(6)
+	for st: String in ["normal", "hover", "pressed"]:
+		_retaliate_button.add_theme_stylebox_override(st, _retaliate_style)
+	_retaliate_button.add_theme_color_override("font_color", COL_FRAME)
+	_retaliate_button.add_theme_color_override("font_hover_color", Color.WHITE)
+	_retaliate_button.add_theme_font_size_override("font_size", 14)
+	_retaliate_button.pressed.connect(func() -> void: retaliate_clicked.emit())
+	root.add_child(_retaliate_button)
+	set_retaliate(true)
+
 	_flash_rect = ColorRect.new()
 	_flash_rect.color = Color(COL_HEALTH, 0.0)
 	_flash_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -132,6 +161,11 @@ func set_health(value: float, max_value: float) -> void:
 func set_stamina(value: float, max_value: float) -> void:
 	_stamina_bar.max_value = max_value
 	_stamina_bar.value = value
+
+
+func set_retaliate(on: bool) -> void:
+	_retaliate_button.text = "Auto retaliate: %s  [R]" % ("ON" if on else "OFF")
+	_retaliate_style.border_color = Color("4cb46a") if on else Color("d9552e")
 
 
 func set_hint_visible(v: bool) -> void:

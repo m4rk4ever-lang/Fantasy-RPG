@@ -65,6 +65,9 @@ func _ready() -> void:
 	hud.skill_bar.setup(PlayerCombat.SKILLS)
 	hud.skill_bar.skill_clicked.connect(func(id: String) -> void: player.combat.use_skill(id))
 	player.combat.skill_used.connect(_on_skill_used)
+	player.retaliated.connect(func(attacker: Node3D) -> void: lock_on.set_target(attacker))
+	player.auto_retaliate_changed.connect(hud.set_retaliate)
+	hud.retaliate_clicked.connect(func() -> void: player.set_auto_retaliate(not player.auto_retaliate))
 	for i: int in _enemy_spawns.size():
 		_spawn_enemy(i)
 	# --- End combat ---

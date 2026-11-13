@@ -1,5 +1,56 @@
 # Changelog
 
+## 13-11-2026 (tweede sessie, met de eigenaar live)
+
+Feedback van de eigenaar verwerkt: besturing in RuneScape-stijl, haperingen bij gevechten, lore, een mooiere en levendigere wereld, betere personages en auto retaliate.
+
+**Gebouwd**
+- **Camera zoals RuneScape:** draait nooit zelf. Draaien met middelste muisknop (slepen), pijltjes of rechterstick. Zoomen met scrollwiel of + en -. Vrije muiscursor.
+- **Klikgevecht met skills (hybride, gekozen door de eigenaar):** klik op een monster: lopen en automatisch aanvallen. Klik op de grond: lopen. Skills op 1 tot 4 met cooldowns en een skillbalk: Cleave, Surge Strike (dash naar doelwit, onkwetsbaar), Whirlwind (draait twee keer rond) en Second Wind (heal). WASD en ontwijken werken nog steeds. Q kiest het dichtstbijzijnde monster.
+- **Auto retaliate:** standaard aan, R of de knop rechtsonder. Een stilstaande held vecht terug tegen een monster dat hem raakt.
+- **Prestaties:** effecten zitten in pools en materialen worden bij de start voorverwarmd (geen shadercompilatie midden in een gevecht). Treffer-flits op vijanden alleen actief tijdens de flits. Hitstop vertraagt tot 20% in plaats van bijna te bevriezen. Bomen in 5 MultiMeshes, dorp in 2 draw calls.
+- **Lore** herschreven: Aldmere gezongen door zeven Ascendanten, zes facties met elk een eigen gelijk, een gewiste zevende god, de speler als neutrale Wachter die moet kiezen.
+- **Wereld:** de vallei loopt uit op een baai met zee, golven, schuimranden en strand. Vissersdorp Zoutwijk (Havenhythe als richting): vakwerkhuizen op stenen voeten, steigers met lantaarn, deinende boten, rook, vissenrekken, meeuwen, drie dorpelingen die rondlopen. Stuifmeel en vlinders overdag, vuurvliegjes 's nachts. Een zwevende scherf van de Kroon met runenringen boven de vallei.
+- **Personages:** held, dorpelingen en Leeghulzen opnieuw opgebouwd als gefacetteerde low-poly lichamen met echte verhoudingen (naar de anatomie-referentie). Held met kuras met goudrand, gelaagde schouderstukken, tabard, cape met franje en een sierlijk zwaard met gloeiende steen. Leeghulzen mager en gebogen, met gescheurde gewaden en klauwen.
+
+**Feedback verwerkt**
+- `feedback/` (tekstbestand 1): framedrops, RuneScape-camera met zoom, klikgevecht met skills, lore met goden en facties, omgeving statisch en niet mooi, Havenhythe. Zie `feedback/verwerkt/2026-11-13-feedback.md`.
+- `feedback/` (beelden): anatomie, sfeer, uitrusting. Zie `feedback/verwerkt/2026-11-13-beelden.md`.
+- `feedback/` (tekstbestand 2): auto retaliate. Zie `feedback/verwerkt/2026-11-13-auto-retaliate.md`.
+
+**Speel het:** https://m4rk4ever-lang.github.io/Fantasy-RPG/
+
+**Screenshots**
+![Overzicht](docs/screenshots/2026-11-13b/01_overzicht.png)
+![Gevecht](docs/screenshots/2026-11-13b/02_gevecht.png)
+![Landmark met kroonscherf](docs/screenshots/2026-11-13b/03_landmark.png)
+![Held en Leeghuls](docs/screenshots/2026-11-13b/04_held.png)
+![Avond in Zoutwijk](docs/screenshots/2026-11-13b/05_avond.png)
+![Zoutwijk](docs/screenshots/2026-11-13b/06_dorp.png)
+
+**Zelfcontrole**
+- Diepte: ja, sterk in het dorpsbeeld (steiger, huizen, heuvels, bergen). | Landmark: Veilspire en de zwevende kroonscherf. | Palet: ja. Koningsblauwe daken, steenkleurige muren, hemelblauw water. Gras van dichtbij is nog wat fel. | Game of demo: game. Het dorp en de avond zien eruit als een spel. | Zwakste deel: het gras dichtbij (fel en egaal) en de bergring overdag.
+
+**Prestaties:** hier niet te meten (software-rendering). De web-build start zonder fouten in headless Chromium. Draw calls flink omlaag door MultiMesh en samengevoegde meshes. **Graag testen op je laptop of de haperingen bij treffers weg zijn.**
+
+**Voorstellen voor SMAAK.md**
+- Onder **Gevecht** de nieuwe richting vastleggen: "Hybride RuneScape-stijl: klik op monsters om aan te vallen, skills op 1-4, auto retaliate. Ontwijken en WASD blijven mogelijk." Nu staat er alleen "snel en vloeiend, combo's".
+- Onder **Grafische stijl**: "Personages als gefacetteerde low-poly lichamen met echte verhoudingen."
+- Een regel voor de camera: "Camera draait niet zelf mee, de speler draait en zoomt (RuneScape)."
+- Onder **Sfeer per gebied** eventueel de kust en Havenhythe als referentie toevoegen.
+
+**Problemen en beslissingen**
+- Gevecht in RuneScape-stijl botst met SMAAK.md ("combo's, veel beweging"). Gevraagd aan de eigenaar en gekozen voor hybride: klik en skills, met behoud van ontwijken en combo's.
+- Het eerste beeld (Elden Ring-artwork) is later door de eigenaar vervangen. Alleen als sfeer gebruikt, niets nagemaakt. Let op: officiële artwork van andere games in een publieke repo kan auteursrechtelijk beschermd zijn.
+- Land ligt nu 1,3 m hoger (`LAND_BASE`) zodat het strand alleen aan de kust ligt. Trappen en ruïnes staan nu op de terreinhoogte.
+- Gedelegeerd: skillbalk (Sonnet, ging goed) en een samenvatting van de Havenhythe-wikipagina (web-fetch). Daarmee 3 subagents in deze run.
+- Haperingen konden we hier niet meten. De oorzaak die het meest voor de hand lag (shaders compileren bij het eerste vonkje of de eerste flits in WebGL, plus de bijna-bevriezing van de hitstop) is aangepakt.
+
+**Volgende run**
+- Bevestiging van de eigenaar over de prestaties. Zo nodig: schaduwen en grasdichtheid achter een kwaliteitsinstelling.
+- Pad naar de Veilspire, rivier met kapotte brug, heiligdom met obelisken.
+- Skill-effecten per skill. Keuze-issue: adrenaline of een andere resource zoals in RuneScape.
+
 ## 13-11-2026
 
 Eerste run. Repo opgezet en de speelbare kern van fase 1 gebouwd, plus twee blokken uit fase 2 (gras en hemel) omdat de tijd het toeliet.
