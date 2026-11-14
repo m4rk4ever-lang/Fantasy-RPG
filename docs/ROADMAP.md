@@ -6,6 +6,9 @@ Blokken van ongeveer 60 minuten. De bouwagent pakt elke run het eerste niet-afge
 
 ## Eerst volgende run (uit zelfcontrole)
 
+- **Haperingen nameten** (eigenaar). Zo nodig: shaders voorverwarmen bij het laden, minder kaarten per boom op Medium.
+- **Huizen van Saltwick en de bergring** in de nieuwe gedetailleerde stijl (afgeronde dakpannen, balken met textuur, rotsige bergflanken).
+
 - **Dorpelingen in de nieuwe stijl:** eigen kleding (schort, kap, vissershoed) met geschilderde stoffen en details, net als het harnas van de held.
 - **Gezicht van de held:** eigen ogen en wenkbrauwen in de geschilderde stijl, of een gesloten helm als keuze in de character creator.
 

@@ -55,6 +55,7 @@ func _ready() -> void:
 	_build_ruins()
 	_build_arena_props()
 	_scatter_trees()
+	_scatter_undergrowth()
 	_scatter_grass()
 	_build_water()
 	var shard := SkyShard.new()
@@ -431,7 +432,8 @@ func _build_crag() -> void:
 	# Fallen boulders around the foot of the crag.
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 314
-	var rock_mat := _stone_mat(Color("8e94a6"), 0.95)
+	var rock_mat: Material = ArmorKit.painted(Color("9a9ca6"), 0.15)
+	var rocks: Array[ArrayMesh] = [Flora.boulder(11), Flora.boulder(23), Flora.boulder(37)]
 	for n: int in 16:
 		var ang: float = rng.randf() * TAU
 		var dist: float = _crag_radius(0, ang) + rng.randf_range(0.5, 5.0)
@@ -445,7 +447,7 @@ func _build_crag() -> void:
 		sm.rings = 7
 		var sh := SphereShape3D.new()
 		sh.radius = rad * 0.7
-		_add_static(self, sm, rock_mat, Transform3D(Basis(Vector3(rng.randf(), 1, rng.randf()).normalized(), rng.randf() * TAU).scaled(Vector3(1.2, rng.randf_range(0.6, 1.0), 1.0)), p), sh)
+		_add_static(self, rocks[n % 3], rock_mat, Transform3D(Basis(Vector3(rng.randf(), 1, rng.randf()).normalized(), rng.randf() * TAU).scaled(Vector3(1.2, rng.randf_range(0.8, 1.1), 1.0) * rad), p), sh)
 
 
 ## Watchtower on the cliff: the main landmark visible from the arena.
@@ -591,30 +593,32 @@ func _scatter_trees() -> void:
 	var root := Node3D.new()
 	root.name = "Trees"
 	add_child(root)
-	var trunk_mat := _stone_mat(Color("6b4a33"), 0.9)
+	var trunk_mat: Material = _stone_mat(Color("6b4a33"), 0.9)
 	var leaf_round := ShaderMaterial.new()
 	leaf_round.shader = preload("res://shaders/foliage.gdshader")
 	leaf_round.set_shader_parameter("base_color", Color("3f9a59"))
 	leaf_round.set_shader_parameter("tip_color", Color("7fcf6e"))
-	var leaf_pine := ShaderMaterial.new()
+	var leaf_pine: ShaderMaterial = ShaderMaterial.new()
 	leaf_pine.shader = preload("res://shaders/foliage.gdshader")
 	leaf_pine.set_shader_parameter("base_color", Color("2a6b4a"))
 	leaf_pine.set_shader_parameter("tip_color", Color("4a9a62"))
 	leaf_pine.set_shader_parameter("sway_strength", 0.08)
 	leaf_pine.set_shader_parameter("height_ref", 7.0)
 
-	var trunk := _cyl(0.22, 0.32, 3.0, 8)
+	var trunk: ArrayMesh = Flora.broadleaf_trunk()
+	var ptrunk: ArrayMesh = Flora.pine_trunk()
+	var pine: ArrayMesh = Flora.pine_canopy(8.2, 2.7, 10, 3)
+	trunk_mat = ArmorKit.painted(Color("6b4a33"), 0.1)
+	leaf_pine = Flora.needle_material(Color("4c9655"), Color("10301f"))
 	var crown: ArrayMesh = leaf_crown_mesh(2.1, 1.75, 90, 11)
-	leaf_round = leaf_material(Color("6fbf55"), Color("1b5232"))
-	var cone_a := _cyl(0.0, 2.2, 3.4, 18)
-	var cone_b := _cyl(0.0, 1.7, 2.9, 18)
-	var cone_c := _cyl(0.0, 1.2, 2.3, 18)
+	leaf_round = leaf_material(Color("62ad4c"), Color("184a2d"))
 
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 2024
 	var placed: int = 0
 	var tries: int = 0
-	var parts: Dictionary = {"trunk": [], "crown": [], "cone_a": [], "cone_b": [], "cone_c": []}
+	var parts: Dictionary = {"trunk": [], "ptrunk": [], "crown": [], "pine": []}
+	var placed_at: Array[Vector2] = []
 	while placed < 70 and tries < 600:
 		tries += 1
 		var ang: float = rng.randf() * TAU
@@ -632,6 +636,14 @@ func _scatter_trees() -> void:
 		var slope: float = absf(height_at(x + 1.5, z) - y) + absf(height_at(x, z + 1.5) - y)
 		if slope > 2.0:
 			continue
+		var crowded: bool = false
+		for q: Vector2 in placed_at:
+			if q.distance_to(Vector2(x, z)) < 5.0:
+				crowded = true
+				break
+		if crowded:
+			continue
+		placed_at.append(Vector2(x, z))
 		var tree := Node3D.new()
 		tree.position = Vector3(x, y - 0.1, z)
 		tree.rotation.y = rng.randf() * TAU
@@ -640,12 +652,11 @@ func _scatter_trees() -> void:
 		root.add_child(tree)
 		var is_pine: bool = y > 9.0 or rng.randf() < 0.35
 		var txf: Transform3D = tree.transform
-		parts["trunk"].append(txf * Transform3D(Basis(), Vector3(0, 1.5, 0)))
 		if is_pine:
-			parts["cone_a"].append(txf * Transform3D(Basis(), Vector3(0, 3.6, 0)))
-			parts["cone_b"].append(txf * Transform3D(Basis(), Vector3(0, 5.2, 0)))
-			parts["cone_c"].append(txf * Transform3D(Basis(), Vector3(0, 6.6, 0)))
+			parts["ptrunk"].append(txf)
+			parts["pine"].append(txf)
 		else:
+			parts["trunk"].append(txf)
 			for off: Vector3 in [Vector3(0, 4.2, 0), Vector3(0.9, 3.6, 0.3), Vector3(-0.7, 3.8, -0.6)]:
 				var cs2: float = 1.0 if off.x == 0.0 else 0.7
 				parts["crown"].append(txf * Transform3D(Basis().scaled(Vector3.ONE * cs2), off))
@@ -661,7 +672,7 @@ func _scatter_trees() -> void:
 		tree.add_child(body)
 		placed += 1
 	# One MultiMesh per part: the whole forest is five draw calls.
-	var sets: Array = [["trunk", trunk, trunk_mat], ["crown", crown, leaf_round], ["cone_a", cone_a, leaf_pine], ["cone_b", cone_b, leaf_pine], ["cone_c", cone_c, leaf_pine]]
+	var sets: Array = [["trunk", trunk, trunk_mat], ["ptrunk", ptrunk, trunk_mat], ["crown", crown, leaf_round], ["pine", pine, leaf_pine]]
 	for entry: Array in sets:
 		var xfs: Array = parts[entry[0]]
 		var mm := MultiMesh.new()
@@ -675,6 +686,52 @@ func _scatter_trees() -> void:
 		mmi.multimesh = mm
 		mmi.material_override = entry[2]
 		root.add_child(mmi)
+
+
+## Bushes and small stones: fill the space between trees, ruins and paths so the vale feels lived-in.
+func _scatter_undergrowth() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 5150
+	var bush_x: Array = []
+	var stone_x: Array = []
+	var tries: int = 0
+	while (bush_x.size() < 160 or stone_x.size() < 70) and tries < 4000:
+		tries += 1
+		var ang: float = rng.randf() * TAU
+		var dist: float = rng.randf_range(14.0, 100.0)
+		var x: float = cos(ang) * dist
+		var z: float = sin(ang) * dist
+		if Vector2(x, z).distance_to(CLIFF_CENTER) < 24.0:
+			continue
+		var y: float = height_at(x, z)
+		if y < 1.6 or sea_distance(x, z) > SHORE_S - 16.0:
+			continue
+		var slope: float = absf(height_at(x + 1.0, z) - y) + absf(height_at(x, z + 1.0) - y)
+		if slope > 1.4:
+			continue
+		var xf := Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3.ONE * rng.randf_range(0.7, 1.3)), Vector3(x, y - 0.05, z))
+		if bush_x.size() < 160 and rng.randf() < 0.7:
+			bush_x.append(xf)
+		elif stone_x.size() < 70:
+			stone_x.append(Transform3D(xf.basis.scaled(Vector3.ONE * rng.randf_range(0.25, 0.55)), xf.origin))
+	var bush_mat: ShaderMaterial = leaf_material(Color("5ea94e"), Color("163f27"))
+	bush_mat.set_shader_parameter("sway_strength", 0.04)
+	var sets: Array = [[leaf_crown_mesh(0.95, 0.7, 26, 41), bush_mat, bush_x, Vector3(0, 0.55, 0)],
+		[Flora.boulder(53, 10), ArmorKit.painted(Color("8c8e96"), 0.15), stone_x, Vector3(0, 0.1, 0)]]
+	for e: Array in sets:
+		var mm := MultiMesh.new()
+		mm.transform_format = MultiMesh.TRANSFORM_3D
+		mm.mesh = e[0]
+		var xs: Array = e[2]
+		mm.instance_count = xs.size()
+		for i: int in xs.size():
+			var t: Transform3D = xs[i]
+			mm.set_instance_transform(i, Transform3D(t.basis, t.origin + t.basis * (e[3] as Vector3)))
+		var mmi := MultiMeshInstance3D.new()
+		mmi.multimesh = mm
+		mmi.material_override = e[1]
+		mmi.visibility_range_end = 90.0
+		add_child(mmi)
 
 
 static var _leaf_tex: ImageTexture

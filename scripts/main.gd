@@ -2,7 +2,7 @@ extends Node3D
 ## Game root: assembles world, player, camera and UI, and wires their signals.
 
 const PLAYER_SPAWN := Vector3(0.0, 0.0, 6.0)
-const AUTOSAVE_SECONDS: float = 20.0
+const AUTOSAVE_SECONDS: float = 60.0
 
 ## Tests and screenshots switch saving off so they always start fresh.
 var use_save: bool = true

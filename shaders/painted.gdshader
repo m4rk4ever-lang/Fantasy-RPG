@@ -18,7 +18,7 @@ void vertex() {
 }
 
 void fragment() {
-	vec3 c = albedo.rgb * texture(albedo_tex, UV).rgb;
+	vec3 c = albedo.rgb * texture(albedo_tex, UV).rgb * COLOR.rgb;
 	ALBEDO = mix(c * mix(0.72, 1.08, topness), vec3(1.0, 0.95, 0.85), flash);
 	ROUGHNESS = 0.7;
 	SPECULAR = 0.0;

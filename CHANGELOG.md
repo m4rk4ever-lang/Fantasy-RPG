@@ -1,5 +1,25 @@
 # Changelog
 
+## 14-11-2026 (omgeving en haperingen)
+
+Feedback van de eigenaar: omgeving en bomen niet gedetailleerd; High draait 40-60 fps maar hapert veel.
+
+**Gebouwd**
+- **Bomen:** loofbomen met een getaperde, licht gebogen stam met wortelvoet en twee takken naar de zijkruinen. Dennen opgebouwd uit tien lagen hangende takkaarten met een eigen naaldtextuur (gevuld takvorm met naalden), van breed onderaan naar smal bovenaan. Bomen staan minstens 5 m uit elkaar, zodat ze niet meer in elkaar groeien. Kleuren dieper groen.
+- **Onderbegroeiing:** 160 struiken van bladkaarten en 70 losse stenen tussen bomen, ruïnes en paden (MultiMesh, verdwijnen na 90 m).
+- **Rotsblokken:** de bollen aan de voet van de klif zijn gladde, door ruis gevormde keien in geschilderde stijl.
+- **Haperingen:** de belangrijkste oorzaak gevonden. Als een klikdoel onbereikbaar was, zocht de padvinding elke physics-frame opnieuw het hele raster af. Nu alleen als het doel verschuift of eens per 1,5 s. Automatisch opslaan van elke 20 naar elke 60 seconden (schrijven naar de browseropslag kan een frame kosten).
+
+**Screenshots**
+![Bos](docs/screenshots/2026-11-14/bos.png)
+![Overzicht](docs/screenshots/2026-11-14/01_overzicht.png)
+![Gevecht](docs/screenshots/2026-11-14/02_gevecht.png)
+
+**Zelfcontrole**
+- Diepte: ja | Landmark: Veilspire | Palet: ja | Game of demo: game | Zwakste deel: de huizen van Saltwick en de bergring zijn nog het eenvoudigst.
+
+**Prestaties:** eigenaar mat 40-60 fps op High. Graag opnieuw testen of de haperingen weg zijn.
+
 ## 14-11-2026 (vervolg, de 4 zwakke punten)
 
 **Gebouwd**

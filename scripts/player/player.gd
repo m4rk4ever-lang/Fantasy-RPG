@@ -149,12 +149,14 @@ func set_move_target(point: Vector3) -> void:
 	_has_move_target = true
 	attack_target = null
 	talk_target = null
+	_repath_timer = 0.0
 
 
 func set_talk_target(npc: Node3D) -> void:
 	talk_target = npc
 	_has_move_target = false
 	attack_target = null
+	_repath_timer = 0.0
 
 
 func clear_orders() -> void:
@@ -421,11 +423,13 @@ func _order_wish() -> Vector3:
 	if flat.distance_to(goal_flat) < 2.5:
 		return _steer_around(w)
 	_repath_timer -= get_physics_process_delta_time()
-	if _path.is_empty() or _path_goal.distance_to(goal_flat) > 1.5 or _repath_timer <= 0.0:
+	# Re-plan only when the goal moved or now and then. An unreachable goal used to trigger a full A*
+	# search every physics frame (a big stutter in the browser, owner 14-11-2026).
+	if _path_goal.distance_to(goal_flat) > 1.5 or _repath_timer <= 0.0:
 		_path = nav.find_path(global_position, goal)
 		_path_i = 0
 		_path_goal = goal_flat
-		_repath_timer = 0.6
+		_repath_timer = 1.5
 	while _path_i < _path.size() - 1 and flat.distance_to(Vector3(_path[_path_i].x, 0, _path[_path_i].z)) < 0.8:
 		_path_i += 1
 	if _path_i >= _path.size():
