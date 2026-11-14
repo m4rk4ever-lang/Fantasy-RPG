@@ -183,7 +183,7 @@ func _torch(p: Vector3, with_light: bool) -> void:
 		var l := OmniLight3D.new()
 		l.light_color = Color("ff9a55")
 		l.light_energy = 3.0
-		l.omni_range = 14.0
+		l.omni_range = 17.0
 		l.omni_attenuation = 1.4
 		l.shadow_enabled = false
 		add_child(l)
@@ -300,4 +300,4 @@ func _process(delta: float) -> void:
 	for k: int in order.size():
 		var i: int = order[k]
 		_lights[i].visible = k < 3
-		_lights[i].light_energy = 2.8 + sin(_time * 9.0 + i * 1.7) * 0.25 + sin(_time * 23.0 + i) * 0.12
+		_lights[i].light_energy = 3.4 + sin(_time * 9.0 + i * 1.7) * 0.25 + sin(_time * 23.0 + i) * 0.12

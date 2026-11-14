@@ -108,6 +108,7 @@ func _build_glb() -> void:
 		if hide_meshes.has(String(mi.name)):
 			mi.visible = false
 			continue
+		mi.mesh = ArmorKit.smooth_mesh(mi.mesh)
 		for i: int in mi.mesh.get_surface_count():
 			var m: Material = mi.get_active_material(i)
 			if m is BaseMaterial3D:
@@ -207,8 +208,7 @@ func _build_gear(skel: Skeleton3D) -> void:
 	var gold: ShaderMaterial = ArmorKit.painted(Color("9c7230"), 0.3, true)
 	var leather: ShaderMaterial = ArmorKit.painted(Color("6b4a33"), 0.2)
 	var cloth: ShaderMaterial = ArmorKit.painted(col_tunic, 0.25)
-	var fur := TestArena.leaf_material(Color("5b4330"), Color("2a1f17"))
-	fur.set_shader_parameter("sway_strength", 0.01)
+	var fur_solid: ShaderMaterial = ArmorKit.painted(Color("6a4e36"), 0.35)
 
 	# Pauldrons: three stacked shells per side with gold rims and a fur fringe, on the chest bone so they
 	# sit on the shoulders like heavy plate.
@@ -221,7 +221,7 @@ func _build_gear(skel: Skeleton3D) -> void:
 			var pos: Vector3 = base + Vector3(0.05 * side * absf(t[3]) * 6.0, t[3], 0)
 			_piece(skel, "Chest", sh[0], steel if t[3] == 0.0 else steel_dark, pos, tilt)
 			_piece(skel, "Chest", sh[1], gold, pos, tilt)
-		_piece(skel, "Chest", ArmorKit.fur_ring(0.15, 16, 0.2, 5 + int(side)), fur, base + Vector3(0.05 * side, -0.12, 0), tilt)
+		_piece(skel, "Chest", ArmorKit.fur_roll(0.15, 0.035, 9, 5 + int(side)), fur_solid, base + Vector3(0.05 * side, -0.11, 0), tilt)
 		# Small gold spike on top, a crown point (the Sundered Crown).
 		var spike := CylinderMesh.new()
 		spike.top_radius = 0.0
@@ -244,7 +244,7 @@ func _build_gear(skel: Skeleton3D) -> void:
 	# Collar: a cloth scarf with fur around the neck.
 	var scarf: Array = ArmorKit.band(0.095, 0.15, 0.1, 0.012)
 	_piece(skel, "Chest", scarf[0], cloth, Vector3(0, 0.2, 0.0))
-	_piece(skel, "Chest", ArmorKit.fur_ring(0.15, 16, 0.08, 9), fur, Vector3(0, 0.18, -0.01))
+	_piece(skel, "Chest", ArmorKit.fur_roll(0.14, 0.035, 10, 9), fur_solid, Vector3(0, 0.17, -0.01))
 
 	# Waist: layered faulds, a broad belt with a big buckle.
 	var fauld: Array = ArmorKit.band(0.16, 0.19, 0.1, 0.014)

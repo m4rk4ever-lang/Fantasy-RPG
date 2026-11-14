@@ -519,10 +519,11 @@ func _enter_undercroft() -> void:
 	arena.moon.visible = false
 	env.background_mode = Environment.BG_COLOR
 	env.background_color = Color("1e2125")
-	env.ambient_light_color = Color("6a675c")
-	env.ambient_light_energy = 0.8
-	env.fog_light_color = Color("1e2125")
-	env.fog_density = 0.02
+	env.ambient_light_color = Color("8f8c80")
+	env.ambient_light_energy = 1.15
+	env.fog_light_color = Color("2a2e35")
+	env.fog_density = 0.012
+	_set_hero_lantern(true)
 	env.fog_height_density = 0.0
 	env.glow_intensity = 0.15
 	ambience.visible = false
@@ -532,6 +533,21 @@ func _enter_undercroft() -> void:
 			h.died.connect(_on_dungeon_enemy_died)
 			if h.is_boss:
 				h.phase_two.connect(_on_boss_phase_two)
+
+
+var _lantern: OmniLight3D
+
+
+## A warm lantern glow around the hero in dungeons, so the hero and nearby foes always read.
+func _set_hero_lantern(on: bool) -> void:
+	if _lantern == null:
+		_lantern = OmniLight3D.new()
+		_lantern.light_color = Color("ffc98a")
+		_lantern.light_energy = 1.1
+		_lantern.omni_range = 7.0
+		_lantern.position = Vector3(0, 2.2, 0.3)
+		player.add_child(_lantern)
+	_lantern.visible = on
 
 
 func _on_dungeon_enemy_died(en: Hollow) -> void:
@@ -558,6 +574,7 @@ func _on_boss_phase_two(b: Hollow) -> void:
 
 func _exit_undercroft() -> void:
 	in_dungeon = false
+	_set_hero_lantern(false)
 	player.clear_orders()
 	lock_on.set_target(null)
 	player.global_position = arena.undercroft_door_outside

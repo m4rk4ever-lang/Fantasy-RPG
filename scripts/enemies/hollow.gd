@@ -127,6 +127,7 @@ func _attach_glb() -> void:
 		(pack as Node3D).visible = false
 	var shader: Shader = preload("res://shaders/husk_tint.gdshader")
 	for mi: MeshInstance3D in _glb.find_children("*", "MeshInstance3D", true, false):
+		mi.mesh = ArmorKit.smooth_mesh(mi.mesh)
 		for i: int in mi.mesh.get_surface_count():
 			var src: Material = mi.get_active_material(i)
 			var sm := ShaderMaterial.new()
@@ -196,9 +197,7 @@ func _dress_husk(skel: Skeleton3D) -> void:
 	add.call("Head", hood[0], cloth_dark, Vector3(0, 0.18, -0.03), Vector3(-15, 0, 0))
 	add.call("Head", hood[1], trim, Vector3(0, 0.18, -0.03), Vector3(-15, 0, 0))
 	# Torn mantle over the shoulders.
-	var mantle: Array = ArmorKit.band(0.12, 0.26, 0.2, 0.014)
-	add.call("Chest", mantle[0], cloth, Vector3(0, 0.12, 0))
-	add.call("Chest", mantle[2], trim, Vector3(0, 0.12, 0))
+	add.call("Chest", ArmorKit.mantle(0.11, 0.3, 0.42, 6, 21), cloth, Vector3(0, 0.16, -0.01))
 	# Ragged skirt and hanging strips.
 	var skirt: Array = ArmorKit.band(0.17, 0.26, 0.5, 0.01)
 	add.call("Hips", skirt[0], cloth, Vector3(0, -0.12, 0))

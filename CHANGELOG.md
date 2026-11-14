@@ -1,5 +1,23 @@
 # Changelog
 
+## 14-11-2026 (vervolg, de 4 zwakke punten)
+
+**Gebouwd**
+- **Gladde lichamen:** de geïmporteerde lichamen hadden gesplitste (hoekige) normalen. Die worden nu bij het laden gemiddeld, zodat held, Hollowed en dorpelingen zacht en rond belicht worden.
+- **Geen strepen meer op het harnas:** de trapjes en ringen over borstplaat en gezicht waren schaduwacne. Schaduwbias en normal bias van de zon verhoogd; gebogen vormen ogen nu glad.
+- **Bont:** de losse vlokjes zijn vervangen door een massieve, bobbelige bontrol in geschilderde stijl, langs de schouderstukken en de kraag.
+- **Mantel van de Hollowed:** de stijve kegel is een vallende mantel geworden met plooien en een gerafelde zoom.
+- **Undercroft lichter:** meer omgevingslicht in maanlichtkleur, minder dichte mist, sterkere fakkels met groter bereik, en een warme lantaarngloed rond de held zolang hij in de kerker is. De Keeper en de vloer zijn nu goed te zien.
+- Wangstukken aan de helm geprobeerd en weer weggehaald: ze lazen als losse ringen.
+
+**Screenshots**
+![Held van dichtbij](docs/screenshots/2026-11-13e/held_close.png)
+![Gevecht](docs/screenshots/2026-11-13e/gevecht.png)
+![Undercroft](docs/screenshots/2026-11-13e/keeper.png)
+
+**Zelfcontrole**
+- Game of demo: game. Zwakste deel: het gezicht van de held blijft eenvoudig (platte ogen en baard van het basismodel), en de dorpelingen dragen nog geen kleding in de nieuwe stijl.
+
 ## 14-11-2026 (met de eigenaar live)
 
 Stijlreferentie van de eigenaar: een gestileerd MMO-spelersmodel met harnasset (portfolio op ArtStation). Het model zelf mag niet gebruikt worden (auteursrecht, geen licentie); alleen als richting. Het beeld staat bewust niet in de repo.

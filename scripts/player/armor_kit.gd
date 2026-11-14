@@ -118,3 +118,107 @@ static func fur_ring(radius: float, count: int, length: float, seed: int) -> Arr
 			st.set_normal((out + Vector3.UP * 0.5).normalized())
 			st.add_vertex(quad[k])
 	return st.commit()
+
+
+static var _smooth_cache: Dictionary = {}
+
+
+## Imported low-poly bodies come with split (faceted) normals. Averaging the normals of vertices that
+## share a position gives the soft, rounded shading of a stylized MMO model. Skin weights are kept.
+static func smooth_mesh(mesh: Mesh) -> Mesh:
+	if mesh == null or not (mesh is ArrayMesh):
+		return mesh
+	if _smooth_cache.has(mesh):
+		return _smooth_cache[mesh]
+	var src: ArrayMesh = mesh
+	var out := ArrayMesh.new()
+	for i: int in src.get_surface_count():
+		var arrays: Array = src.surface_get_arrays(i)
+		var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+		var nrms: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+		if nrms.size() == verts.size() and verts.size() > 0:
+			var sums: Dictionary = {}
+			for v: int in verts.size():
+				var key: Vector3i = Vector3i((verts[v] * 2000.0).round())
+				sums[key] = (sums.get(key, Vector3.ZERO) as Vector3) + nrms[v]
+			for v: int in verts.size():
+				var key2: Vector3i = Vector3i((verts[v] * 2000.0).round())
+				var n: Vector3 = sums[key2]
+				if n.length_squared() > 0.000001:
+					nrms[v] = n.normalized()
+			arrays[Mesh.ARRAY_NORMAL] = nrms
+			arrays[Mesh.ARRAY_TANGENT] = null
+		var flags: int = src.surface_get_format(i) & (Mesh.ARRAY_FLAG_USE_8_BONE_WEIGHTS)
+		out.add_surface_from_arrays(src.surface_get_primitive_type(i), arrays, [], {}, flags)
+		out.surface_set_material(i, src.surface_get_material(i))
+		out.surface_set_name(i, src.surface_get_name(i))
+	_smooth_cache[mesh] = out
+	return out
+
+
+## Lumpy fur roll along a circle (solid, hand-carved look like stylized MMO fur trims).
+static func fur_roll(radius: float, thickness: float, lumps: int, seed: int) -> ArrayMesh:
+	var path := PackedVector3Array()
+	var steps: int = lumps * 4
+	for i: int in steps + 1:
+		var a: float = TAU * float(i) / steps
+		path.append(Vector3(cos(a) * radius, 0, sin(a) * radius))
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed
+	var sides: int = 8
+	var rings: Array[PackedVector3Array] = []
+	for i: int in path.size():
+		var t: Vector3 = (path[mini(i + 1, path.size() - 1)] - path[maxi(i - 1, 0)]).normalized()
+		var n: Vector3 = t.cross(Vector3.UP).normalized()
+		var r: float = thickness * (0.75 + 0.35 * absf(sin(float(i) / steps * PI * lumps)))
+		var ring := PackedVector3Array()
+		for s: int in sides:
+			var a2: float = TAU * float(s) / sides
+			var off: Vector3 = (n * cos(a2) + Vector3.UP * sin(a2)) * r
+			# Tufts hang down: stretch the lower half.
+			if off.y < 0.0:
+				off.y *= 1.6
+			ring.append(path[i] + off)
+		rings.append(ring)
+	for i: int in path.size() - 1:
+		for s: int in sides:
+			var s2: int = (s + 1) % sides
+			for v: Vector3 in [rings[i][s], rings[i][s2], rings[i + 1][s], rings[i][s2], rings[i + 1][s2], rings[i + 1][s]]:
+				st.add_vertex(v)
+	st.index()
+	st.generate_normals()
+	return st.commit()
+
+
+## Draped cloth mantle: falls from a neck ring to a wider, jagged hem, with soft folds.
+static func mantle(neck_r: float, hem_r: float, length: float, folds: int, seed: int) -> ArrayMesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed
+	var cols: int = folds * 4
+	var rows: int = 6
+	var hem := PackedFloat32Array()
+	for c: int in cols + 1:
+		hem.append(rng.randf_range(0.75, 1.0) if c % 2 == 0 else rng.randf_range(0.55, 0.8))
+	hem[cols] = hem[0]
+	var pts: Array[PackedVector3Array] = []
+	for r: int in rows + 1:
+		var v: float = float(r) / rows
+		var row := PackedVector3Array()
+		for c: int in cols + 1:
+			var a: float = TAU * float(c) / cols
+			var fold: float = sin(a * folds) * 0.025 * v
+			var rad: float = lerpf(neck_r, hem_r, sqrt(v)) + fold
+			var y: float = -length * v * lerpf(1.0, hem[c], v)
+			row.append(Vector3(cos(a) * rad, y, sin(a) * rad))
+		pts.append(row)
+	for r: int in rows:
+		for c: int in cols:
+			for p: Vector3 in [pts[r][c], pts[r][c + 1], pts[r + 1][c], pts[r][c + 1], pts[r + 1][c + 1], pts[r + 1][c]]:
+				st.add_vertex(p)
+	st.index()
+	st.generate_normals()
+	return st.commit()

@@ -6,6 +6,9 @@ Blokken van ongeveer 60 minuten. De bouwagent pakt elke run het eerste niet-afge
 
 ## Eerst volgende run (uit zelfcontrole)
 
+- **Dorpelingen in de nieuwe stijl:** eigen kleding (schort, kap, vissershoed) met geschilderde stoffen en details, net als het harnas van de held.
+- **Gezicht van de held:** eigen ogen en wenkbrauwen in de geschilderde stijl, of een gesloten helm als keuze in de character creator.
+
 - **Geluid beluisteren** en mix bijstellen (V.8 en V.9 staan op main).
 
 - **Prestaties meten in de browser** na de kwaliteitsinstelling (eigenaar). Haalt Medium geen 60 fps: verder met LOD en het samenvoegen van rotsen en ruïnes.
