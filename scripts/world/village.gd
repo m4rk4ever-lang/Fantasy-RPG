@@ -4,19 +4,19 @@ extends Node3D
 ## Timber-framed houses on stone feet, a pier with moored boats, chimney smoke, gulls and villagers.
 ## All static geometry is merged into one vertex-colored mesh (one draw call).
 
-const COL_PLASTER := Color("e6e1d3")
-const COL_STONE := Color("b9b3a3")
-const COL_STONE_DARK := Color("8e8a7e")
-const COL_TIMBER := Color("5a3d2b")
-const COL_PLANK := Color("8a6446")
-const COL_PLANK_DARK := Color("6b4a33")
+const COL_PLASTER := Color(0.902, 0.882, 0.827, 0.2)  # alpha = material id (architecture shader)
+const COL_STONE := Color(0.725, 0.702, 0.639, 0.4)
+const COL_STONE_DARK := Color(0.557, 0.541, 0.494, 0.4)
+const COL_TIMBER := Color(0.353, 0.239, 0.169, 0.6)
+const COL_PLANK := Color(0.541, 0.392, 0.275, 0.6)
+const COL_PLANK_DARK := Color(0.42, 0.29, 0.2, 0.6)
 const COL_GLASS := Color("2a3448")
 const COL_BRASS := Color("d9a441")
 const COL_SHUTTER := Color("3d5ba9")
 const COL_LEAF := Color("3c9a58")
 const COL_BLOOMS: Array[Color] = [Color("d9552e"), Color("e6e1d3"), Color("d9a441")]
-const COL_ROOF_A := Color("3d5ba9")
-const COL_ROOF_B := Color("5b6c9e")
+const COL_ROOF_A := Color(0.36, 0.40, 0.52, 0.8)  # slate tiles, blue-grey
+const COL_ROOF_B := Color(0.55, 0.33, 0.25, 0.8)  # fired clay tiles
 const COL_ROPE := Color("c9b48a")
 const COL_SAIL := Color("e6e1d3")
 
@@ -69,7 +69,7 @@ func build(p_arena: TestArena) -> void:
 	var mi := MeshInstance3D.new()
 	mi.name = "VillageMesh"
 	mi.mesh = _kit.commit()
-	mi.material_override = MeshKit.vertex_color_material()
+	mi.material_override = MeshKit.architecture_material()
 	add_child(mi)
 	var glow := MeshInstance3D.new()
 	glow.name = "VillageGlow"

@@ -1,5 +1,14 @@
 # Changelog
 
+## 14-11-2026 (bouwmaterialen en worldbuilding-analyse)
+
+**Gebouwd**
+- **Echte bouwmaterialen** zonder textuurbestanden (`architecture.gdshader`): gehakte steenblokken met voegen, wisselende maten en verwering; dakpannen in rijen met schaduwrand (leisteen en gebakken klei, zodat het dorp twee daktinten heeft); houtnerf met knoesten; pleister met regenstrepen; mos op bovenvlakken van steen. Toegepast op huizen, steigers, de Veilspire, de ruïnes (zuilen als gestapelde trommels), het uitkijkpunt, de Warden's Stair en de kerkers.
+- **Worldbuilding-analyse** in `docs/DESIGN.md`: wat de vallei en Saltwick nog missen, op volgorde van impact. Overgenomen in de roadmap.
+
+![Saltwick met dakpannen](docs/screenshots/2026-11-14/dorp_pannen.png)
+![Ruïne van steen](docs/screenshots/2026-11-14/ruine_steen.png)
+
 ## 14-11-2026 (gestileerd realisme, clipping, chat, beweging)
 
 Keuze eigenaar: **gestileerd realisme** (zoals de nieuwe RuneScape 3 of WoW): natuurlijke kleuren, echte materialen, geen fotorealisme.

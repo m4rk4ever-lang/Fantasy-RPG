@@ -490,9 +490,9 @@ func _build_watchtower() -> void:
 	root.name = "Watchtower"
 	root.position = Vector3(CLIFF_CENTER.x, CRAG_TOP - 0.3, CLIFF_CENTER.y)
 	add_child(root)
-	var stone := _stone_mat(Color("e6e1d3"))
-	var stone_dark := _stone_mat(Color("b9b3a3"))
-	var roof := _stone_mat(Color("3d5ba9"), 0.55)
+	var stone: Material = MeshKit.architecture_material(0.4, Color("e6e1d3"), true)
+	var stone_dark: Material = MeshKit.architecture_material(0.4, Color("b9b3a3"), true)
+	var roof: Material = MeshKit.architecture_material(0.8, Color("4f5d7a"))
 	var trim := _stone_mat(Color("5b6c9e"), 0.7)
 	var base_shape := CylinderShape3D.new()
 	base_shape.radius = 5.0
@@ -526,8 +526,8 @@ func _build_ruins() -> void:
 	var root := Node3D.new()
 	root.name = "Ruins"
 	add_child(root)
-	var stone := _stone_mat(Color("ddd7c6"))
-	var moss := _stone_mat(Color("6f9c5e"))
+	var stone: Material = MeshKit.architecture_material(0.4, Color("cfc8b6"), true)
+	var moss: Material = MeshKit.architecture_material(0.4, Color("6f8a4e"))
 	var spots: Array[Vector3] = [Vector3(-16, 0, -12), Vector3(-10, 0, -19), Vector3(-3, 0, -22), Vector3(5, 0, -21)]
 	var heights: Array[float] = [6.5, 4.0, 7.2, 2.4]
 	for i: int in spots.size():
@@ -572,7 +572,7 @@ func _build_arena_props() -> void:
 	var root := Node3D.new()
 	root.name = "ArenaProps"
 	add_child(root)
-	var stone := _stone_mat(Color("d8d2c2"))
+	var stone: Material = MeshKit.architecture_material(0.4, Color("d8d2c2"))
 	var trim := _stone_mat(Color("5b6c9e"), 0.7)
 	# Overlook: a stone stair up to a small platform. Steps are low enough to walk up (no jumping).
 	var top := Vector3(17.5, 0, 14.5)

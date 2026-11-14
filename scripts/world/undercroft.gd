@@ -82,7 +82,9 @@ func build() -> void:
 
 	var mi := MeshInstance3D.new()
 	mi.mesh = _kit.commit()
-	mi.material_override = MeshKit.vertex_color_material(0.95)
+	var um: ShaderMaterial = MeshKit.architecture_material(0.4, Color(1.35, 1.35, 1.35))
+	um.set_shader_parameter("moss", 0.1)
+	mi.material_override = um
 	add_child(mi)
 	var gm := StandardMaterial3D.new()
 	gm.vertex_color_use_as_albedo = true

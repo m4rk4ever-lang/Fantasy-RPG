@@ -198,3 +198,20 @@ Hollowed Wardens: de Wardens die the Veil als eersten raakte. Ze dragen nog de g
 - **Resource per klasse:** eigen resource per klasse. Vanguard: Fury (bouwt op door treffers, zakt buiten gevecht, Surge Strike 30, Whirlwind 40). Ranger Focus, Arcanist Mana, Priest Faith, Warlock Corruption volgen.
 - **Raids:** later echte multiplayer. Tot die tijd geen raids; eerst de singleplayer-slice af.
 - **Grafische richting:** dichter naar de gladde stijl van RuneScape 3. Personages zijn geanimeerde CC0-modellen (Quaternius) met eigen uitrusting; omgeving gladde vormen, bladkaarten, schilderachtige terreinshader.
+
+## Worldbuilding-analyse (14-11-2026)
+
+Kritische blik op de startvallei en Saltwick, na feedback van de eigenaar ("huizen en pilaren zien er niet echt uit").
+
+**Wat ontbrak (en nu is opgelost)**
+- Bouwmaterialen waren egale kleurvlakken. Nu: gehakte steenblokken met voegen en verwering, dakpannen (leisteen en gebakken klei), houtnerf, gepleisterde muren met regenstrepen, zuilen als gestapelde trommels (`architecture.gdshader`).
+
+**Wat nog mist, op volgorde van impact**
+1. **Verbinding met de grond.** Huizen, zuilen en rotsen staan "op" het gras: geen aangestampte aarde, geen randje onkruid, geen contactschaduw. Oplossing: donkere grondvlek en aarde rond voeten, gras dat wijkt.
+2. **Ruïnes zonder verhaal.** Vier losse zuilen zeggen niets over wie hier woonde. Nodig: een omgevallen Warden-beeld, een trap naar een ingestorte vloer, gebarsten tegels, klimop op de stenen, een vervaagde rune die zacht gloeit (de Veil).
+3. **Dorp zonder dagelijks leven.** Saltwick mist een put, marktkraam, netten die drogen, waslijn, kar, uithangbord, lantaarnpalen langs de straat, een bestrate dorpsstraat. Dorpelingen lopen alleen rond, ze doen niets (vissen, hout hakken, netten boeten).
+4. **Diepte in het landschap.** De bergring is kaal grijs-wit, de verre heuvels hebben geen bos. Nodig: bosranden op de heuvels (goedkope impostorbomen), rotsige flanken, een waterval, een tweede verre landmark (ruïne op een heuvel) zodat de wereld groter voelt dan de vallei.
+5. **Water.** De baai heeft golven, maar geen rotsen in de branding, geen riet aan de kant, geen meeuwen op de palen.
+6. **Leven.** Vogels in de bomen, een hert aan de bosrand, vliegen bij de visrekken.
+7. **De Veilspire zelf.** Een gladde witte cilinder: geen steunberen, ramen met kozijnen, banieren, licht in de ramen, verwering. Het belangrijkste landmark verdient de meeste detail.
+8. **Paden.** Zandpaden zijn er, maar zonder randstenen, wagensporen of een houten bruggetje.

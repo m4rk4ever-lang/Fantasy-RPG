@@ -6,6 +6,8 @@ Blokken van ongeveer 60 minuten. De bouwagent pakt elke run het eerste niet-afge
 
 ## Eerst volgende run (uit zelfcontrole)
 
+- **Worldbuilding (analyse in `docs/DESIGN.md`, 14-11-2026), in deze volgorde:** grondverbinding (aarde en contactschaduw rond huizen, zuilen, rotsen); ruïnes met verhaal (omgevallen Warden-beeld, ingestorte trap, klimop, gloeiende rune); Saltwick met dagelijks leven (put, marktkraam, netten, waslijn, kar, uithangbord, bestrate straat, dorpelingen die iets doen); de Veilspire met steunberen, kozijnen, banieren en licht; bosranden en rotsflanken op de heuvels, een waterval en een tweede verre landmark.
+
 - **Haperingen nameten** (eigenaar). Zo nodig: shaders voorverwarmen bij het laden, minder kaarten per boom op Medium.
 - **Huizen van Saltwick en de bergring** in de nieuwe gedetailleerde stijl (afgeronde dakpannen, balken met textuur, rotsige bergflanken).
 

@@ -167,7 +167,7 @@ func _build_deck() -> void:
 	add_child(body)
 	var mi := MeshInstance3D.new()
 	mi.mesh = mesh
-	mi.material_override = MeshKit.vertex_color_material(0.9)
+	mi.material_override = MeshKit.architecture_material(0.4)
 	body.add_child(mi)
 	var cs := CollisionShape3D.new()
 	var shape: ConcavePolygonShape3D = mesh.create_trimesh_shape()

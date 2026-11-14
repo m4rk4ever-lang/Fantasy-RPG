@@ -174,6 +174,21 @@ func commit() -> ArrayMesh:
 	return _st.commit()
 
 
+## Building materials (stone blocks, roof tiles, wood grain, plaster) from the vertex colour alpha.
+## See shaders/architecture.gdshader. `override_id` >= 0 forces one material for the whole mesh.
+static func architecture_material(override_id: float = -1.0, color: Color = Color.WHITE, cylindrical: bool = false) -> ShaderMaterial:
+	var m := ShaderMaterial.new()
+	m.shader = preload("res://shaders/architecture.gdshader")
+	m.set_shader_parameter("override_id", override_id)
+	m.set_shader_parameter("albedo_color", color)
+	m.set_shader_parameter("cylindrical", cylindrical)
+	if cylindrical:
+		# Column drums: tall courses, few vertical joints.
+		m.set_shader_parameter("block_h", 0.62)
+		m.set_shader_parameter("block_w", 2.4)
+	return m
+
+
 static func vertex_color_material(roughness: float = 0.85) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.vertex_color_use_as_albedo = true

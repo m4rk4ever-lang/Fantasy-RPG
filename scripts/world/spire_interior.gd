@@ -399,7 +399,7 @@ func _build_shell() -> void:
 	# Two charred roof beams crossing high up: silhouettes against the gloom.
 	kit.box(Transform3D(Basis(Vector3.UP, 0.7), Vector3(0, 11.0, 0)), Vector3(RADIUS * 2.0, 0.55, 0.55), COL_SILHOUETTE)
 	kit.box(Transform3D(Basis(Vector3.UP, 2.3) * Basis(Vector3.RIGHT, 0.06), Vector3(0, 12.2, 0)), Vector3(RADIUS * 2.0, 0.55, 0.55), COL_SILHOUETTE)
-	_add_mesh(kit, MeshKit.vertex_color_material(0.92), "ShellMesh")
+	_add_mesh(kit, MeshKit.architecture_material(0.4), "ShellMesh")
 
 
 ## Pillars (two broken), the broken spiral stair along the wall, fallen masonry and banners.
