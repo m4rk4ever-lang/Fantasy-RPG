@@ -35,6 +35,39 @@ var undercroft_door: Interactable
 var undercroft_door_outside: Vector3
 var beacon_light: OmniLight3D
 var spire_path: SpirePath
+## Worn paths (xz start, xz end), also kept free of trees, bushes and stones.
+var path_segs: Array[Vector4] = []
+## Tree trunk positions (xz), so bushes and stones keep their distance.
+var tree_spots: Array[Vector2] = []
+
+
+## Can vegetation or a stone stand here without clipping into the village, ruins, crag, stair,
+## lookout, paths or a tree? (Owner: things must not stand inside each other, 14-11-2026.)
+func is_clear(x: float, z: float, margin: float = 0.0, tree_gap: float = 0.0) -> bool:
+	var p := Vector2(x, z)
+	# Saltwick: everything seaward of the fence (s > 6) along the village front.
+	var sd: float = x * SEA_DIR.x + z * SEA_DIR.y
+	var td: float = -x * SEA_DIR.y + z * SEA_DIR.x
+	if sd > 6.0 - margin and absf(td) < 34.0 + margin:
+		return false
+	if p.distance_to(CLIFF_CENTER) < 26.0 + margin:
+		return false
+	if x > -22.0 - margin and x < 10.0 + margin and z < -6.0 + margin and z > -28.0 - margin:
+		return false  # Ruins.
+	if p.distance_to(Vector2(17.5, 14.5)) < 7.0 + margin or p.length() < 9.0:
+		return false  # Lookout platform and the arena centre.
+	for sg: Vector4 in path_segs:
+		var a := Vector2(sg.x, sg.y)
+		var b := Vector2(sg.z, sg.w)
+		var ab: Vector2 = b - a
+		var t: float = clampf((p - a).dot(ab) / maxf(ab.length_squared(), 0.001), 0.0, 1.0)
+		if p.distance_to(a + ab * t) < 2.6 + margin:
+			return false
+	if tree_gap > 0.0:
+		for q: Vector2 in tree_spots:
+			if q.distance_to(p) < tree_gap:
+				return false
+	return true
 
 
 func _ready() -> void:
@@ -111,8 +144,8 @@ func _build_environment() -> void:
 	environment.ambient_light_energy = 0.55
 	environment.ambient_light_color = Color("dcdccf")
 	environment.reflected_light_source = Environment.REFLECTION_SOURCE_DISABLED
-	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
-	environment.tonemap_exposure = 0.92
+	environment.tonemap_mode = Environment.TONE_MAPPER_ACES
+	environment.tonemap_exposure = 1.05
 	environment.tonemap_white = 6.0
 	environment.glow_enabled = true
 	environment.glow_intensity = 0.5
@@ -120,7 +153,7 @@ func _build_environment() -> void:
 	environment.glow_hdr_threshold = 1.1
 	# Atmospheric perspective: distance fog tinted like the horizon sky.
 	environment.fog_enabled = true
-	environment.fog_light_color = Color("a6cdea")
+	environment.fog_light_color = Color("b6c4cf")
 	environment.fog_light_energy = 1.0
 	environment.fog_sun_scatter = 0.25
 	environment.fog_density = 0.0012
@@ -128,8 +161,8 @@ func _build_environment() -> void:
 	environment.fog_height = 8.0
 	environment.fog_height_density = 0.0015
 	environment.adjustment_enabled = true
-	environment.adjustment_saturation = 1.16
-	environment.adjustment_contrast = 1.05
+	environment.adjustment_saturation = 0.95
+	environment.adjustment_contrast = 1.08
 
 	var we := WorldEnvironment.new()
 	we.name = "WorldEnvironment"
@@ -200,6 +233,7 @@ func _build_terrain() -> void:
 		Vector4(27.0, 21.0, 14.0, 10.0), Vector4(14.0, 10.0, 3.0, 2.0), Vector4(3.0, 2.0, -3.0, -12.0),
 		Vector4(3.0, 2.0, 4.0, -30.0), Vector4(4.0, -30.0, 4.0, -52.0), Vector4(4.0, -52.0, 6.0, -60.0),
 	]
+	path_segs = segs
 	terrain_material.set_shader_parameter("path_segs", segs)
 	terrain_material.set_shader_parameter("path_count", segs.size())
 	terrain_material.set_shader_parameter("sand_height", 0.9)
@@ -278,8 +312,8 @@ func _build_far_mountains() -> void:
 	mat.set_shader_parameter("strata_amount", 0.3)
 	mat.set_shader_parameter("rock_color", Color("4f5d8c"))
 	mat.set_shader_parameter("rock_light", Color("8d97b3"))
-	mat.set_shader_parameter("grass_color", Color("3f8f62"))
-	mat.set_shader_parameter("grass_dark", Color("2f6e55"))
+	mat.set_shader_parameter("grass_color", Color("55702e"))
+	mat.set_shader_parameter("grass_dark", Color("344c22"))
 	mat.set_shader_parameter("rock_slope", 0.82)
 	mat.set_shader_parameter("detail_scale", 0.02)
 	mi.material_override = mat
@@ -432,7 +466,7 @@ func _build_crag() -> void:
 	# Fallen boulders around the foot of the crag.
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 314
-	var rock_mat: Material = ArmorKit.painted(Color("9a9ca6"), 0.15)
+	var rock_mat: Material = ArmorKit.painted(Color("8a8984"), 0.1, false, 0.75, Vector3(0.9, 0.9, 0.9))
 	var rocks: Array[ArrayMesh] = [Flora.boulder(11), Flora.boulder(23), Flora.boulder(37)]
 	for n: int in 16:
 		var ang: float = rng.randf() * TAU
@@ -605,19 +639,17 @@ func _scatter_trees() -> void:
 	leaf_pine.set_shader_parameter("sway_strength", 0.08)
 	leaf_pine.set_shader_parameter("height_ref", 7.0)
 
-	var trunk: ArrayMesh = Flora.broadleaf_trunk()
 	var ptrunk: ArrayMesh = Flora.pine_trunk()
 	var pine: ArrayMesh = Flora.pine_canopy(8.2, 2.7, 10, 3)
-	trunk_mat = ArmorKit.painted(Color("6b4a33"), 0.1)
-	leaf_pine = Flora.needle_material(Color("4c9655"), Color("10301f"))
-	var crown: ArrayMesh = leaf_crown_mesh(2.1, 1.75, 90, 11)
-	leaf_round = leaf_material(Color("62ad4c"), Color("184a2d"))
+	trunk_mat = ArmorKit.painted(Color("5a4636"), 0.05, false, 0.9, Vector3(3.0, 0.35, 3.0))
+	leaf_pine = Flora.needle_material(Color("4f6e3c"), Color("112516"))
+	leaf_round = leaf_material(Color("4d7a2a"), Color("112811"))
 
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 2024
 	var placed: int = 0
 	var tries: int = 0
-	var parts: Dictionary = {"trunk": [], "ptrunk": [], "crown": [], "pine": []}
+	var parts: Dictionary = {"ptrunk": [], "pine": [], "oak0": [], "oak1": [], "oak2": []}
 	var placed_at: Array[Vector2] = []
 	while placed < 70 and tries < 600:
 		tries += 1
@@ -627,8 +659,8 @@ func _scatter_trees() -> void:
 		var z: float = sin(ang) * dist
 		if Vector2(x, z).distance_to(CLIFF_CENTER) < 25.0:
 			continue
-		if x > -22.0 and x < 10.0 and z < -8.0 and z > -28.0:
-			continue  # Keep the ruins readable.
+		if not is_clear(x, z, 1.5):
+			continue  # Keep village, ruins, paths and the crag clear.
 		var y: float = height_at(x, z)
 		if y < 1.6 or sea_distance(x, z) > SHORE_S - 16.0:
 			continue  # Keep beach and village clear.
@@ -644,6 +676,7 @@ func _scatter_trees() -> void:
 		if crowded:
 			continue
 		placed_at.append(Vector2(x, z))
+		tree_spots.append(Vector2(x, z))
 		var tree := Node3D.new()
 		tree.position = Vector3(x, y - 0.1, z)
 		tree.rotation.y = rng.randf() * TAU
@@ -656,10 +689,7 @@ func _scatter_trees() -> void:
 			parts["ptrunk"].append(txf)
 			parts["pine"].append(txf)
 		else:
-			parts["trunk"].append(txf)
-			for off: Vector3 in [Vector3(0, 4.2, 0), Vector3(0.9, 3.6, 0.3), Vector3(-0.7, 3.8, -0.6)]:
-				var cs2: float = 1.0 if off.x == 0.0 else 0.7
-				parts["crown"].append(txf * Transform3D(Basis().scaled(Vector3.ONE * cs2), off))
+			parts["oak%d" % (placed % 3)].append(txf)
 		var body := StaticBody3D.new()
 		body.collision_layer = 1
 		var cs := CollisionShape3D.new()
@@ -672,7 +702,11 @@ func _scatter_trees() -> void:
 		tree.add_child(body)
 		placed += 1
 	# One MultiMesh per part: the whole forest is five draw calls.
-	var sets: Array = [["trunk", trunk, trunk_mat], ["ptrunk", ptrunk, trunk_mat], ["crown", crown, leaf_round], ["pine", pine, leaf_pine]]
+	var sets: Array = [["ptrunk", ptrunk, trunk_mat], ["pine", pine, leaf_pine]]
+	for v: int in 3:
+		var oak: Array = Flora.broadleaf(700 + v * 13)
+		sets.append(["oak%d" % v, oak[0], trunk_mat])
+		sets.append(["oak%d" % v, oak[1], leaf_round])
 	for entry: Array in sets:
 		var xfs: Array = parts[entry[0]]
 		var mm := MultiMesh.new()
@@ -701,7 +735,7 @@ func _scatter_undergrowth() -> void:
 		var dist: float = rng.randf_range(14.0, 100.0)
 		var x: float = cos(ang) * dist
 		var z: float = sin(ang) * dist
-		if Vector2(x, z).distance_to(CLIFF_CENTER) < 24.0:
+		if not is_clear(x, z, 0.5, 2.6):
 			continue
 		var y: float = height_at(x, z)
 		if y < 1.6 or sea_distance(x, z) > SHORE_S - 16.0:
@@ -709,15 +743,22 @@ func _scatter_undergrowth() -> void:
 		var slope: float = absf(height_at(x + 1.0, z) - y) + absf(height_at(x, z + 1.0) - y)
 		if slope > 1.4:
 			continue
+		var close: bool = false
+		for t2: Transform3D in bush_x + stone_x:
+			if Vector2(t2.origin.x, t2.origin.z).distance_to(Vector2(x, z)) < 1.8:
+				close = true
+				break
+		if close:
+			continue
 		var xf := Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3.ONE * rng.randf_range(0.7, 1.3)), Vector3(x, y - 0.05, z))
 		if bush_x.size() < 160 and rng.randf() < 0.7:
 			bush_x.append(xf)
 		elif stone_x.size() < 70:
 			stone_x.append(Transform3D(xf.basis.scaled(Vector3.ONE * rng.randf_range(0.25, 0.55)), xf.origin))
-	var bush_mat: ShaderMaterial = leaf_material(Color("5ea94e"), Color("163f27"))
+	var bush_mat: ShaderMaterial = leaf_material(Color("4f7530"), Color("132813"))
 	bush_mat.set_shader_parameter("sway_strength", 0.04)
 	var sets: Array = [[leaf_crown_mesh(0.95, 0.7, 26, 41), bush_mat, bush_x, Vector3(0, 0.55, 0)],
-		[Flora.boulder(53, 10), ArmorKit.painted(Color("8c8e96"), 0.15), stone_x, Vector3(0, 0.1, 0)]]
+		[Flora.boulder(53, 10), ArmorKit.painted(Color("85837d"), 0.1, false, 0.75, Vector3(1.6, 1.6, 1.6)), stone_x, Vector3(0, 0.1, 0)]]
 	for e: Array in sets:
 		var mm := MultiMesh.new()
 		mm.transform_format = MultiMesh.TRANSFORM_3D
@@ -732,6 +773,25 @@ func _scatter_undergrowth() -> void:
 		mmi.material_override = e[1]
 		mmi.visibility_range_end = 90.0
 		add_child(mmi)
+	# Solid: the hero, Hollowed and click-to-move paths go around bushes and stones.
+	var body := StaticBody3D.new()
+	body.name = "Undergrowth"
+	body.collision_layer = 1
+	add_child(body)
+	for t3: Transform3D in bush_x:
+		var cs := CollisionShape3D.new()
+		var sh := SphereShape3D.new()
+		sh.radius = 0.75 * t3.basis.get_scale().x
+		cs.shape = sh
+		cs.position = t3.origin + Vector3(0, 0.45, 0)
+		body.add_child(cs)
+	for t4: Transform3D in stone_x:
+		var cs2 := CollisionShape3D.new()
+		var sh2 := SphereShape3D.new()
+		sh2.radius = 0.85 * t4.basis.get_scale().x
+		cs2.shape = sh2
+		cs2.position = t4.origin + Vector3(0, 0.1, 0)
+		body.add_child(cs2)
 
 
 static var _leaf_tex: ImageTexture

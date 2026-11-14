@@ -17,6 +17,7 @@ var surface := PackedFloat32Array()
 
 func build(p_arena: TestArena) -> void:
 	arena = p_arena
+	add_to_group(&"navgrid")
 	_n = int(HALF_EXTENT * 2.0 / CELL)
 	_astar.region = Rect2i(0, 0, _n, _n)
 	_astar.cell_size = Vector2(CELL, CELL)

@@ -530,6 +530,8 @@ func _update_model(delta: float) -> void:
 	var fwd: Vector3 = -model.global_transform.basis.z
 	var accel_lean: float = clampf(accel.dot(fwd) / 60.0, -0.6, 0.6)
 	var ratio: float = hvel.length() / sprint_speed * 1.15
+	if attack_target != null and is_instance_valid(attack_target):
+		model.enter_combat()
 	model.animate(delta, ratio if is_on_floor() else 0.4, is_on_floor(), velocity.y, accel_lean, is_dashing)
 
 

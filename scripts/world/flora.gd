@@ -171,3 +171,66 @@ static func boulder(seed: int, detail: int = 14) -> ArrayMesh:
 	st.index()
 	st.generate_normals()
 	return st.commit()
+
+
+## A broadleaf tree with real structure: a flared trunk that splits into spreading limbs and
+## sub-branches, with separate leaf clusters at the branch ends, so branches show between them.
+## Returns [wood_mesh, leaf_mesh]. Leaf vertex colour red = light (outer and upper leaves bright).
+static func broadleaf(seed: int) -> Array:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed
+	var wood := SurfaceTool.new()
+	wood.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var trunk_top := Vector3(rng.randf_range(-0.15, 0.15), 2.7, rng.randf_range(-0.15, 0.15))
+	_limb(wood, Vector3(0, -0.2, 0), trunk_top, 0.34, 0.2, 10, true)
+	var tips: Array = []  # [position, cluster radius]
+	var limbs: int = rng.randi_range(4, 5)
+	var crown_c := Vector3(0, 4.3, 0)
+	for i: int in limbs:
+		var az: float = TAU * float(i) / limbs + rng.randf_range(-0.3, 0.3)
+		var el: float = deg_to_rad(rng.randf_range(32.0, 58.0))
+		var dir := Vector3(cos(az) * cos(el), sin(el), sin(az) * cos(el))
+		var start: Vector3 = trunk_top + Vector3(0, rng.randf_range(-0.6, 0.0), 0)
+		var len: float = rng.randf_range(2.0, 2.8)
+		var end: Vector3 = start + dir * len
+		_limb(wood, start, end, 0.17, 0.07, 7, false)
+		tips.append([end + dir * 0.3, rng.randf_range(0.9, 1.15)])
+		for k: int in 2:
+			var bstart: Vector3 = start.lerp(end, rng.randf_range(0.45, 0.7))
+			var bdir: Vector3 = (dir + Vector3(rng.randf_range(-0.7, 0.7), rng.randf_range(0.1, 0.6), rng.randf_range(-0.7, 0.7))).normalized()
+			var bend: Vector3 = bstart + bdir * rng.randf_range(1.1, 1.6)
+			_limb(wood, bstart, bend, 0.075, 0.03, 6, false)
+			tips.append([bend, rng.randf_range(0.75, 1.0)])
+	tips.append([trunk_top + Vector3(0, 2.0, 0), 1.2])
+	wood.index()
+	wood.generate_normals()
+	var leaves := SurfaceTool.new()
+	leaves.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var top_y: float = 0.0
+	for t: Array in tips:
+		top_y = maxf(top_y, (t[0] as Vector3).y + float(t[1]))
+	for t: Array in tips:
+		var c: Vector3 = t[0]
+		var r: float = t[1]
+		var cards: int = int(34 + r * 18)
+		for j: int in cards:
+			var d := Vector3(rng.randf_range(-1, 1), rng.randf_range(-0.6, 1), rng.randf_range(-1, 1)).normalized()
+			var depth: float = pow(rng.randf(), 0.6)
+			var p: Vector3 = c + Vector3(d.x * r, d.y * r * 0.75, d.z * r) * (0.3 + 0.7 * depth)
+			var size: float = rng.randf_range(0.8, 1.15)
+			# Normal: mostly from the tree's crown centre (soft whole-tree shading), a bit from the cluster.
+			var nrm: Vector3 = ((p - crown_c).normalized() * 0.7 + d * 0.3).normalized()
+			var tan: Vector3 = nrm.cross(Vector3(rng.randf_range(-1, 1), rng.randf_range(-1, 1), rng.randf_range(-1, 1)).normalized())
+			if tan.length_squared() < 0.01:
+				tan = Vector3.RIGHT
+			tan = tan.normalized()
+			var bit: Vector3 = nrm.cross(tan).normalized()
+			var light: float = clampf(0.15 + 0.45 * depth + 0.4 * clampf((p.y - 2.5) / maxf(top_y - 2.5, 0.1), 0.0, 1.0), 0.0, 1.0)
+			var corners: Array = [p + (-tan - bit) * size * 0.5, p + (tan - bit) * size * 0.5, p + (tan + bit) * size * 0.5, p + (-tan + bit) * size * 0.5]
+			var uvs: Array = [Vector2(0, 1), Vector2(1, 1), Vector2(1, 0), Vector2(0, 0)]
+			for q: int in [0, 1, 2, 0, 2, 3]:
+				leaves.set_color(Color(light, 0, 0))
+				leaves.set_uv(uvs[q])
+				leaves.set_normal(nrm)
+				leaves.add_vertex(corners[q])
+	return [wood.commit(), leaves.commit()]

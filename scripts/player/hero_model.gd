@@ -359,28 +359,46 @@ func _play(anim: String, blend: float = 0.15, speed: float = 1.0) -> void:
 	_anim.speed_scale = speed
 
 
+## Seconds the hero stays in a combat stance after attacking or being hit (sword raised idle).
+const COMBAT_STANCE_TIME: float = 5.0
+var _combat_stance: float = 0.0
+var _move_blend: float = 0.0
+
+
 func _animate_glb(delta: float, speed_ratio: float, dashing: bool) -> void:
 	_attack_lock = maxf(_attack_lock - delta, 0.0)
+	_combat_stance = maxf(_combat_stance - delta, 0.0)
+	# Smoothed speed: no flicker between idle, walk and run when the speed wobbles.
+	_move_blend = lerpf(_move_blend, speed_ratio, 1.0 - exp(-10.0 * delta))
 	# A new attack: the combat code raises action_weight from ~0 toward 1.
 	if action_weight > 0.45 and _prev_action <= 0.45:
 		_cur_anim = ""
-		_play("Sword_Slash", 0.06, 2.1)
-		_attack_lock = 0.5
+		_play("Sword_Slash", 0.1, 1.7)
+		_attack_lock = 0.55
+		_combat_stance = COMBAT_STANCE_TIME
 	_prev_action = action_weight
 	if dashing:
-		_play("Roll", 0.08, 1.6)
+		_play("Roll", 0.1, 1.6)
 	elif _attack_lock <= 0.0:
-		if speed_ratio > 0.72:
-			_play("Run", 0.15, clampf(speed_ratio, 0.8, 1.3))
-		elif speed_ratio > 0.06:
-			_play("Walk", 0.15, clampf(speed_ratio * walk_rate, 0.6, 1.4))
+		# Out of an attack: a longer blend so the swing settles into the next pose instead of snapping.
+		var blend: float = 0.3
+		if _move_blend > 0.72:
+			_play("Run", blend, clampf(_move_blend, 0.85, 1.25))
+		elif _move_blend > 0.08:
+			_play("Walk", blend, clampf(_move_blend * walk_rate, 0.7, 1.4))
 		else:
-			_play(idle_anim, 0.2)
+			var idle: String = "Idle_Sword" if (_combat_stance > 0.0 and with_sword) else ("Idle" if with_sword else idle_anim)
+			_play(idle, 0.35)
 	# Squash and stretch spring on the whole body.
 	_squash_vel += (-_squash * 120.0 - _squash_vel * 14.0) * delta
 	_squash += _squash_vel * delta
 	var sq: float = clampf(_squash, -0.25, 0.25)
 	_glb.scale = Vector3(_base_scale * (1.0 - sq * 0.4), _base_scale * (1.0 + sq), _base_scale * (1.0 - sq * 0.4))
+
+
+## Keep the sword-ready stance while a fight is on (target chosen, enemy close).
+func enter_combat() -> void:
+	_combat_stance = COMBAT_STANCE_TIME
 
 
 ## One-shot reactions for imported models: "hurt", "death", "talk".
@@ -390,8 +408,9 @@ func play_reaction(kind: String) -> void:
 	match kind:
 		"hurt":
 			_cur_anim = ""
-			_play("HitRecieve", 0.05, 1.5)
+			_play("HitRecieve", 0.08, 1.4)
 			_attack_lock = 0.35
+			_combat_stance = COMBAT_STANCE_TIME
 		"death":
 			_play("Death", 0.1)
 			_attack_lock = 999.0

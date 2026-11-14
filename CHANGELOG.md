@@ -1,5 +1,27 @@
 # Changelog
 
+## 14-11-2026 (gestileerd realisme, clipping, chat, beweging)
+
+Keuze eigenaar: **gestileerd realisme** (zoals de nieuwe RuneScape 3 of WoW): natuurlijke kleuren, echte materialen, geen fotorealisme.
+
+**Gebouwd**
+- **Natuurlijke kleuren en licht:** ACES-tonemapping, minder verzadiging, natuurlijker olijf- en grasgroen, rots grijs met korrel en mos, zand en paden aardser, minder felblauwe lucht en mist.
+- **Materialen met textuur:** nieuwe gedeelde korreltextuur (naadloos, in code) die driedimensionaal over oppervlakken wordt gelegd: bast op stammen, korrel op keien en stenen, slijtage op metaal en stof. Grond met fijne grasstructuur en doorschemerende aarde.
+- **Loofbomen met echte takken:** de stam splitst in vier tot vijf zware takken met zijtakken, met losse bladtrossen aan de uiteinden. Tussen de trossen zie je de takken. Drie varianten.
+- **Geen clipping meer in de natuur:** bomen, struiken en stenen staan niet meer in Saltwick, op paden, in de ruïnes, bij de klif, de trap of het uitkijkpunt, en houden afstand van elkaar en van boomstammen. Struiken en stenen hebben botsing, dus held, Hollowed en padvinding gaan eromheen.
+- **Dorpelingen lopen om obstakels heen:** elk stuk van hun route wordt via het padraster gepland (om huizen, hekken, kratten).
+- **Chatvenster** linksboven: wat NPC's in de buurt zeggen, blijft leesbaar (laatste 6 regels, vervaagt na 20 s naar 35%).
+- **Overgang lopen, vechten en stilstaan:** snelheid wordt afgevlakt (geen flikkeren tussen idle, lopen en rennen), langere overgangen na een slag, slag iets trager en vloeiender. Buiten gevecht een ontspannen idle, in gevecht (doelwit, slag, treffer) 5 s een gevechtshouding met het zwaard.
+
+**Voorstellen voor SMAAK.md**
+- Onder Grafische stijl: "Gestileerd realisme: natuurlijke kleuren en echte materialen (bast, steen, metaal, stof), geen cartoon en geen fotorealisme" in plaats van alleen "gestileerd".
+
+**Screenshots**
+![Bos met takken](docs/screenshots/2026-11-14/bos.png)
+![Overzicht](docs/screenshots/2026-11-14/01_overzicht.png)
+![Gevecht](docs/screenshots/2026-11-14/02_gevecht.png)
+![Chat in Saltwick](docs/screenshots/2026-11-14/07_dorpeling.png)
+
 ## 14-11-2026 (omgeving en haperingen)
 
 Feedback van de eigenaar: omgeving en bomen niet gedetailleerd; High draait 40-60 fps maar hapert veel.

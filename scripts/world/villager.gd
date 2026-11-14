@@ -20,6 +20,10 @@ var _line_timer: float = 0.0
 var _line_index: int = 0
 
 var _model: HeroModel
+## Path for the current leg of the route (around houses, fences, crates), from the NavGrid.
+var _leg: PackedVector3Array = PackedVector3Array()
+var _leg_i: int = 0
+var _leg_for: int = -1
 var _index: int = 0
 var _wait: float = 0.0
 var _facing: float = 0.0
@@ -99,9 +103,27 @@ func _process(delta: float) -> void:
 		_wait -= delta
 	else:
 		var target: Vector3 = _ground(route[_index])
-		var to: Vector3 = target - global_position
+		# Plan the leg once, around obstacles, when the grid is ready (piers stay straight lines).
+		if _leg_for != _index:
+			_leg_for = _index
+			_leg_i = 0
+			_leg = PackedVector3Array()
+			var nav: NavGrid = get_tree().get_first_node_in_group(&"navgrid") as NavGrid
+			if nav and nav.ready_built and arena and arena.height_at(target.x, target.z) > TestArena.WATER_LEVEL + 0.35:
+				_leg = nav.find_path(global_position, target)
+		var goal: Vector3 = target
+		while _leg_i < _leg.size():
+			var wp: Vector3 = _leg[_leg_i]
+			if Vector2(wp.x - global_position.x, wp.z - global_position.z).length() < 0.6 and _leg_i < _leg.size() - 1:
+				_leg_i += 1
+				continue
+			goal = Vector3(wp.x, target.y, wp.z) if _leg_i < _leg.size() - 1 else target
+			break
+		var to: Vector3 = goal - global_position
 		to.y = 0.0
-		if to.length() < 0.3:
+		var to_final: Vector3 = target - global_position
+		to_final.y = 0.0
+		if to_final.length() < 0.3:
 			_index = (_index + 1) % route.size()
 			_wait = _rng.randf_range(2.0, 6.0)
 		else:
@@ -127,6 +149,7 @@ func _update_bark(delta: float) -> void:
 	_line_timer -= delta
 	if _line_timer <= 0.0:
 		_label.text = lines[_line_index % lines.size()]
+		get_tree().call_group(&"chat_log", &"add_chat", display_name if display_name != "" else "Villager", _label.text)
 		_line_index += 1
 		_line_timer = 7.0
 	_label.visible = _line_timer > 1.5  # Short pause between lines.

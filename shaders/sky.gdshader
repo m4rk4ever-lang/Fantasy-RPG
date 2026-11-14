@@ -2,8 +2,8 @@ shader_type sky;
 // Stylized sky: gradient, sun disc with glow, moon, stars and drifting fbm clouds.
 // Colors are driven per time of day by DayNight.
 
-uniform vec3 top_color : source_color = vec3(0.25, 0.53, 0.84);
-uniform vec3 horizon_color : source_color = vec3(0.66, 0.86, 0.96);
+uniform vec3 top_color : source_color = vec3(0.30, 0.50, 0.76);
+uniform vec3 horizon_color : source_color = vec3(0.72, 0.82, 0.90);
 uniform vec3 ground_color : source_color = vec3(0.36, 0.42, 0.62);
 uniform vec3 sun_color : source_color = vec3(1.0, 0.95, 0.85);
 uniform vec3 cloud_color : source_color = vec3(1.0, 1.0, 1.0);

@@ -42,6 +42,7 @@ var _flash_tween: Tween
 
 
 func _ready() -> void:
+	_build_chat.call_deferred()
 	var root := Control.new()
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -384,6 +385,61 @@ func set_skill_points(points: int) -> void:
 
 
 ## Big centered message that fades (level up, area names).
+# --- Chat log (owner 14-11-2026): what nearby NPCs say, readable afterwards. ---
+const CHAT_LINES: int = 6
+var _chat_panel: PanelContainer
+var _chat_label: RichTextLabel
+var _chat: Array[String] = []
+var _chat_fade: float = 0.0
+
+
+func _build_chat() -> void:
+	add_to_group(&"chat_log")
+	_chat_panel = PanelContainer.new()
+	_chat_panel.anchor_left = 0.0
+	_chat_panel.anchor_top = 0.0
+	_chat_panel.offset_left = 16
+	_chat_panel.offset_top = 52
+	_chat_panel.custom_minimum_size = Vector2(400, 0)
+	_chat_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiStyle.apply(_chat_panel, false, 10)
+	_chat_panel.self_modulate = Color(1, 1, 1, 0.85)
+	_chat_label = RichTextLabel.new()
+	_chat_label.bbcode_enabled = true
+	_chat_label.fit_content = true
+	_chat_label.scroll_active = false
+	_chat_label.custom_minimum_size = Vector2(380, 0)
+	_chat_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_chat_label.add_theme_font_size_override("normal_font_size", 14)
+	_chat_label.add_theme_font_size_override("bold_font_size", 14)
+	_chat_panel.add_child(_chat_label)
+	_chat_panel.visible = false
+	add_child(_chat_panel)
+
+
+func add_chat(speaker: String, text: String) -> void:
+	if _chat_panel == null:
+		return
+	var line: String = "[b][color=#f2d48a]%s:[/color][/b] [color=#e6e1d3]%s[/color]" % [speaker, text]
+	if not _chat.is_empty() and _chat[_chat.size() - 1] == line:
+		return
+	_chat.append(line)
+	while _chat.size() > CHAT_LINES:
+		_chat.pop_front()
+	_chat_label.text = "\n".join(_chat)
+	_chat_panel.visible = true
+	_chat_panel.modulate.a = 1.0
+	_chat_fade = 20.0
+
+
+func _process_chat(delta: float) -> void:
+	if _chat_panel == null or not _chat_panel.visible:
+		return
+	_chat_fade -= delta
+	# Fades to a quiet 35% after 20 s without new lines, still readable.
+	_chat_panel.modulate.a = 1.0 if _chat_fade > 0.0 else maxf(0.35, _chat_panel.modulate.a - delta * 0.5)
+
+
 func show_banner(text: String, sub: String = "") -> void:
 	_banner.text = text if sub == "" else "%s\n%s" % [text, sub]
 	var tw := create_tween()
@@ -438,6 +494,7 @@ func flash_damage() -> void:
 
 
 func _process(delta: float) -> void:
+	_process_chat(delta)
 	if _target != null and not is_instance_valid(_target):
 		_target = null
 		_target_root.visible = false

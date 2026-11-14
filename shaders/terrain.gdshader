@@ -2,13 +2,13 @@ shader_type spatial;
 // Stylized terrain: grass on flats, layered rock on slopes, snow above a height line.
 // Pure procedural noise, no textures, so it stays crisp at any distance.
 
-uniform vec3 grass_color : source_color = vec3(0.26, 0.62, 0.36);
-uniform vec3 grass_dark : source_color = vec3(0.17, 0.45, 0.25);
-uniform vec3 grass_dry : source_color = vec3(0.60, 0.72, 0.30);
-uniform vec3 rock_color : source_color = vec3(0.46, 0.49, 0.58);
-uniform vec3 rock_light : source_color = vec3(0.80, 0.77, 0.70);
+uniform vec3 grass_color : source_color = vec3(0.31, 0.47, 0.18);
+uniform vec3 grass_dark : source_color = vec3(0.20, 0.32, 0.13);
+uniform vec3 grass_dry : source_color = vec3(0.60, 0.56, 0.30);
+uniform vec3 rock_color : source_color = vec3(0.42, 0.42, 0.43);
+uniform vec3 rock_light : source_color = vec3(0.70, 0.67, 0.61);
 uniform vec3 snow_color : source_color = vec3(0.95, 0.97, 1.0);
-uniform vec3 sand_color : source_color = vec3(0.89, 0.84, 0.69);
+uniform vec3 sand_color : source_color = vec3(0.80, 0.73, 0.57);
 uniform float sand_height = -100.0;
 uniform float snow_height = 60.0;
 uniform float snow_blend = 12.0;
@@ -21,8 +21,8 @@ uniform float strata_amount = 0.45;
 uniform vec4 path_segs[8];
 uniform int path_count = 0;
 uniform float path_width = 1.6;
-uniform vec3 path_color : source_color = vec3(0.66, 0.55, 0.38);
-uniform vec3 path_edge : source_color = vec3(0.48, 0.52, 0.30);
+uniform vec3 path_color : source_color = vec3(0.52, 0.43, 0.31);
+uniform vec3 path_edge : source_color = vec3(0.40, 0.42, 0.24);
 uniform float flowers = 1.0;
 
 varying vec3 world_pos;
@@ -70,6 +70,10 @@ void fragment() {
 	// Painterly brush strokes: stretched noise in two directions, a warm sunlit mottle on top.
 	float stroke = vnoise(world_pos.xz * vec2(0.9, 5.5) + n * 3.0) * 0.5 + vnoise(world_pos.xz * vec2(5.0, 1.1) - n * 2.0) * 0.5;
 	grass *= 0.93 + stroke * 0.14;
+	float fine = vnoise(world_pos.xz * 9.0) * 0.6 + vnoise(world_pos.xz * 23.0) * 0.4;
+	grass *= 0.86 + fine * 0.26;
+	float soil = smoothstep(0.66, 0.8, fbm(world_pos.xz * 0.9 + 5.0)) * (1.0 - patches * 0.3);
+	grass = mix(grass, vec3(0.36, 0.30, 0.21) * (0.85 + fine * 0.3), soil * 0.55);
 	float mottle = smoothstep(0.55, 0.8, fbm(world_pos.xz * 0.045 + 31.0));
 	grass = mix(grass, grass * vec3(1.12, 1.1, 0.86), mottle * 0.6);
 	// Flowers: tiny specks of white, yellow and violet on the flats.
@@ -102,6 +106,9 @@ void fragment() {
 	// Horizontal strata on rock read as cliffs from far away.
 	float strata = sin(world_pos.y * strata_freq + n * 6.0) * 0.5 + 0.5;
 	vec3 rock = mix(rock_color, rock_light, strata * strata_amount + n2 * 0.25);
+	float grain = vnoise(world_pos.xz * 6.0 + world_pos.y * 3.0) * 0.5 + vnoise(world_pos.xy * 11.0) * 0.5;
+	rock *= 0.82 + grain * 0.34;
+	rock = mix(rock, rock * vec3(0.78, 0.86, 0.72), smoothstep(0.55, 0.75, fbm(world_pos.xz * 0.3 + world_pos.y * 0.2)) * 0.6);
 
 	float slope = world_nrm.y;
 	float rock_w = 1.0 - smoothstep(rock_slope - 0.06, rock_slope + 0.06, slope + (n - 0.5) * 0.12);

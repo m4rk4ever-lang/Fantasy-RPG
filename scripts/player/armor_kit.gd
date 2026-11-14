@@ -4,13 +4,36 @@ extends RefCounted
 ## Style reference: stylized MMO armour (owner, 14-11-2026). Own design; nothing is copied.
 
 
-## Hand-painted look: light is "painted in" with a top-down gradient, a soft two-tone ramp and a rim.
-static func painted(color: Color, rim: float = 0.25, metal: bool = false) -> ShaderMaterial:
+static var _detail_tex: ImageTexture
+
+
+## Seamless grain texture for surface detail (worn metal, cloth, bark, stone). Generated once.
+static func detail_texture() -> ImageTexture:
+	if _detail_tex:
+		return _detail_tex
+	var n := FastNoiseLite.new()
+	n.seed = 808
+	n.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
+	n.frequency = 0.03
+	n.fractal_octaves = 5
+	var img: Image = n.get_seamless_image(256, 256)
+	img.convert(Image.FORMAT_RGBA8)
+	img.generate_mipmaps()
+	_detail_tex = ImageTexture.create_from_image(img)
+	return _detail_tex
+
+
+## Stylized-realistic material (see painted.gdshader). `detail` adds triplanar surface grain.
+static func painted(color: Color, rim: float = 0.25, metal: bool = false, detail: float = -1.0, detail_scale: Vector3 = Vector3(3, 3, 3)) -> ShaderMaterial:
 	var m := ShaderMaterial.new()
 	m.shader = preload("res://shaders/painted.gdshader")
 	m.set_shader_parameter("albedo", color)
-	m.set_shader_parameter("rim_amount", rim)
-	m.set_shader_parameter("spec_amount", 0.35 if metal else 0.05)
+	m.set_shader_parameter("rim_amount", rim * 0.6)
+	m.set_shader_parameter("spec_amount", 0.45 if metal else 0.04)
+	var amount: float = detail if detail >= 0.0 else (0.18 if metal else 0.22)
+	m.set_shader_parameter("detail_tex", detail_texture())
+	m.set_shader_parameter("detail_amount", amount)
+	m.set_shader_parameter("detail_scale", detail_scale)
 	return m
 
 
