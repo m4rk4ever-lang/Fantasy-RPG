@@ -287,6 +287,11 @@ func _add_quality_setting(parent: Control) -> void:
 	for n: String in Quality.NAMES:
 		opt.add_item(n)
 	opt.select(Quality.load_level())
+	var ui := _add_slider(parent, "Interface size", 0.7, 1.6, 0.05, Quality.load_ui_scale())
+	ui.name = "UiScale"
+	ui.value_changed.connect(func(v: float) -> void:
+		Quality.apply_ui_scale(get_tree(), v)
+		Quality.save_ui_scale(v))
 	opt.item_selected.connect(func(i: int) -> void:
 		var arena: TestArena = get_parent().get("arena") as TestArena
 		if arena:

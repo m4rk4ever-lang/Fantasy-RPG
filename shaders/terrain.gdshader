@@ -18,12 +18,15 @@ uniform float strata_freq = 1.6;
 uniform float strata_amount = 0.45;
 
 // Dirt paths: up to 8 segments (xz start, xz end), painted where the walker would go.
-uniform vec4 path_segs[8];
+uniform vec4 path_segs[16];
 uniform int path_count = 0;
 uniform float path_width = 1.6;
 uniform vec3 path_color : source_color = vec3(0.52, 0.43, 0.31);
 uniform vec3 path_edge : source_color = vec3(0.40, 0.42, 0.24);
 uniform float flowers = 1.0;
+// Trodden earth around buildings, columns and rocks (xz, radius, strength): objects grow out of the ground.
+uniform vec4 ground_spots[64];
+uniform int spot_count = 0;
 
 varying vec3 world_pos;
 varying vec3 world_nrm;
@@ -87,7 +90,7 @@ void fragment() {
 	}
 	// Dirt paths with a soft worn edge.
 	float pd = 1e5;
-	for (int i = 0; i < 8; i++) {
+	for (int i = 0; i < 16; i++) {
 		if (i >= path_count) {
 			break;
 		}
@@ -100,6 +103,17 @@ void fragment() {
 	float wob = (fbm(world_pos.xz * 0.6) - 0.5) * 0.9;
 	float path_w = 1.0 - smoothstep(path_width * 0.55, path_width, pd + wob);
 	float edge_w = 1.0 - smoothstep(path_width, path_width * 1.6, pd + wob);
+	// Earth and darker, flattened grass around the feet of objects.
+	float worn = 0.0;
+	for (int k = 0; k < 64; k++) {
+		if (k >= spot_count) {
+			break;
+		}
+		vec4 sp = ground_spots[k];
+		float d = length(world_pos.xz - sp.xy) / sp.z + (fbm(world_pos.xz * 1.7 + float(k)) - 0.5) * 0.35;
+		worn = max(worn, (1.0 - smoothstep(0.75, 1.15, d)) * sp.w);
+	}
+	grass = mix(grass, vec3(0.30, 0.26, 0.19) * (0.85 + n2 * 0.3), worn * 0.75);
 	grass = mix(grass, path_edge, edge_w * 0.5);
 	grass = mix(grass, path_color * (0.88 + n2 * 0.2), path_w);
 

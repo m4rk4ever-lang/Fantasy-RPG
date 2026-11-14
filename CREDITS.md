@@ -9,3 +9,9 @@ Alle modellen, shaders en het terrein zijn procedureel in code gemaakt voor dit 
 ## 3D-modellen (13-11-2026)
 
 - **Quaternius** (https://quaternius.com), CC0 1.0: `adventurer.glb`, `hooded_adventurer.glb` (held en dorpelingen), `hooded_adventurer.glb` ook als basis voor de Hollowed, `sword.glb`. Verkregen via het npm-pakket `@netforge/asset-library-files` 0.2.0, waarvan de `NOTICE` per model de CC0-status vermeldt en het `CC0-1.0.txt` meelevert. Meshopt-compressie verwijderd met gltf-transform. Kleuren aangepast aan `docs/SMAAK.md`; de Hollowed krijgen een eigen asgrijze shader en Veil-ogen; de held draagt eigen uitrusting (schouderstukken, borstplaat, cape) die in code is gebouwd.
+
+## Geluid en muziek (14-11-2026)
+
+- **"Battle Theme A"** door cynicmusic (https://opengameart.org/content/battle-theme-a), CC0. Gevechtsmuziek.
+- **Kenney** (https://www.kenney.nl), CC0: geluiden voor treffer, impact, munt, level-up, geraakt, vijand verslagen en klik (`assets/audio/sfx/`).
+- Beide via het npm-pakket `@netforge/asset-library-files` 0.2.0; de licentie staat per pakket in de `NOTICE` van dat pakket.

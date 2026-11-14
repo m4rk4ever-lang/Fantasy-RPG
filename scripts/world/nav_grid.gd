@@ -28,7 +28,7 @@ func build(p_arena: TestArena) -> void:
 	var space := get_world_3d().direct_space_state
 	var probe := PhysicsShapeQueryParameters3D.new()
 	var shape := CylinderShape3D.new()
-	shape.radius = 0.45
+	shape.radius = 0.58  # Covers the gaps between cell centres, so thin trunks are never missed.
 	shape.height = 1.0
 	probe.shape = shape
 	probe.collision_mask = 1

@@ -39,6 +39,18 @@ var spire_path: SpirePath
 var path_segs: Array[Vector4] = []
 ## Tree trunk positions (xz), so bushes and stones keep their distance.
 var tree_spots: Array[Vector2] = []
+var _ground_spots: Array[Vector4] = []
+
+
+## Register trodden earth around an object's foot (shown by the terrain shader).
+func add_ground_spot(p: Vector3, radius: float, strength: float = 1.0) -> void:
+	if _ground_spots.size() < 64:
+		_ground_spots.append(Vector4(p.x, p.z, radius, strength))
+
+
+func _apply_ground_spots() -> void:
+	terrain_material.set_shader_parameter("ground_spots", _ground_spots)
+	terrain_material.set_shader_parameter("spot_count", _ground_spots.size())
 
 
 ## Can vegetation or a stone stand here without clipping into the village, ruins, crag, stair,
@@ -54,7 +66,7 @@ func is_clear(x: float, z: float, margin: float = 0.0, tree_gap: float = 0.0) ->
 		return false
 	if x > -22.0 - margin and x < 10.0 + margin and z < -6.0 + margin and z > -28.0 - margin:
 		return false  # Ruins.
-	if p.distance_to(Vector2(17.5, 14.5)) < 7.0 + margin or p.length() < 9.0:
+	if p.length() < 9.0:
 		return false  # Lookout platform and the arena centre.
 	for sg: Vector4 in path_segs:
 		var a := Vector2(sg.x, sg.y)
@@ -86,7 +98,7 @@ func _ready() -> void:
 	add_child(spire_path)
 	spire_path.build(self)
 	_build_ruins()
-	_build_arena_props()
+	# The old jump-test lookout stood in the middle of Saltwick's square; removed (14-11-2026).
 	_scatter_trees()
 	_scatter_undergrowth()
 	_scatter_grass()
@@ -101,6 +113,7 @@ func _ready() -> void:
 	village.name = "Village"
 	add_child(village)
 	village.build(self)
+	_apply_ground_spots()
 
 
 ## Terrain height at world x/z. Flat arena in the middle, rising valley walls, a cliff plateau.
@@ -233,6 +246,14 @@ func _build_terrain() -> void:
 		Vector4(27.0, 21.0, 14.0, 10.0), Vector4(14.0, 10.0, 3.0, 2.0), Vector4(3.0, 2.0, -3.0, -12.0),
 		Vector4(3.0, 2.0, 4.0, -30.0), Vector4(4.0, -30.0, 4.0, -52.0), Vector4(4.0, -52.0, 6.0, -60.0),
 	]
+	# Saltwick's lane (same points as Village.LANE / LANE_B, in s/t coordinates toward the sea).
+	var sea := Vector2(SEA_DIR.x, SEA_DIR.y)
+	var along := Vector2(-SEA_DIR.y, SEA_DIR.x)
+	for lane: Array in [[Vector2(10.0, 1.0), Vector2(16.0, 3.0), Vector2(21.0, 0.5), Vector2(24.5, -5.5), Vector2(30.0, -4.0)], [Vector2(21.0, 0.5), Vector2(23.0, 9.0), Vector2(25.5, 18.0), Vector2(30.5, 24.0)]]:
+		for i: int in lane.size() - 1:
+			var a: Vector2 = sea * (lane[i] as Vector2).x + along * (lane[i] as Vector2).y
+			var b: Vector2 = sea * (lane[i + 1] as Vector2).x + along * (lane[i + 1] as Vector2).y
+			segs.append(Vector4(a.x, a.y, b.x, b.y))
 	path_segs = segs
 	terrain_material.set_shader_parameter("path_segs", segs)
 	terrain_material.set_shader_parameter("path_count", segs.size())
@@ -454,6 +475,7 @@ func _build_crag() -> void:
 	add_child(undercroft_door)
 	undercroft_door.global_position = door_pos + door_basis * Vector3(0, 0, 1.6)
 	undercroft_door_outside = door_pos + door_basis * Vector3(0, 0.3, 3.5)
+	add_ground_spot(undercroft_door_outside, 3.2, 0.9)
 
 	# Beacon on top of the Veilspire: dark until the Keeper falls.
 	beacon_light = OmniLight3D.new()
@@ -481,6 +503,7 @@ func _build_crag() -> void:
 		sm.rings = 7
 		var sh := SphereShape3D.new()
 		sh.radius = rad * 0.7
+		add_ground_spot(p, rad * 1.7, 0.8)
 		_add_static(self, rocks[n % 3], rock_mat, Transform3D(Basis(Vector3(rng.randf(), 1, rng.randf()).normalized(), rng.randf() * TAU).scaled(Vector3(1.2, rng.randf_range(0.8, 1.1), 1.0) * rad), p), sh)
 
 
@@ -534,6 +557,7 @@ func _build_ruins() -> void:
 		var p: Vector3 = spots[i]
 		p.y = height_at(p.x, p.z)
 		var h: float = heights[i]
+		add_ground_spot(p, 2.3, 0.9)
 		var box := BoxShape3D.new()
 		box.size = Vector3(1.4, h, 1.4)
 		# Round fluted column with a stepped base and capital (smooth, weathered), instead of a box.
@@ -556,6 +580,7 @@ func _build_ruins() -> void:
 	var dir: Vector3 = (b - a)
 	var basis := Basis(Vector3.UP, atan2(dir.x, dir.z))
 	_add_static(root, lintel, stone, Transform3D(basis, Vector3(mid.x, minf(height_at(a.x, a.z), height_at(b.x, b.z)) + 4.4, mid.z)))
+	_build_ruin_story(root, stone)
 	# Fallen blocks.
 	for k: int in 6:
 		var q := Vector3(-12.0 + k * 2.7, 0, -15.0 - (k % 3) * 2.0)
@@ -567,6 +592,97 @@ func _build_ruins() -> void:
 		_add_static(root, bm2, stone, Transform3D(Basis(Vector3(0.2, 1, 0.1).normalized(), k * 1.3), q), sh)
 
 
+## The ruins tell what happened: a Warden statue toppled from its plinth (only the feet remain),
+## its sword snapped beside it; ivy climbs the columns; a worn floor of flagstones; and a rune of the
+## Veil still glows faintly in the floor where the Wardens once swore their oath.
+func _build_ruin_story(root: Node3D, stone: Material) -> void:
+	var worn_floor := Vector3(-8.0, 0, -17.0)
+	add_ground_spot(worn_floor, 7.5, 0.5)
+	var kit := MeshKit.new()
+	var sc := Color(0.80, 0.78, 0.72, 0.4)
+	# Broken flagstone floor: uneven slabs, some missing, some tilted.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 1919
+	for gx: int in range(-3, 4):
+		for gz: int in range(-2, 3):
+			if rng.randf() < 0.3:
+				continue
+			var q := worn_floor + Vector3(gx * 1.55 + rng.randf_range(-0.1, 0.1), 0, gz * 1.55 + rng.randf_range(-0.1, 0.1))
+			q.y = height_at(q.x, q.z) + 0.04
+			var tilt := Basis(Vector3(rng.randf_range(-1, 1), 0, rng.randf_range(-1, 1)).normalized(), rng.randf_range(0.0, 0.07)).rotated(Vector3.UP, rng.randf_range(-0.08, 0.08))
+			kit.box(Transform3D(tilt, q), Vector3(1.45, 0.18, 1.45), sc.darkened(rng.randf() * 0.12))
+	# Plinth with the statue's feet still standing on it.
+	var plinth := worn_floor + Vector3(2.5, 0, 3.2)
+	plinth.y = height_at(plinth.x, plinth.z)
+	kit.box(Transform3D(Basis(), plinth + Vector3(0, 0.5, 0)), Vector3(1.9, 1.0, 1.9), sc)
+	kit.box(Transform3D(Basis(), plinth + Vector3(0, 1.08, 0)), Vector3(2.1, 0.16, 2.1), sc.lightened(0.05))
+	for fx: float in [-0.3, 0.3]:
+		kit.box(Transform3D(Basis(), plinth + Vector3(fx, 1.45, 0.05)), Vector3(0.36, 0.6, 0.62), sc)
+	var col := CollisionShape3D.new()
+	var bs := BoxShape3D.new()
+	bs.size = Vector3(2.1, 2.0, 2.1)
+	col.shape = bs
+	var body := StaticBody3D.new()
+	body.position = plinth + Vector3(0, 1.0, 0)
+	body.add_child(col)
+	root.add_child(body)
+	# The toppled statue, lying in pieces on the grass (a Warden in plate, 3.6 m tall when standing).
+	var lie := plinth + Vector3(-2.6, 0, 1.0)
+	lie.y = height_at(lie.x, lie.z)
+	var down := Basis(Vector3.FORWARD, PI * 0.5).rotated(Vector3.UP, 0.6)
+	kit.loft(Transform3D(down, lie + Vector3(0, 0.55, 0)), [
+		[-1.2, 0.42, 0.34, 0.0, sc], [-0.4, 0.48, 0.36, 0.0, sc], [0.4, 0.62, 0.44, 0.0, sc], [1.0, 0.58, 0.42, 0.0, sc], [1.15, 0.3, 0.26, 0.0, sc]], 10)
+	kit.loft(Transform3D(down, lie + Vector3(0, 0.45, 0) + down * Vector3(0, 1.7, 0)), [
+		[-0.2, 0.2, 0.22, 0.0, sc], [0.0, 0.27, 0.3, 0.0, sc], [0.35, 0.25, 0.28, 0.0, sc], [0.5, 0.12, 0.14, 0.0, sc]], 10)
+	# The broken stone sword: blade in two pieces.
+	kit.box(Transform3D(Basis(Vector3.UP, 1.2), lie + Vector3(1.4, 0.12, -1.2)), Vector3(0.18, 0.12, 1.6), sc.darkened(0.08))
+	kit.box(Transform3D(Basis(Vector3.UP, 0.7), lie + Vector3(2.4, 0.1, -2.1)), Vector3(0.18, 0.1, 1.0), sc.darkened(0.08))
+	kit.box(Transform3D(Basis(Vector3.UP, 1.2), lie + Vector3(0.75, 0.15, -0.8)), Vector3(0.7, 0.14, 0.16), sc)
+	var mi := MeshInstance3D.new()
+	mi.mesh = kit.commit()
+	mi.material_override = MeshKit.architecture_material()
+	root.add_child(mi)
+	# Ivy climbing two columns: clumps of small leaves hugging the stone.
+	var ivy_mat: ShaderMaterial = leaf_material(Color("3f6a2a"), Color("102410"))
+	ivy_mat.set_shader_parameter("sway_strength", 0.01)
+	var ivy_mesh: ArrayMesh = leaf_crown_mesh(0.55, 0.7, 18, 77)
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.mesh = ivy_mesh
+	var xs: Array[Transform3D] = []
+	for c: Vector3 in [Vector3(-16, 0, -12), Vector3(-3, 0, -22)]:
+		var base_y: float = height_at(c.x, c.z)
+		for k: int in 9:
+			var a: float = rng.randf() * TAU
+			var y: float = base_y + rng.randf_range(0.3, 4.8) * (1.0 - k / 14.0)
+			xs.append(Transform3D(Basis().scaled(Vector3(0.9, 1.2, 0.9)), Vector3(c.x + cos(a) * 0.62, y, c.z + sin(a) * 0.62)))
+	mm.instance_count = xs.size()
+	for i: int in xs.size():
+		mm.set_instance_transform(i, xs[i])
+	var ivy := MultiMeshInstance3D.new()
+	ivy.multimesh = mm
+	ivy.material_override = ivy_mat
+	root.add_child(ivy)
+	# The oath rune: a faint ring of Veil light in the floor, slowly pulsing.
+	var rune := MeshInstance3D.new()
+	var tm := TorusMesh.new()
+	tm.inner_radius = 0.95
+	tm.outer_radius = 1.05
+	tm.rings = 32
+	tm.ring_segments = 4
+	rune.mesh = tm
+	var rm := StandardMaterial3D.new()
+	rm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	rm.albedo_color = Color("6ec3f0")
+	rune.material_override = rm
+	rune.scale = Vector3(1.0, 0.05, 1.0)
+	rune.position = Vector3(worn_floor.x, height_at(worn_floor.x, worn_floor.z) + 0.16, worn_floor.z)
+	root.add_child(rune)
+	var tw := rune.create_tween().set_loops()
+	tw.tween_property(rm, "albedo_color", Color("2c5f80"), 2.4).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(rm, "albedo_color", Color("6ec3f0"), 2.4).set_trans(Tween.TRANS_SINE)
+
+
 ## Steps and platforms to test jumping, plus a few rocks.
 func _build_arena_props() -> void:
 	var root := Node3D.new()
@@ -576,6 +692,7 @@ func _build_arena_props() -> void:
 	var trim := _stone_mat(Color("5b6c9e"), 0.7)
 	# Overlook: a stone stair up to a small platform. Steps are low enough to walk up (no jumping).
 	var top := Vector3(17.5, 0, 14.5)
+	add_ground_spot(top, 4.8, 0.7)
 	var base_y: float = height_at(top.x, top.z)
 	var plat_h: float = 2.8
 	var psize := Vector3(4.6, plat_h + 2.0, 4.6)
@@ -651,12 +768,16 @@ func _scatter_trees() -> void:
 	var tries: int = 0
 	var parts: Dictionary = {"ptrunk": [], "pine": [], "oak0": [], "oak1": [], "oak2": []}
 	var placed_at: Array[Vector2] = []
-	while placed < 70 and tries < 600:
+	while placed < 70 and tries < 2000:
 		tries += 1
 		var ang: float = rng.randf() * TAU
-		var dist: float = rng.randf_range(26.0, 105.0)
+		var dist: float = rng.randf_range(20.0, 105.0)
 		var x: float = cos(ang) * dist
 		var z: float = sin(ang) * dist
+		# Groves, glades and the odd lone tree instead of an even sprinkle.
+		var grove: float = _noise.get_noise_2d(x * 0.7 + 50.0, z * 0.7 - 20.0)
+		if grove < 0.0 and rng.randf() > 0.12:
+			continue
 		if Vector2(x, z).distance_to(CLIFF_CENTER) < 25.0:
 			continue
 		if not is_clear(x, z, 1.5):
@@ -670,7 +791,7 @@ func _scatter_trees() -> void:
 			continue
 		var crowded: bool = false
 		for q: Vector2 in placed_at:
-			if q.distance_to(Vector2(x, z)) < 5.0:
+			if q.distance_to(Vector2(x, z)) < 4.2:
 				crowded = true
 				break
 		if crowded:
@@ -871,11 +992,12 @@ func _grass_tuft_mesh() -> ArrayMesh:
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 5
-	for b: int in 5:
+	# Many thin blades instead of a few broad ones: reads as real grass, not paper leaves.
+	for b: int in 11:
 		var ang: float = rng.randf() * TAU
-		var off := Vector3(rng.randf_range(-0.12, 0.12), 0, rng.randf_range(-0.12, 0.12))
-		var h: float = rng.randf_range(0.22, 0.4)
-		var w: float = 0.045
+		var off := Vector3(rng.randf_range(-0.14, 0.14), 0, rng.randf_range(-0.14, 0.14))
+		var h: float = rng.randf_range(0.2, 0.42)
+		var w: float = 0.016
 		var side := Vector3(cos(ang), 0, sin(ang)) * w
 		var lean := Vector3(-sin(ang), 0, cos(ang)) * rng.randf_range(0.05, 0.15)
 		var p0: Vector3 = off - side

@@ -54,17 +54,25 @@ func _facing_sea() -> Basis:
 func build(p_arena: TestArena) -> void:
 	arena = p_arena
 	_rng.seed = 4711
+	# Organic layout (owner 14-11-2026: no copies in a straight line). Houses stand along a winding lane
+	# from the gate to the pier head and turn their fronts to it; sizes, storeys and roofs differ.
 	var houses: Array[Vector4] = [  # s, t, width, storeys
-		Vector4(25.0, -22.0, 6.0, 1), Vector4(27.0, -10.5, 7.0, 2), Vector4(26.0, 1.5, 5.5, 1),
-		Vector4(27.5, 13.0, 6.5, 2), Vector4(24.5, 24.5, 5.5, 1), Vector4(15.0, -4.0, 6.0, 1),
-		Vector4(14.5, 10.0, 5.0, 1),
+		Vector4(14.5, -6.0, 5.8, 1), Vector4(15.8, 10.5, 5.2, 1), Vector4(20.5, -15.0, 6.6, 2),
+		Vector4(27.5, -14.5, 6.0, 1), Vector4(29.5, 8.5, 6.8, 2), Vector4(19.5, 16.0, 5.4, 1),
+		Vector4(24.5, 26.0, 6.0, 2),
 	]
 	for i: int in houses.size():
 		var h: Vector4 = houses[i]
-		_house(_spot(h.x, h.y), h.z, 4.6 + _rng.randf() * 0.6, int(h.w), COL_ROOF_A if i % 2 == 0 else COL_ROOF_B, i)
+		var at: Vector3 = _spot(h.x, h.y)
+		var lane: Vector3 = _lane_point_near(at)
+		var face: Vector3 = Vector3(lane.x - at.x, 0, lane.z - at.z).normalized()
+		var roof: Color = (COL_ROOF_A if _rng.randf() < 0.5 else COL_ROOF_B).lerp(Color(0.45, 0.38, 0.33, 0.8), _rng.randf() * 0.25)
+		roof.a = 0.8
+		_house(at, h.z, 4.4 + _rng.randf() * 1.2, int(h.w), roof, i, face)
 	_pier(-4.0)
 	_pier_short(19.0)
 	_props()
+	_village_life()
 
 	var mi := MeshInstance3D.new()
 	mi.name = "VillageMesh"
@@ -102,8 +110,32 @@ func _collider(xf: Transform3D, size: Vector3) -> void:
 
 
 ## One timber-framed house. Local +Z is the front (facing the sea).
-func _house(at: Vector3, width: float, depth: float, storeys: int, roof_col: Color, index: int) -> void:
+## The village lane in (s, t): gate, square, pier head, with a branch along the shore.
+const LANE: Array[Vector2] = [Vector2(10.0, 1.0), Vector2(16.0, 3.0), Vector2(21.0, 0.5), Vector2(24.5, -5.5), Vector2(30.0, -4.0)]
+const LANE_B: Array[Vector2] = [Vector2(21.0, 0.5), Vector2(23.0, 9.0), Vector2(25.5, 18.0), Vector2(30.5, 24.0)]
+
+
+func _lane_point_near(p: Vector3) -> Vector3:
+	var best := Vector3.ZERO
+	var best_d: float = INF
+	for path: Array[Vector2] in [LANE, LANE_B]:
+		for i: int in path.size() - 1:
+			var a: Vector3 = _spot(path[i].x, path[i].y)
+			var b: Vector3 = _spot(path[i + 1].x, path[i + 1].y)
+			var ab: Vector3 = b - a
+			var t: float = clampf((p - a).dot(ab) / maxf(ab.length_squared(), 0.001), 0.0, 1.0)
+			var q: Vector3 = a + ab * t
+			var d: float = Vector2(q.x - p.x, q.z - p.z).length()
+			if d < best_d:
+				best_d = d
+				best = q
+	return best
+
+
+func _house(at: Vector3, width: float, depth: float, storeys: int, roof_col: Color, index: int, face: Vector3 = Vector3.ZERO) -> void:
 	var basis: Basis = _facing_sea().rotated(Vector3.UP, _rng.randf_range(-0.12, 0.12))
+	if face != Vector3.ZERO:
+		basis = Basis(Vector3.UP, atan2(face.x, face.z) + _rng.randf_range(-0.1, 0.1))
 	# Find the lowest and highest ground under the footprint.
 	var lo: float = INF
 	var hi: float = -INF
@@ -114,6 +146,7 @@ func _house(at: Vector3, width: float, depth: float, storeys: int, roof_col: Col
 			lo = minf(lo, gy)
 			hi = maxf(hi, gy)
 	var floor_y: float = hi + 0.45
+	arena.add_ground_spot(at, maxf(width, depth) * 0.9, 0.85)
 	var origin := Vector3(at.x, floor_y, at.z)
 	var xf := Transform3D(basis, origin)
 	var wall_h: float = 2.7 * storeys
@@ -339,9 +372,95 @@ func _crate(at: Vector3, size: float) -> void:
 	_kit.box(xf, Vector3(size + 0.04, size * 0.2, size + 0.04), COL_PLANK_DARK)
 
 
+## The fence follows the lie of the land instead of a ruler: it bends gently in and out.
+func _fence_s(t: float) -> float:
+	return 10.0 + sin(t * 0.13) * 1.6 + sin(t * 0.41 + 1.3) * 0.5
+
+
+## Daily life in Saltwick: a well on the little square, a fish stall, a hand cart, a washing line,
+## lantern posts along the lane and a signpost at the gate. Placed with a purpose, never in a row.
+func _village_life() -> void:
+	# Well: round stone wall, two posts, a little roof, a rope and bucket.
+	var w: Vector3 = _spot(19.2, 5.0)
+	arena.add_ground_spot(w, 2.2, 0.8)
+	var wx := Transform3D(Basis(Vector3.UP, 0.3), w)
+	_kit.cylinder(wx * Transform3D(Basis(), Vector3(0, 0.45, 0)), 0.85, 0.95, 0.9, 14, COL_STONE)
+	_kit.cylinder(wx * Transform3D(Basis(), Vector3(0, 0.92, 0)), 0.95, 0.95, 0.08, 14, COL_STONE_DARK)
+	for sx: float in [-0.8, 0.8]:
+		_kit.box(wx * Transform3D(Basis(), Vector3(sx, 1.4, 0)), Vector3(0.14, 1.9, 0.14), COL_TIMBER)
+	_kit.box(wx * Transform3D(Basis(), Vector3(0, 2.0, 0)), Vector3(1.8, 0.1, 0.1), COL_TIMBER)
+	_kit.gable(wx * Transform3D(Basis(), Vector3(0, 2.3, 0)), Vector3(2.0, 0.55, 1.3), Color(0.55, 0.33, 0.25, 0.8))
+	_kit.box(wx * Transform3D(Basis(), Vector3(0, 1.65, 0)), Vector3(0.03, 0.7, 0.03), COL_ROPE)
+	_kit.cylinder(wx * Transform3D(Basis(), Vector3(0, 1.2, 0)), 0.16, 0.13, 0.26, 8, COL_PLANK_DARK)
+	_collider(wx * Transform3D(Basis(), Vector3(0, 0.6, 0)), Vector3(1.9, 1.2, 1.9))
+	# Fish stall: trestle table under a striped awning, baskets of fish.
+	var st: Vector3 = _spot(26.0, 3.0)
+	arena.add_ground_spot(st, 2.6, 0.7)
+	var sx2 := Transform3D(Basis(Vector3.UP, atan2(-_sea().x, -_sea().z) + 0.25), st)
+	_kit.box(sx2 * Transform3D(Basis(), Vector3(0, 0.85, 0)), Vector3(2.4, 0.08, 1.0), COL_PLANK)
+	for lx: float in [-1.05, 1.05]:
+		for lz: float in [-0.4, 0.4]:
+			_kit.box(sx2 * Transform3D(Basis(), Vector3(lx, 0.42, lz)), Vector3(0.08, 0.84, 0.08), COL_TIMBER)
+		_kit.box(sx2 * Transform3D(Basis(), Vector3(lx, 1.3, -0.55)), Vector3(0.08, 2.6, 0.08), COL_TIMBER)
+	for k: int in 6:
+		var stripe: Color = Color(0.70, 0.25, 0.20, 1.0) if k % 2 == 0 else Color(0.90, 0.86, 0.76, 1.0)
+		_kit.box(sx2 * Transform3D(Basis(Vector3.RIGHT, -0.35), Vector3(-1.05 + k * 0.42, 2.35, -0.05)), Vector3(0.42, 0.03, 1.3), stripe)
+	for b: int in 3:
+		var bp := Vector3(-0.7 + b * 0.7, 0.98, 0.05)
+		_kit.cylinder(sx2 * Transform3D(Basis(), bp), 0.26, 0.22, 0.2, 10, COL_ROPE)
+		_kit.box(sx2 * Transform3D(Basis(Vector3.UP, b * 0.7), bp + Vector3(0, 0.1, 0)), Vector3(0.36, 0.06, 0.12), Color(0.62, 0.66, 0.70, 1.0))
+	_collider(sx2 * Transform3D(Basis(), Vector3(0, 0.6, 0)), Vector3(2.5, 1.2, 1.2))
+	# Hand cart, one wheel off, leaning on its shafts.
+	var cp: Vector3 = _spot(17.0, -1.6)
+	var cx := Transform3D(Basis(Vector3.UP, 0.9).rotated(Vector3.UP, 0.0), cp)
+	_kit.box(cx * Transform3D(Basis(Vector3.RIGHT, 0.12), Vector3(0, 0.75, 0)), Vector3(1.2, 0.08, 1.8), COL_PLANK)
+	for side: float in [-0.62, 0.62]:
+		_kit.box(cx * Transform3D(Basis(Vector3.RIGHT, 0.12), Vector3(side, 0.95, 0)), Vector3(0.06, 0.35, 1.8), COL_PLANK_DARK)
+		_kit.box(cx * Transform3D(Basis(Vector3.RIGHT, 0.32), Vector3(side * 0.6, 0.45, 1.6)), Vector3(0.07, 0.07, 1.6), COL_TIMBER)
+	_kit.cylinder(cx * Transform3D(Basis(Vector3.FORWARD, PI * 0.5), Vector3(0.7, 0.42, -0.3)), 0.42, 0.42, 0.08, 12, COL_PLANK_DARK)
+	_kit.cylinder(cx * Transform3D(Basis(Vector3.RIGHT, PI * 0.5).rotated(Vector3.UP, 0.4), Vector3(-1.1, 0.05, -0.6)), 0.42, 0.42, 0.08, 12, COL_PLANK_DARK)
+	_collider(cx * Transform3D(Basis(), Vector3(0, 0.6, 0.2)), Vector3(1.4, 1.2, 2.4))
+	# Washing line between two posts behind the houses, with cloths of different colours.
+	var a: Vector3 = _spot(18.0, 13.2)
+	var b2: Vector3 = _spot(21.5, 12.4)
+	for pp: Vector3 in [a, b2]:
+		_kit.box(Transform3D(Basis(), pp + Vector3(0, 1.0, 0)), Vector3(0.1, 2.0, 0.1), COL_TIMBER)
+	var dir: Vector3 = b2 - a
+	var mid: Vector3 = (a + b2) * 0.5 + Vector3(0, 1.85, 0)
+	_kit.box(Transform3D(Basis(Vector3.UP, atan2(dir.x, dir.z)), mid), Vector3(0.02, 0.02, dir.length()), COL_ROPE)
+	var cloths: Array[Color] = [Color(0.85, 0.82, 0.74, 1.0), Color(0.36, 0.42, 0.62, 1.0), Color(0.62, 0.35, 0.28, 1.0), Color(0.85, 0.82, 0.74, 1.0)]
+	for c: int in cloths.size():
+		var f: float = (c + 0.6) / (cloths.size() + 0.2)
+		var cpp: Vector3 = a.lerp(b2, f) + Vector3(0, 1.85 - 0.35 - sin(f * PI) * 0.12, 0)
+		_kit.box(Transform3D(Basis(Vector3.UP, atan2(dir.x, dir.z)), cpp), Vector3(0.02, 0.62 + (c % 2) * 0.2, 0.55), cloths[c])
+	# Lantern posts along the lane, slightly off its edge, each a little different.
+	for lp: Vector2 in [Vector2(13.0, 3.9), Vector2(22.6, -2.6), Vector2(27.5, -6.6), Vector2(24.8, 12.0)]:
+		var p: Vector3 = _spot(lp.x, lp.y)
+		var h: float = 2.4 + _rng.randf_range(-0.15, 0.2)
+		_kit.box(Transform3D(Basis(Vector3.UP, _rng.randf() * TAU), p + Vector3(0, h * 0.5, 0)), Vector3(0.14, h, 0.14), COL_TIMBER)
+		_kit.box(Transform3D(Basis(), p + Vector3(0.25, h - 0.05, 0)), Vector3(0.55, 0.08, 0.08), COL_TIMBER)
+		_glow_kit.box(Transform3D(Basis(), p + Vector3(0.45, h - 0.32, 0)), Vector3(0.24, 0.32, 0.24), Color("ffcf8a"))
+		_collider(Transform3D(Basis(), p + Vector3(0, 1.0, 0)), Vector3(0.25, 2.0, 0.25))
+	# Signpost at the gate, its arm pointing up the vale.
+	var sp: Vector3 = _spot(_fence_s(-1.5) - 0.8, -1.8)
+	_kit.box(Transform3D(Basis(), sp + Vector3(0, 1.2, 0)), Vector3(0.14, 2.4, 0.14), COL_TIMBER)
+	var arm_dir: Vector3 = -_sea()
+	_kit.box(Transform3D(Basis(Vector3.UP, atan2(arm_dir.x, arm_dir.z) + PI * 0.5), sp + Vector3(0, 2.0, 0) + arm_dir * 0.4), Vector3(0.9, 0.24, 0.05), COL_PLANK)
+	var lbl := Label3D.new()
+	lbl.text = "Saltwick"
+	lbl.font_size = 28
+	lbl.pixel_size = 0.004
+	lbl.modulate = Color("2a1f17")
+	lbl.outline_size = 0
+	lbl.position = sp + Vector3(0, 2.25, 0) + _sea() * 0.08
+	lbl.rotation.y = atan2(_sea().x, _sea().z) + PI
+	add_child(lbl)
+	_collider(Transform3D(Basis(), sp + Vector3(0, 1.0, 0)), Vector3(0.25, 2.0, 0.25))
+
+
 func _props() -> void:
 	# Barrels and crates near the pier head and between houses.
-	var spots: Array[Vector2] = [Vector2(31.5, -6.5), Vector2(32.0, -1.8), Vector2(30.5, 4.0), Vector2(20.0, -16.0), Vector2(21.0, 19.0), Vector2(31.0, 16.5)]
+	var spots: Array[Vector2] = [Vector2(31.5, -6.5), Vector2(32.0, -1.8), Vector2(31.8, 3.2), Vector2(24.0, -9.8), Vector2(23.0, 13.0), Vector2(31.0, 16.5)]
 	for i: int in spots.size():
 		var p: Vector3 = _spot(spots[i].x, spots[i].y)
 		if i % 2 == 0:
@@ -363,8 +482,9 @@ func _props() -> void:
 			_kit.box(xf * Transform3D(Basis(), Vector3(-1.25 + f * 0.5, 1.35, 0)), Vector3(0.14, 0.7, 0.05), Color("9fa8b8"))
 	# A low fence along the landward side of the village.
 	for k: int in 18:
-		var fp: Vector3 = _spot(10.0, -26.0 + k * 3.0)
-		var fx := Transform3D(_facing_sea(), fp)
+		var fp: Vector3 = _spot(_fence_s(-26.0 + k * 3.0), -26.0 + k * 3.0)
+		# Old posts lean a little, each its own way.
+		var fx := Transform3D(_facing_sea().rotated(_along(), _rng.randf_range(-0.06, 0.06)).rotated(_sea(), _rng.randf_range(-0.05, 0.05)), fp)
 		_kit.box(fx * Transform3D(Basis(), Vector3(0, 0.55, 0)), Vector3(0.14, 1.1, 0.14), COL_TIMBER)
 		_collider(fx * Transform3D(Basis(), Vector3(0, 0.55, 0)), Vector3(0.2, 1.1, 0.2))
 		# Gate: segments 9 and 10 stay open where the path from the vale comes in.
@@ -372,7 +492,7 @@ func _props() -> void:
 			_kit.box(fx * Transform3D(Basis(), Vector3(0, 0.9, 0)), Vector3(0.22, 1.8, 0.22), COL_TIMBER)
 			_kit.box(fx * Transform3D(Basis(), Vector3(0, 1.85, 0)), Vector3(0.34, 0.12, 0.34), COL_STONE)
 		if k < 17 and k != 9 and k != 10:
-			var nxt: Vector3 = _spot(10.0, -26.0 + (k + 1) * 3.0)
+			var nxt: Vector3 = _spot(_fence_s(-26.0 + (k + 1) * 3.0), -26.0 + (k + 1) * 3.0)
 			var midp: Vector3 = (fp + nxt) * 0.5
 			var dir: Vector3 = nxt - fp
 			var yaw: float = atan2(dir.x, dir.z)
@@ -392,35 +512,101 @@ func _props() -> void:
 		_glow_kit.box(lx * Transform3D(Basis(), Vector3(0, 2.2, 0)), Vector3(0.28, 0.4, 0.28), Color("ffcf8a"))
 
 
+## A clinker-built fishing boat to scale (5.6 m long, 1.9 m beam, ~0.85 m deep): a rounded hull with a
+## sharp bow and a transom stern, a painted strake, thwarts, a mast with a boom and furled sail, oars,
+## a coil of rope and a heap of nets. Wood uses the architecture shader (alpha 0.6 = wood grain).
 func _boat_mesh() -> ArrayMesh:
-	var k := MeshKit.new()
-	var hull := Color("6b4a33")
-	var stripe := Color("3d5ba9")
-	# Hull: stacked, narrowing boxes for a rounded look; bow points to +Z.
-	k.box(Transform3D(Basis(), Vector3(0, 0.0, 0)), Vector3(1.1, 0.3, 3.2), hull)
-	k.box(Transform3D(Basis(), Vector3(0, 0.3, 0)), Vector3(1.6, 0.35, 3.8), hull)
-	k.box(Transform3D(Basis(), Vector3(0, 0.5, 0)), Vector3(1.66, 0.1, 3.86), stripe)
-	k.box(Transform3D(Basis(Vector3.UP, PI * 0.25), Vector3(0, 0.3, 1.9)), Vector3(1.1, 0.65, 1.1), hull)
-	k.box(Transform3D(Basis(Vector3.UP, PI * 0.25), Vector3(0, 0.3, -1.6)), Vector3(0.9, 0.6, 0.9), hull)
-	k.box(Transform3D(Basis(), Vector3(0, 0.42, 0)), Vector3(1.2, 0.08, 0.3), COL_PLANK)
-	# Mast and furled sail.
-	k.box(Transform3D(Basis(), Vector3(0, 1.8, 0.4)), Vector3(0.12, 3.0, 0.12), COL_TIMBER)
-	k.cylinder(Transform3D(Basis(Vector3.FORWARD, PI * 0.5), Vector3(0, 1.3, 0.35)), 0.14, 0.14, 1.8, 6, COL_SAIL)
-	return k.commit()
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var L: float = 5.6
+	var beam: float = 1.9
+	var depth: float = 0.85
+	var stations: int = 14
+	var arc: int = 10
+	var outer: Array[PackedVector3Array] = []
+	var inner: Array[PackedVector3Array] = []
+	for k: int in stations + 1:
+		var t: float = lerpf(-1.0, 1.0, float(k) / stations)  # -1 stern, +1 bow
+		var w: float
+		if t > 0.0:
+			w = beam * 0.5 * pow(maxf(cos(t * PI * 0.5), 0.0), 0.75)
+		else:
+			w = beam * 0.5 * (1.0 - 0.35 * t * t)
+		var sheer: float = depth + 0.28 * t * t + (0.1 * t if t > 0.0 else 0.0)
+		var keel: float = 0.06 * t * t
+		var o := PackedVector3Array()
+		var n := PackedVector3Array()
+		for a: int in arc + 1:
+			var ang: float = PI * float(a) / arc
+			var x: float = w * cos(ang)
+			var y: float = sheer - (sheer - keel) * pow(sin(ang), 0.55)
+			var z: float = t * L * 0.5
+			o.append(Vector3(x, y, z))
+			var wi: float = maxf(w - 0.05, 0.0)
+			n.append(Vector3(wi * cos(ang), y + 0.05 * pow(sin(ang), 0.55), z))
+		outer.append(o)
+		inner.append(n)
+	var wood := Color(0.42, 0.30, 0.21, 0.6)
+	var paint := Color(0.24, 0.36, 0.66, 0.6)
+	var inside := Color(0.55, 0.42, 0.30, 0.6)
+	for k: int in stations:
+		for a: int in arc:
+			var c_out: Color = paint if (a == 0 or a == arc - 1) else wood.darkened(0.06 * float(a % 2))
+			for v: Vector3 in [outer[k][a], outer[k + 1][a], outer[k][a + 1], outer[k][a + 1], outer[k + 1][a], outer[k + 1][a + 1]]:
+				st.set_color(c_out)
+				st.add_vertex(v)
+			for v2: Vector3 in [inner[k][a], inner[k][a + 1], inner[k + 1][a], inner[k][a + 1], inner[k + 1][a + 1], inner[k + 1][a]]:
+				st.set_color(inside)
+				st.add_vertex(v2)
+		# Gunwale caps on both sides.
+		for a2: int in [0, arc]:
+			for v3: Vector3 in [outer[k][a2], inner[k][a2], outer[k + 1][a2], inner[k][a2], inner[k + 1][a2], outer[k + 1][a2]]:
+				st.set_color(wood.darkened(0.2))
+				st.add_vertex(v3)
+	# Transom: close the stern.
+	for a3: int in arc:
+		var c0: Vector3 = (outer[0][0] + outer[0][arc]) * 0.5
+		for v4: Vector3 in [c0, outer[0][a3 + 1], outer[0][a3]]:
+			st.set_color(wood)
+			st.add_vertex(v4)
+	st.generate_normals()
+	var hull: ArrayMesh = st.commit()
+	# Fittings with MeshKit, merged into the same mesh.
+	var k2 := MeshKit.new()
+	var plank := Color(0.54, 0.40, 0.28, 0.6)
+	for tz: float in [-1.2, 0.3, 1.5]:
+		k2.box(Transform3D(Basis(), Vector3(0, 0.62, tz)), Vector3(beam * 0.82 - absf(tz) * 0.12, 0.06, 0.26), plank)
+	var mast := Vector3(0, 0.0, 0.9)
+	k2.cylinder(Transform3D(Basis(), mast + Vector3(0, 2.4, 0)), 0.07, 0.09, 4.6, 8, COL_TIMBER)
+	# Boom with the furled sail lashed along it.
+	k2.cylinder(Transform3D(Basis(Vector3.RIGHT, PI * 0.5), mast + Vector3(0, 1.45, -1.3)), 0.05, 0.05, 2.7, 6, COL_TIMBER)
+	k2.cylinder(Transform3D(Basis(Vector3.RIGHT, PI * 0.5), mast + Vector3(0, 1.58, -1.25)), 0.16, 0.13, 2.4, 8, Color(0.85, 0.80, 0.68, 1.0))
+	# Oars resting across the thwarts.
+	for ox: float in [-0.35, 0.35]:
+		k2.box(Transform3D(Basis(Vector3.UP, 0.08 * signf(ox)), Vector3(ox, 0.7, -0.2)), Vector3(0.06, 0.05, 3.0), plank)
+		k2.box(Transform3D(Basis(Vector3.UP, 0.08 * signf(ox)), Vector3(ox, 0.7, -1.65)), Vector3(0.16, 0.02, 0.5), plank)
+	# Rope coil and a heap of nets in the stern.
+	k2.cylinder(Transform3D(Basis(), Vector3(0.3, 0.3, -1.9)), 0.22, 0.22, 0.1, 10, COL_ROPE)
+	k2.box(Transform3D(Basis(Vector3.UP, 0.4), Vector3(-0.25, 0.32, -1.6)), Vector3(0.7, 0.25, 0.6), Color(0.24, 0.27, 0.25, 1.0))
+	var fit: ArrayMesh = k2.commit()
+	for i: int in fit.get_surface_count():
+		hull.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, fit.surface_get_arrays(i))
+	return hull
 
 
 func _boats_build() -> void:
 	var mesh: ArrayMesh = _boat_mesh()
-	var mat := MeshKit.vertex_color_material(0.8)
+	var mat := MeshKit.architecture_material()
 	var spots: Array[Vector2] = [Vector2(TestArena.SHORE_S + 6.0, -6.6), Vector2(TestArena.SHORE_S + 12.0, -1.4), Vector2(TestArena.SHORE_S + 2.0, 21.8), Vector2(TestArena.SHORE_S + 20.0, 10.0)]
 	for i: int in spots.size():
 		var b := MeshInstance3D.new()
 		b.mesh = mesh
 		b.material_override = mat
 		var p: Vector3 = _sea() * spots[i].x + _along() * spots[i].y
-		p.y = TestArena.WATER_LEVEL - 0.15
+		p.y = TestArena.WATER_LEVEL - 0.38  # About 0.4 m draught.
 		b.position = p
-		b.rotation.y = atan2(_sea().x, _sea().z) + _rng.randf_range(-0.4, 0.4) + (PI if i == 3 else 0.0)
+		# Moored boats lie parallel to the pier, bow out to sea; the fourth swings at anchor.
+		b.rotation.y = atan2(_sea().x, _sea().z) + (_rng.randf_range(-0.04, 0.04) if i < 3 else 0.7)
 		add_child(b)
 		_boats.append(b)
 		_boat_phase.append(_rng.randf() * TAU)
@@ -470,7 +656,7 @@ func _villagers() -> void:
 		{"tunic": Color("4cb46a").darkened(0.35), "cloak": Color("6b4a33"), "hair": Color("8e8a7e"), "kind": "hood", "skin": Color("dba987")},
 	]
 	var routes: Array[Array] = [
-		[Vector2(21.0, -20.0), Vector2(22.0, 0.0), Vector2(21.0, 18.0)],
+		[Vector2(16.5, 2.5), Vector2(21.0, 0.5), Vector2(24.5, -5.5), Vector2(23.0, 9.0), Vector2(25.5, 18.0)],
 		[Vector2(31.0, -6.0), Vector2(TestArena.SHORE_S + 12.0, -4.0)],
 		[Vector2(33.0, 6.0), Vector2(33.5, 30.0), Vector2(29.0, 20.0)],
 	]
@@ -515,7 +701,7 @@ func _process(delta: float) -> void:
 	for i: int in _boats.size():
 		var b: Node3D = _boats[i]
 		var ph: float = _boat_phase[i]
-		b.position.y = TestArena.WATER_LEVEL - 0.15 + sin(_time * 1.1 + ph) * 0.08
+		b.position.y = TestArena.WATER_LEVEL - 0.38 + sin(_time * 1.1 + ph) * 0.08
 		b.rotation.x = sin(_time * 0.9 + ph) * 0.04
 		b.rotation.z = sin(_time * 1.3 + ph * 1.7) * 0.06
 	for g: Node3D in _gulls:

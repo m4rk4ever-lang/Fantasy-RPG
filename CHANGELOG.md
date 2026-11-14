@@ -1,5 +1,28 @@
 # Changelog
 
+## 14-11-2026 (wereldbouw opnieuw, schaal, boten, geluid, interface)
+
+**Gebouwd**
+- **Nieuwe uitgangspunten voor wereldbouw** in `docs/DESIGN.md` (reden per object, geen rechte lijnen, geen kopieën, clusters, grondverbinding, paden door gebruik, geschiedenis, detailhiërarchie, schaal t.o.v. de held), plus een schaalanalyse.
+- **Saltwick organisch:** huizen langs een kronkelende dorpsstraat van de poort naar de steiger, met de voorkant naar de straat, verschillende maten, verdiepingen en daktinten. Het hek buigt mee met het terrein en de palen hangen elk een beetje anders. Dorpsleven: put op het pleintje, visstal met gestreepte luifel, handkar met een los wiel, waslijn, lantaarnpalen langs de straat en een wegwijzer bij de poort.
+- **Vissersboten op schaal** (5,6 m, echte romp met scherpe boeg en spiegel, banken, mast met giek en opgerold zeil, roeispanen, touw, netten), evenwijdig aan de steiger, met diepgang.
+- **Grondverbinding:** aangestampte aarde rond huizen, zuilen, keien, de put, de stal en de kerkerdeur.
+- **Ruïnes met verhaal:** een gebroken vloer van platen, een sokkel waarop alleen de voeten van een Warden-beeld nog staan, het omgevallen beeld en zijn gebroken zwaard in het gras, klimop op twee zuilen, en een zacht pulserende rune van the Veil in de vloer.
+- **Bossen en open plekken:** bomen in bosjes met open weiden ertussen en hier en daar een eenzame boom.
+- **Gras** met dunne bladen in plaats van brede papieren stroken. Het oude uitkijkplatform midden op het dorpsplein is weg.
+- **Zwaard goed vast:** het lemmet steekt nu recht vooruit uit de vuist (gecontroleerd met close-ups); het zwaardspoor volgt het echte lemmet.
+- **Interface-grootte** instelbaar in het pauzemenu (70 tot 160%), onthouden in de browser.
+- **Orkestmuziek in gevechten:** "Battle Theme A" van cynicmusic (CC0, orkestraal) als gevechtslaag; hervat waar hij was. Echte geluiden (Kenney, CC0) voor treffers, impact, munten, level-up, geraakt worden, vijand verslagen en klikken.
+- **Geluid start zekerder** in Safari: ook als de eerste klik door een ander deel van het spel wordt afgehandeld.
+- **Vastlopen op boomstammen opgelost:** het padraster zag dunne stammen tussen rastercellen over het hoofd; nu niet meer, en een held die toch vastloopt stapt er lokaal omheen.
+
+![Saltwick](docs/screenshots/2026-11-14/saltwick_organisch.png)
+![Boten](docs/screenshots/2026-11-14/boten.png)
+![Ruïnes met verhaal](docs/screenshots/2026-11-14/ruines_verhaal.png)
+
+**Problemen en beslissingen**
+- Verkenningsmuziek is nog procedureel. Een echt orkestgevoel vraagt opgenomen muziek; via de bereikbare bronnen is er maar één CC0-orkeststuk. Voor meer: CC0-tracks in `assets/audio/music/` zetten of de downloadbronnen laten openzetten.
+
 ## 14-11-2026 (bouwmaterialen en worldbuilding-analyse)
 
 **Gebouwd**

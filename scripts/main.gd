@@ -164,6 +164,7 @@ func _ready() -> void:
 	arena.spire_path.reached_door.connect(_on_spire_door)
 	_setup_spire_interior()
 	Quality.apply(arena, Quality.load_level())
+	Quality.apply_ui_scale(get_tree(), Quality.load_ui_scale())
 	_load_save.call_deferred()
 	# --- Audio (V.8): procedural sound, ambience and music; see scripts/audio/ ---
 	var audio := AudioDirector.new()

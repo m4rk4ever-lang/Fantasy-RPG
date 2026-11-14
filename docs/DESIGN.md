@@ -215,3 +215,25 @@ Kritische blik op de startvallei en Saltwick, na feedback van de eigenaar ("huiz
 6. **Leven.** Vogels in de bomen, een hert aan de bosrand, vliegen bij de visrekken.
 7. **De Veilspire zelf.** Een gladde witte cilinder: geen steunberen, ramen met kozijnen, banieren, licht in de ramen, verwering. Het belangrijkste landmark verdient de meeste detail.
 8. **Paden.** Zandpaden zijn er, maar zonder randstenen, wagensporen of een houten bruggetje.
+
+## Uitgangspunten wereldbouw (14-11-2026)
+
+Feedback eigenaar: de wereld voelt als kopieën in een rechte lijn. Vanaf nu geldt voor alles wat in de wereld komt:
+
+1. **Elk ding heeft een reden.** Waarom staat het hier, wie heeft het neergezet, wat gebeurde er? Een put staat op het plein, netten drogen bij de steiger, een kar staat bij de poort. Geen object zonder verhaal of functie.
+2. **Geen rechte lijnen en geen rasters.** Alleen waar mensen bewust bouwen (een straat, een steiger) is iets recht, en ook dan volgt het het terrein en staat het licht scheef. Hekken buigen mee, palen hangen, huizen draaien naar de straat.
+3. **Geen twee dezelfde.** Elk huis, elke boom, elke steen verschilt in maat, kleur, staat en draaiing. Varianten in plaats van kopieën.
+4. **Clusters en open ruimte.** Bossen en bosjes, open weiden, een eenzame boom op een heuvel. Dichtheid wisselt; leegte is ook vormgeving.
+5. **Dingen groeien uit de grond.** Aangestampte aarde rond voeten, mos op bovenvlakken, gras dat wijkt. Nooit iets dat "op" het gras is neergezet.
+6. **Paden ontstaan door gebruik.** Ze verbinden plekken waar mensen heen gaan, kronkelen om obstakels en worden breder waar het druk is.
+7. **Tijd en geschiedenis.** Oud naast nieuw, verval, reparaties, verwering. Ruïnes vertellen wat er misging.
+8. **Hiërarchie van detail.** Landmarks (Veilspire) krijgen het meeste detail, dan gebouwen en bomen, dan props. Van dichtbij moet het kloppen, van veraf moet het silhouet sterk zijn.
+9. **Schaal t.o.v. de held (1,85 m).** Deuren 2,0 m, verdieping 2,7 m, hek 1,1 m, tafel 0,85 m, vissersboot 5,6 m bij 1,9 m met 0,4 m diepgang, loofboom 7 tot 9 m, den 8 tot 10 m, pad 2,5 tot 3 m breed, struik 1 tot 1,5 m.
+
+### Schaalanalyse (14-11-2026)
+- Held 1,85 m; dorpelingen 0,95x; Hollowed op heldhoogte; bazen 1,6x. Klopt.
+- Huizen, deuren, ramen, hekken, tonnen (0,9 m), kratten (0,6 tot 0,8 m), steigers (2,6 m breed, reling 0,9 m), lantaarns (2,4 tot 2,6 m): kloppen.
+- **Fout gevonden:** de boten waren dozen van 3,8 m met een mast van 3 m en lagen schuin op de steiger. Nu: vissersboten van 5,6 m met een echte romp, banken, mast met giek, roeispanen, touw en netten, evenwijdig aan de steiger en met diepgang.
+- **Fout gevonden:** grasplukjes hadden bladen van 9 cm breed (papier). Nu dunne bladen van 3 cm, meer per plukje.
+- **Fout gevonden:** het oude uitkijkplatform (springtest) stond midden op het dorpsplein. Verwijderd.
+- Paden 2,5 tot 3 m: klopt. De Warden's Stair (5,4 m breed) is ruim maar past bij een monumentale trap.

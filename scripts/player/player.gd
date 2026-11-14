@@ -77,6 +77,7 @@ var _path := PackedVector3Array()
 var _path_i: int = 0
 var _path_goal: Vector3 = Vector3.ZERO
 var _repath_timer: float = 0.0
+var _stuck_time: float = 0.0
 var _move_target: Vector3 = Vector3.ZERO
 var _has_move_target: bool = false
 
@@ -438,6 +439,14 @@ func _order_wish() -> Vector3:
 	var d := Vector3(wp.x - flat.x, 0, wp.z - flat.z)
 	if d.length() < 0.05:
 		return w
+	# Stuck against something the grid missed: step around it locally, then re-plan.
+	if is_on_wall() and Vector2(velocity.x, velocity.z).length() < 0.3:
+		_stuck_time += get_physics_process_delta_time()
+		if _stuck_time > 0.25:
+			_repath_timer = minf(_repath_timer, 0.3)
+			return _steer_around(d.normalized() * w.length())
+	else:
+		_stuck_time = 0.0
 	return d.normalized() * w.length()
 
 

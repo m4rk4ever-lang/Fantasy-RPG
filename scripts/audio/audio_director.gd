@@ -49,6 +49,7 @@ var _harp_t: float = 0.0
 var _harp_step: int = 0
 var _drone: AudioStreamPlayer
 var _combat: AudioStreamPlayer
+var _combat_pos: float = 0.0
 var _sea: AudioStreamPlayer
 var _wind: AudioStreamPlayer
 var _crickets: AudioStreamPlayer
@@ -102,6 +103,7 @@ func _ready() -> void:
 		_pads.append(_make_player(BUS_MUSIC))
 	_drone = _make_player(BUS_MUSIC, "drone")
 	_combat = _make_player(BUS_MUSIC, "combat")
+	_use_recorded_audio()
 	_sea = _make_player(BUS_AMBIENCE, "sea")
 	_wind = _make_player(BUS_AMBIENCE, "wind")
 	_crickets = _make_player(BUS_AMBIENCE, "crickets")
@@ -193,6 +195,27 @@ func play_at(id: String, pos: Vector3, volume_db: float = 0.0, pitch: float = 1.
 	sfx_played += 1
 
 
+## Recorded CC0 audio where we have it (see CREDITS.md): a full orchestral battle theme for the combat
+## layer, and real impact, coin, level-up and UI sounds. The procedural bank stays as fallback.
+const RECORDED_SFX: Dictionary = {
+	"hit": "res://assets/audio/sfx/hit.ogg", "slam": "res://assets/audio/sfx/impact.ogg",
+	"coin": "res://assets/audio/sfx/coin.ogg", "level_up": "res://assets/audio/sfx/level_up.ogg",
+	"player_hurt": "res://assets/audio/sfx/hurt.ogg", "hollow_death": "res://assets/audio/sfx/kill.ogg",
+	"ui_click": "res://assets/audio/sfx/ui.ogg",
+}
+
+
+func _use_recorded_audio() -> void:
+	for id: String in RECORDED_SFX:
+		var st: AudioStream = load(RECORDED_SFX[id]) as AudioStream
+		if st:
+			bank.streams[id] = st
+	var theme: AudioStreamMP3 = load("res://assets/audio/music/battle_theme_a.mp3") as AudioStreamMP3
+	if theme:
+		theme.loop = true
+		_combat.stream = theme
+
+
 func _start_loops() -> void:
 	for p: AudioStreamPlayer in [_pads[_pad_active], _drone, _sea, _wind, _crickets]:
 		if not p.playing:
@@ -266,6 +289,11 @@ func _process(delta: float) -> void:
 	delta = minf(delta, 0.1)
 	_time += delta
 	if not _unlocked:
+		# Fallback unlock: some browsers (Safari) deliver the first click to the page but another node
+		# may already have handled the event before _input reached us.
+		if Input.is_anything_pressed() or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) or Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
+			_unlocked = true
+			_start_loops()
 		return
 	var in_world: bool = player != null and arena != null and is_instance_valid(player)
 	if in_world and not get_tree().paused:
@@ -370,10 +398,11 @@ func _update_music(delta: float) -> void:
 			p.play()
 
 	if combat_mix > 0.0 and not _combat.playing:
-		_combat.play()
+		_combat.play(_combat_pos)
 	elif combat_mix <= 0.0 and _combat.playing:
+		_combat_pos = _combat.get_playback_position()
 		_combat.stop()
-	_combat.volume_db = _db(combat_mix * combat_mix * 0.6)
+	_combat.volume_db = _db(combat_mix * 0.75)
 
 
 func _update_ambience(delta: float) -> void:

@@ -44,3 +44,23 @@ static func apply(arena: TestArena, level: int) -> void:
 		grass.visible = level > 0
 	if arena.environment:
 		arena.environment.glow_enabled = level > 0
+
+
+
+## Interface size (owner 14-11-2026): scales menus, orbs, bars and windows together.
+static func load_ui_scale() -> float:
+	var cfg := ConfigFile.new()
+	if cfg.load(PATH) == OK:
+		return clampf(float(cfg.get_value("interface", "scale", 1.0)), 0.7, 1.6)
+	return 1.0
+
+
+static func apply_ui_scale(tree: SceneTree, value: float) -> void:
+	tree.root.content_scale_factor = clampf(value, 0.7, 1.6)
+
+
+static func save_ui_scale(value: float) -> void:
+	var cfg := ConfigFile.new()
+	cfg.load(PATH)
+	cfg.set_value("interface", "scale", value)
+	cfg.save(PATH)

@@ -152,8 +152,13 @@ func _build_glb() -> void:
 		sw.position = SWORD_OFFSET
 		holder.add_child(sword_base)
 		holder.add_child(sword_tip)
-		sword_base.position = SWORD_OFFSET + (Basis.from_euler(SWORD_ROT * PI / 180.0) * Vector3(0, 0.25, 0))
-		sword_tip.position = SWORD_OFFSET + (Basis.from_euler(SWORD_ROT * PI / 180.0) * Vector3(0, 1.05, 0))
+		# Trail points along the real blade: measure the sword mesh instead of guessing.
+		var top: float = 1.0
+		for smi: MeshInstance3D in sw.find_children("*", "MeshInstance3D", true, false):
+			top = maxf(top * 0.0 + smi.get_aabb().end.y, 0.1)
+		var blade_axis: Vector3 = Basis.from_euler(SWORD_ROT * PI / 180.0) * Vector3.UP
+		sword_base.position = SWORD_OFFSET + blade_axis * top * SWORD_SCALE * 0.3
+		sword_tip.position = SWORD_OFFSET + blade_axis * top * SWORD_SCALE
 	else:
 		add_child(sword)
 		sword.add_child(sword_base)
@@ -336,7 +341,7 @@ func _cape_mesh() -> ArrayMesh:
 
 const HELM_POS := Vector3(0.0, 0.2, -0.01)
 const SWORD_SCALE: float = 0.42
-const SWORD_ROT := Vector3(90.0, 0.0, 0.0)
+const SWORD_ROT := Vector3(0.0, 0.0, 90.0)  # Blade forward out of the fist (checked in close-ups, 14-11-2026).
 const SWORD_OFFSET := Vector3(0.0, 0.09, 0.0)
 
 

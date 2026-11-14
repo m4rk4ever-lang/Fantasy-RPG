@@ -33,8 +33,8 @@ func generate() -> void:
 	generation_ms = Time.get_ticks_msec() - t0
 
 
-func get_stream(id: String) -> AudioStreamWAV:
-	return streams.get(id) as AudioStreamWAV
+func get_stream(id: String) -> AudioStream:
+	return streams.get(id) as AudioStream
 
 
 # --- Primitives ---------------------------------------------------------------

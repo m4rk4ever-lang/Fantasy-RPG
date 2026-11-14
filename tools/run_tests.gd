@@ -391,9 +391,9 @@ func _run() -> void:
 		var bank_ok: bool = audio.bank != null and audio.bank.streams.size() >= 20 and audio.bank.pad_chords.size() == 4
 		if bank_ok:
 			for id: String in audio.bank.streams:
-				bank_ok = bank_ok and (audio.bank.streams[id] as AudioStreamWAV).data.size() > 200
+				bank_ok = bank_ok and (audio.bank.streams[id] is AudioStream) and (not (audio.bank.streams[id] is AudioStreamWAV) or (audio.bank.streams[id] as AudioStreamWAV).data.size() > 200)
 		_check(bank_ok, "sound bank generated %d non-empty streams in %d ms" % [audio.bank.streams.size(), audio.bank.generation_ms])
-		var combat_wav: AudioStreamWAV = audio.bank.get_stream("combat")
+		var combat_wav: AudioStreamWAV = audio.bank.get_stream("combat") as AudioStreamWAV
 		_check(combat_wav != null and combat_wav.loop_mode == AudioStreamWAV.LOOP_FORWARD and combat_wav.loop_end > 0, "music loops have loop points")
 		var played: int = audio.sfx_played
 		audio.play("hit")
