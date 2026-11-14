@@ -113,6 +113,7 @@ func _ready() -> void:
 	model.name = "Model"
 	model.glb_path = "res://assets/models/quaternius/adventurer.glb"
 	model.hide_meshes = ["Backpack"]
+	model.heroic = true
 	model.tints = {"Green": Color("3d5ba9"), "LightGreen": Color("5b6c9e"), "Brown2": Color("4a3426")}
 	add_child(model)
 	stamina = max_stamina

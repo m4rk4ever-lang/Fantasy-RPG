@@ -1,5 +1,23 @@
 # Changelog
 
+## 14-11-2026 (met de eigenaar live)
+
+Stijlreferentie van de eigenaar: een gestileerd MMO-spelersmodel met harnasset (portfolio op ArtStation). Het model zelf mag niet gebruikt worden (auteursrecht, geen licentie); alleen als richting. Het beeld staat bewust niet in de repo.
+
+**Gebouwd**
+- **Hand-painted look:** nieuwe shader `painted.gdshader` voor lichaam en harnas: licht van boven "ingeschilderd", een zachte twee-tonige lichtovergang met koele schaduwkleur, een kleine glans op metaal en een warme rand.
+- **Heldhaftige verhoudingen:** bredere borst en schouders, sterkere armen en handen, stevigere benen (`HeroProportions`, werkt na de animatie).
+- **Nieuw harnas in code** (`ArmorKit`): grote gelaagde schouderstukken met dikke goudranden, een gouden kroonpunt en een bontrand; borst- en rugplaat met goudrand en middenrib; sjaal met bont; heupplaten, brede riem met grote gesp, tabard voor en achter; armbeschermers met goudranden en leren manchet; scheenplaten en kniestukken; cape.
+
+**Screenshot**
+![Held met nieuw harnas](docs/screenshots/2026-11-13e/held_harnas.png)
+
+**Zelfcontrole**
+- Silhouet: veel dichter bij de referentie (zware schouders, goud). Zwakste deel: het hoofd en de broek komen nog van het basismodel en ogen eenvoudiger dan het harnas; de kleuren zijn in vol zonlicht nog wat licht.
+
+**Volgende run**
+- Hoofd en haar in dezelfde stijl, broek en laarzen vervangen door eigen stukken, kleuren afstemmen op de belichting. Daarna Hollowed en dorpelingen dezelfde behandeling.
+
 ## 13-11-2026 (vierde sessie, met de eigenaar live)
 
 Feedback van de eigenaar: 31 tot 45 fps in Safari, en personages en omgeving zien er blokkerig uit, "geen echte 3D-mesh". Eerst een voorbeelddesign gemaakt en voorgelegd; de eigenaar koos voor de richting met CC0-modellen en verwees naar de anatomie-referentie.

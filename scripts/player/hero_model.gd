@@ -79,6 +79,8 @@ var hide_meshes: Array[String] = []
 ## Target height of the head bone in metres.
 var head_height: float = 1.62
 var idle_anim: String = "Idle_Sword"
+## Heroic proportions (broad shoulders, strong arms) for the hero; villagers stay ordinary.
+var heroic: bool = false
 ## Walk animation playback rate per unit of speed_ratio (villagers walk slowly: higher value).
 var walk_rate: float = 1.8
 var _glb: Node3D
@@ -108,10 +110,14 @@ func _build_glb() -> void:
 			continue
 		for i: int in mi.mesh.get_surface_count():
 			var m: Material = mi.get_active_material(i)
-			if m is BaseMaterial3D and tints.has(String(m.resource_name)):
-				var d: BaseMaterial3D = (m as BaseMaterial3D).duplicate()
-				d.albedo_color = tints[String(m.resource_name)]
-				mi.set_surface_override_material(i, d)
+			if m is BaseMaterial3D:
+				# Hand-painted look on the whole body (owner's style reference, 14-11-2026).
+				var bm: BaseMaterial3D = m
+				var col: Color = tints.get(String(m.resource_name), bm.albedo_color)
+				var pm: ShaderMaterial = ArmorKit.painted(col, 0.3)
+				if bm.albedo_texture:
+					pm.set_shader_parameter("albedo_tex", bm.albedo_texture)
+				mi.set_surface_override_material(i, pm)
 	# Normalise height: the head bone ends up at `head_height`.
 	if skel:
 		var hi: int = skel.find_bone("Head")
@@ -120,6 +126,9 @@ func _build_glb() -> void:
 			if hy > 0.01:
 				_base_scale = head_height / hy * scale.y / maxf(scale.y, 0.001)
 				_glb.scale = Vector3.ONE * _base_scale
+	if skel and heroic:
+		var prop := HeroProportions.new()
+		skel.add_child(prop)
 	# Sword in the right hand.
 	sword = Node3D.new()
 	sword_base = Node3D.new()
@@ -189,56 +198,91 @@ func _piece(skel: Skeleton3D, bone: String, mesh: Mesh, mat: Material, pos: Vect
 	return mi
 
 
-## Warden's gear on the imported body: pauldrons, breastplate, bracers, belt and a cape.
-## Smooth primitives in the palette, attached to bones so they move with the animation.
+## Warden's armour on the imported body, in a hand-painted MMO style: layered slate-steel plates with
+## thick gold rims, big pauldrons with fur trim, a broad belt, bracers, greaves and a cape.
+## Own design after the owner's style reference (14-11-2026). Pieces follow the bones.
 func _build_gear(skel: Skeleton3D) -> void:
-	var steel := _mat(Color("b8c0cc"), 0.35, 0.6)
-	var gold := _mat(Color("d9a441"), 0.35, 0.7)
-	var blue := _mat(col_tunic, 0.7)
-	var leather := _mat(Color("5a3b26"), 0.8)
-	var dome := SphereMesh.new()
-	dome.radius = 0.5
-	dome.height = 1.0
-	dome.radial_segments = 24
-	dome.rings = 12
-	var ring := TorusMesh.new()
-	ring.inner_radius = 0.42
-	ring.outer_radius = 0.5
-	ring.rings = 24
-	ring.ring_segments = 8
-	var tube := CylinderMesh.new()
-	tube.top_radius = 0.5
-	tube.bottom_radius = 0.5
-	tube.height = 1.0
-	tube.radial_segments = 16
-	for side: String in ["L", "R"]:
-		var sx: float = 1.0 if side == "L" else -1.0
-		# Layered pauldron with a gold rim.
-		_piece(skel, "UpperArm." + side, dome, steel, Vector3(0, 0.03, 0), Vector3(0, 0, 0), Vector3(0.19, 0.15, 0.19))
-		_piece(skel, "UpperArm." + side, dome, steel, Vector3(0, 0.09, 0), Vector3.ZERO, Vector3(0.15, 0.11, 0.15))
-		_piece(skel, "UpperArm." + side, ring, gold, Vector3(0, 0.0, 0), Vector3.ZERO, Vector3(0.2, 0.3, 0.2))
-		# Bracer.
-		_piece(skel, "LowerArm." + side, tube, leather, Vector3(0, 0.14, 0), Vector3.ZERO, Vector3(0.105, 0.16, 0.105))
-		_piece(skel, "LowerArm." + side, ring, gold, Vector3(0, 0.21, 0), Vector3.ZERO, Vector3(0.11, 0.25, 0.11))
-		# Greaves.
-		_piece(skel, "LowerLeg." + side, tube, steel, Vector3(0, 0.2, 0.02), Vector3.ZERO, Vector3(0.12, 0.26, 0.12))
-	# Breastplate and back plate.
-	_piece(skel, "Chest", dome, steel, Vector3(0, -0.05, 0.07), Vector3.ZERO, Vector3(0.3, 0.3, 0.14))
-	_piece(skel, "Chest", dome, steel, Vector3(0, -0.05, -0.06), Vector3.ZERO, Vector3(0.28, 0.28, 0.12))
-	_piece(skel, "Chest", ring, gold, Vector3(0, 0.07, 0.0), Vector3.ZERO, Vector3(0.27, 0.4, 0.22))
-	# Belt with buckle.
-	_piece(skel, "Hips", ring, leather, Vector3(0, 0.06, 0), Vector3.ZERO, Vector3(0.34, 0.6, 0.27))
+	var steel: ShaderMaterial = ArmorKit.painted(Color("4b5f7d"), 0.25, true)
+	var steel_dark: ShaderMaterial = ArmorKit.painted(Color("3f4e66"), 0.2, true)
+	var gold: ShaderMaterial = ArmorKit.painted(Color("a87a34"), 0.3, true)
+	var leather: ShaderMaterial = ArmorKit.painted(Color("6b4a33"), 0.2)
+	var cloth: ShaderMaterial = ArmorKit.painted(col_tunic, 0.25)
+	var fur := TestArena.leaf_material(Color("8a6a48"), Color("3e2c20"))
+	fur.set_shader_parameter("sway_strength", 0.01)
+
+	# Pauldrons: three stacked shells per side with gold rims and a fur fringe, on the chest bone so they
+	# sit on the shoulders like heavy plate.
+	for side: float in [1.0, -1.0]:
+		var base := Vector3(0.2 * side, 0.1, -0.01)
+		var tilt := Vector3(0, 0, -28.0 * side)
+		var tiers: Array = [[0.17, 0.16, 0.17, 0.0, 1.45], [0.16, 0.1, 0.16, -0.09, 1.2]]
+		for t: Array in tiers:
+			var sh: Array = ArmorKit.shell(t[0], t[1], t[2], t[4], 0.0, TAU, 0.02, 0.026)
+			var pos: Vector3 = base + Vector3(0.05 * side * absf(t[3]) * 6.0, t[3], 0)
+			_piece(skel, "Chest", sh[0], steel if t[3] == 0.0 else steel_dark, pos, tilt)
+			_piece(skel, "Chest", sh[1], gold, pos, tilt)
+		_piece(skel, "Chest", ArmorKit.fur_ring(0.15, 16, 0.2, 5 + int(side)), fur, base + Vector3(0.05 * side, -0.12, 0), tilt)
+		# Small gold spike on top, a crown point (the Sundered Crown).
+		var spike := CylinderMesh.new()
+		spike.top_radius = 0.0
+		spike.bottom_radius = 0.035
+		spike.height = 0.12
+		spike.radial_segments = 10
+		_piece(skel, "Chest", spike, gold, base + Vector3(0.02 * side, 0.15, 0), Vector3(0, 0, -20.0 * side))
+
+	# Breastplate and back plate: half-shells facing forward and back, with gold rims and a centre ridge.
+	var front: Array = ArmorKit.shell(0.21, 0.17, 0.27, 1.45, 0.0, TAU, 0.02, 0.026)
+	_piece(skel, "Chest", front[0], steel, Vector3(0, -0.02, 0.0), Vector3(90, 0, 0))
+	_piece(skel, "Chest", front[1], gold, Vector3(0, -0.02, 0.0), Vector3(90, 0, 0))
+	var back: Array = ArmorKit.shell(0.2, 0.15, 0.26, 1.45, 0.0, TAU, 0.02, 0.022)
+	_piece(skel, "Chest", back[0], steel_dark, Vector3(0, -0.02, 0.0), Vector3(-90, 0, 0))
+	_piece(skel, "Chest", back[1], gold, Vector3(0, -0.02, 0.0), Vector3(-90, 0, 0))
+	var ridge := CapsuleMesh.new()
+	ridge.radius = 0.018
+	ridge.height = 0.3
+	_piece(skel, "Chest", ridge, gold, Vector3(0, -0.02, 0.17), Vector3(-8, 0, 0))
+	# Collar: a cloth scarf with fur around the neck.
+	var scarf: Array = ArmorKit.band(0.095, 0.15, 0.1, 0.012)
+	_piece(skel, "Chest", scarf[0], cloth, Vector3(0, 0.2, 0.0))
+	_piece(skel, "Chest", ArmorKit.fur_ring(0.15, 16, 0.08, 9), fur, Vector3(0, 0.18, -0.01))
+
+	# Waist: layered faulds, a broad belt with a big buckle.
+	var fauld: Array = ArmorKit.band(0.16, 0.19, 0.1, 0.014)
+	_piece(skel, "Hips", fauld[0], steel_dark, Vector3(0, 0.08, 0))
+	_piece(skel, "Hips", fauld[2], gold, Vector3(0, 0.08, 0))
+	var belt: Array = ArmorKit.band(0.175, 0.18, 0.06, 0.01)
+	_piece(skel, "Hips", belt[0], leather, Vector3(0, 0.15, 0))
 	var buckle := BoxMesh.new()
-	buckle.size = Vector3(0.07, 0.06, 0.02)
-	_piece(skel, "Hips", buckle, gold, Vector3(0, 0.06, 0.135))
-	# Tabard front panel.
+	buckle.size = Vector3(0.09, 0.08, 0.025)
+	_piece(skel, "Hips", buckle, gold, Vector3(0, 0.15, 0.18))
+	var buckle_in := BoxMesh.new()
+	buckle_in.size = Vector3(0.05, 0.04, 0.03)
+	_piece(skel, "Hips", buckle_in, steel_dark, Vector3(0, 0.15, 0.185))
+	# Tabard panels front and back.
 	var panel := BoxMesh.new()
-	panel.size = Vector3(0.2, 0.36, 0.02)
-	_piece(skel, "Hips", panel, blue, Vector3(0, -0.13, 0.12), Vector3(-6, 0, 0))
+	panel.size = Vector3(0.2, 0.34, 0.02)
+	_piece(skel, "Hips", panel, cloth, Vector3(0, -0.1, 0.17), Vector3(-8, 0, 0))
+	_piece(skel, "Hips", panel, cloth, Vector3(0, -0.1, -0.16), Vector3(8, 0, 0))
+
+	for side: String in ["L", "R"]:
+		# Bracers with gold rims and a leather cuff.
+		var br: Array = ArmorKit.band(0.062, 0.052, 0.17, 0.012)
+		_piece(skel, "LowerArm." + side, br[0], steel, Vector3(0, 0.15, 0))
+		_piece(skel, "LowerArm." + side, br[1], gold, Vector3(0, 0.15, 0))
+		_piece(skel, "LowerArm." + side, br[2], gold, Vector3(0, 0.15, 0))
+		var cuff: Array = ArmorKit.band(0.07, 0.06, 0.05, 0.008)
+		_piece(skel, "LowerArm." + side, cuff[0], leather, Vector3(0, 0.05, 0))
+		# Greaves and a knee guard.
+		var gr: Array = ArmorKit.band(0.085, 0.07, 0.3, 0.014)
+		_piece(skel, "LowerLeg." + side, gr[0], steel, Vector3(0, 0.2, 0.0))
+		_piece(skel, "LowerLeg." + side, gr[1], gold, Vector3(0, 0.2, 0.0))
+		_piece(skel, "LowerLeg." + side, gr[2], gold, Vector3(0, 0.2, 0.0))
+		var knee: Array = ArmorKit.shell(0.075, 0.06, 0.08, 1.3, 0.0, TAU, 0.015, 0.014)
+		_piece(skel, "LowerLeg." + side, knee[0], steel_dark, Vector3(0, 0.02, 0.05), Vector3(90, 0, 0))
+		_piece(skel, "LowerLeg." + side, knee[1], gold, Vector3(0, 0.02, 0.05), Vector3(90, 0, 0))
 	# Cape: a curved cloth sheet from the shoulders.
-	var cloth := _mat(col_cloak, 0.85)
-	cloth.cull_mode = BaseMaterial3D.CULL_DISABLED
-	_piece(skel, "Chest", _cape_mesh(), cloth, Vector3(0, 0.22, -0.13), Vector3(0, 0, 0))
+	var cape_mat: ShaderMaterial = ArmorKit.painted(col_cloak, 0.2)
+	_piece(skel, "Chest", _cape_mesh(), cape_mat, Vector3(0, 0.2, -0.16), Vector3(0, 0, 0))
 
 
 func _cape_mesh() -> ArrayMesh:
