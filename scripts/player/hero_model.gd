@@ -202,12 +202,12 @@ func _piece(skel: Skeleton3D, bone: String, mesh: Mesh, mat: Material, pos: Vect
 ## thick gold rims, big pauldrons with fur trim, a broad belt, bracers, greaves and a cape.
 ## Own design after the owner's style reference (14-11-2026). Pieces follow the bones.
 func _build_gear(skel: Skeleton3D) -> void:
-	var steel: ShaderMaterial = ArmorKit.painted(Color("4b5f7d"), 0.25, true)
-	var steel_dark: ShaderMaterial = ArmorKit.painted(Color("3f4e66"), 0.2, true)
-	var gold: ShaderMaterial = ArmorKit.painted(Color("a87a34"), 0.3, true)
+	var steel: ShaderMaterial = ArmorKit.painted(Color("3e4f6a"), 0.25, true)
+	var steel_dark: ShaderMaterial = ArmorKit.painted(Color("323f55"), 0.2, true)
+	var gold: ShaderMaterial = ArmorKit.painted(Color("9c7230"), 0.3, true)
 	var leather: ShaderMaterial = ArmorKit.painted(Color("6b4a33"), 0.2)
 	var cloth: ShaderMaterial = ArmorKit.painted(col_tunic, 0.25)
-	var fur := TestArena.leaf_material(Color("8a6a48"), Color("3e2c20"))
+	var fur := TestArena.leaf_material(Color("5b4330"), Color("2a1f17"))
 	fur.set_shader_parameter("sway_strength", 0.01)
 
 	# Pauldrons: three stacked shells per side with gold rims and a fur fringe, on the chest bone so they
@@ -280,6 +280,28 @@ func _build_gear(skel: Skeleton3D) -> void:
 		var knee: Array = ArmorKit.shell(0.075, 0.06, 0.08, 1.3, 0.0, TAU, 0.015, 0.014)
 		_piece(skel, "LowerLeg." + side, knee[0], steel_dark, Vector3(0, 0.02, 0.05), Vector3(90, 0, 0))
 		_piece(skel, "LowerLeg." + side, knee[1], gold, Vector3(0, 0.02, 0.05), Vector3(90, 0, 0))
+	# Open-faced helm with a gold rim, crest and nose guard; it replaces the base model's hair.
+	var helm: Array = ArmorKit.shell(0.155, 0.17, 0.165, 1.5, 0.0, TAU, 0.015, 0.018)
+	_piece(skel, "Head", helm[0], steel, HELM_POS)
+	_piece(skel, "Head", helm[1], gold, HELM_POS)
+	var crest := CapsuleMesh.new()
+	crest.radius = 0.02
+	crest.height = 0.28
+	_piece(skel, "Head", crest, gold, HELM_POS + Vector3(0, 0.13, -0.01), Vector3(90, 0, 0))
+	var nasal := BoxMesh.new()
+	nasal.size = Vector3(0.025, 0.09, 0.02)
+	_piece(skel, "Head", nasal, gold, HELM_POS + Vector3(0, -0.05, 0.165), Vector3(-10, 0, 0))
+	# Trousers and boots in the palette instead of the base model's brown.
+	var trouser: ShaderMaterial = ArmorKit.painted(Color("2f3f66"), 0.15)
+	var boot: ShaderMaterial = ArmorKit.painted(Color("4a3426"), 0.2)
+	for side: String in ["L", "R"]:
+		var th: Array = ArmorKit.band(0.105, 0.085, 0.36, 0.01)
+		_piece(skel, "UpperLeg." + side, th[0], trouser, Vector3(0, 0.2, 0))
+		var bt: Array = ArmorKit.band(0.075, 0.07, 0.16, 0.012)
+		_piece(skel, "LowerLeg." + side, bt[0], boot, Vector3(0, 0.38, 0))
+		_piece(skel, "LowerLeg." + side, bt[1], gold, Vector3(0, 0.38, 0))
+		var toe: Array = ArmorKit.shell(0.065, 0.06, 0.12, 1.5, 0.0, TAU, 0.01, 0.012)
+		_piece(skel, "Foot." + side, toe[0], boot, Vector3(0, 0.04, 0.0))
 	# Cape: a curved cloth sheet from the shoulders.
 	var cape_mat: ShaderMaterial = ArmorKit.painted(col_cloak, 0.2)
 	_piece(skel, "Chest", _cape_mesh(), cape_mat, Vector3(0, 0.2, -0.16), Vector3(0, 0, 0))
@@ -312,6 +334,7 @@ func _cape_mesh() -> ArrayMesh:
 	return m
 
 
+const HELM_POS := Vector3(0.0, 0.2, -0.01)
 const SWORD_SCALE: float = 0.42
 const SWORD_ROT := Vector3(90.0, 0.0, 0.0)
 const SWORD_OFFSET := Vector3(0.0, 0.09, 0.0)

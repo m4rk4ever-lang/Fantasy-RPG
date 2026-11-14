@@ -106,8 +106,8 @@ func _mesh(parent: Node3D, kit: MeshKit, _metal: bool) -> void:
 
 
 ## Imported CC0 body (Quaternius zombie, smooth and animated), recoloured into an ashen husk.
-const GLB_PATH := "res://assets/models/quaternius/zombie.glb"
-const GLB_HEIGHT: float = 1.5
+const GLB_PATH := "res://assets/models/quaternius/hooded_adventurer.glb"
+const GLB_HEIGHT: float = 1.9
 var _glb: Node3D
 var _glb_anim: AnimationPlayer
 var _glb_cur: String = ""
@@ -122,6 +122,9 @@ func _attach_glb() -> void:
 	_glb.rotation.y = PI
 	_model.add_child(_glb)
 	_glb_anim = _glb.find_child("AnimationPlayer", true, false) as AnimationPlayer
+	var pack: Node = _glb.find_child("Backpack", true, false)
+	if pack:
+		(pack as Node3D).visible = false
 	var shader: Shader = preload("res://shaders/husk_tint.gdshader")
 	for mi: MeshInstance3D in _glb.find_children("*", "MeshInstance3D", true, false):
 		for i: int in mi.mesh.get_surface_count():
@@ -130,6 +133,7 @@ func _attach_glb() -> void:
 			sm.shader = shader
 			if src is BaseMaterial3D:
 				sm.set_shader_parameter("albedo_tex", (src as BaseMaterial3D).albedo_texture)
+				sm.set_shader_parameter("base_color", (src as BaseMaterial3D).albedo_color)
 			mi.set_surface_override_material(i, sm)
 			_glb_mats.append(sm)
 	var skel: Skeleton3D = _glb.find_child("Skeleton3D", true, false) as Skeleton3D
@@ -155,7 +159,54 @@ func _attach_glb() -> void:
 			e.material_override = _eye_mat
 			e.position = Vector3(sx, 0.09, 0.1)
 			holder.add_child(e)
+	if skel:
+		_dress_husk(skel)
 	_glb_play("Idle")
+
+
+## Tattered Warden robes over the husk: a deep hood, a torn mantle, a ragged skirt with strips,
+## in the dungeon palette, so the Hollowed read as fallen Wardens rather than cartoon zombies.
+func _dress_husk(skel: Skeleton3D) -> void:
+	var cloth: ShaderMaterial = ArmorKit.painted(Color("353a42"), 0.15)
+	var cloth_dark: ShaderMaterial = ArmorKit.painted(Color("1e2125"), 0.1)
+	var trim: ShaderMaterial = ArmorKit.painted(Color("5b6c9e"), 0.25)
+	var gs: float = maxf(skel.global_transform.basis.get_scale().x, 0.0001)
+	var holders: Dictionary = {}
+	var holder := func(bone: String) -> Node3D:
+		if holders.has(bone):
+			return holders[bone]
+		var att := BoneAttachment3D.new()
+		att.bone_name = bone
+		skel.add_child(att)
+		var h := Node3D.new()
+		h.scale = Vector3.ONE / gs
+		att.add_child(h)
+		holders[bone] = h
+		return h
+	var add := func(bone: String, mesh: Mesh, mat: Material, pos: Vector3, rot: Vector3 = Vector3.ZERO) -> void:
+		var mi := MeshInstance3D.new()
+		mi.mesh = mesh
+		mi.material_override = mat
+		mi.position = pos
+		mi.rotation_degrees = rot
+		(holder.call(bone) as Node3D).add_child(mi)
+		_flash_meshes.append(mi)
+	# Deep hood: a shell over the head, open at the face, with a pointed back.
+	var hood: Array = ArmorKit.shell(0.165, 0.19, 0.18, 1.8, 0.0, TAU, 0.02, 0.012)
+	add.call("Head", hood[0], cloth_dark, Vector3(0, 0.18, -0.03), Vector3(-15, 0, 0))
+	add.call("Head", hood[1], trim, Vector3(0, 0.18, -0.03), Vector3(-15, 0, 0))
+	# Torn mantle over the shoulders.
+	var mantle: Array = ArmorKit.band(0.12, 0.26, 0.2, 0.014)
+	add.call("Chest", mantle[0], cloth, Vector3(0, 0.12, 0))
+	add.call("Chest", mantle[2], trim, Vector3(0, 0.12, 0))
+	# Ragged skirt and hanging strips.
+	var skirt: Array = ArmorKit.band(0.17, 0.26, 0.5, 0.01)
+	add.call("Hips", skirt[0], cloth, Vector3(0, -0.12, 0))
+	var strip := BoxMesh.new()
+	strip.size = Vector3(0.09, 0.4, 0.015)
+	for k: int in 7:
+		var a: float = TAU * float(k) / 7.0 + 0.3
+		add.call("Hips", strip, cloth_dark, Vector3(cos(a) * 0.25, -0.42 - (k % 3) * 0.05, sin(a) * 0.25), Vector3(0, -rad_to_deg(a) + 90.0, (k % 2) * 8.0 - 4.0))
 
 
 func _glb_play(anim: String, blend: float = 0.15, speed: float = 1.0, restart: bool = false) -> void:
@@ -171,7 +222,7 @@ func _glb_play(anim: String, blend: float = 0.15, speed: float = 1.0, restart: b
 		return
 	_glb_cur = full
 	var a: Animation = _glb_anim.get_animation(full)
-	a.loop_mode = Animation.LOOP_NONE if (anim == "Death" or anim == "Punch" or anim == "HitReact") else Animation.LOOP_LINEAR
+	a.loop_mode = Animation.LOOP_NONE if (anim == "Death" or anim.begins_with("Punch") or anim.begins_with("HitRec")) else Animation.LOOP_LINEAR
 	_glb_anim.play(full, blend)
 	_glb_anim.speed_scale = speed
 	if restart:
@@ -184,12 +235,12 @@ func _animate_glb(speed: float) -> void:
 	match state:
 		State.WINDUP:
 			if entered:
-				_glb_play("Punch", 0.1, 0.55 / maxf(windup_time, 0.2), true)
+				_glb_play("Punch_Right", 0.1, 0.55 / maxf(windup_time, 0.2), true)
 		State.ATTACK, State.RECOVER:
 			pass
 		State.STAGGER:
 			if entered:
-				_glb_play("HitReact", 0.05, 1.4, true)
+				_glb_play("HitRecieve", 0.05, 1.4, true)
 		State.DEAD:
 			if entered:
 				_glb_play("Death", 0.1)

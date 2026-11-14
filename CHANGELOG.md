@@ -9,8 +9,13 @@ Stijlreferentie van de eigenaar: een gestileerd MMO-spelersmodel met harnasset (
 - **Heldhaftige verhoudingen:** bredere borst en schouders, sterkere armen en handen, stevigere benen (`HeroProportions`, werkt na de animatie).
 - **Nieuw harnas in code** (`ArmorKit`): grote gelaagde schouderstukken met dikke goudranden, een gouden kroonpunt en een bontrand; borst- en rugplaat met goudrand en middenrib; sjaal met bont; heupplaten, brede riem met grote gesp, tabard voor en achter; armbeschermers met goudranden en leren manchet; scheenplaten en kniestukken; cape.
 
-**Screenshot**
+- **Helm, broek en laarzen:** open helm met goudrand, kam en neusbeschermer (vervangt het haar van het basismodel), donkerblauwe broek, leren laarzen met goudrand. Kleuren donkerder gezet zodat het staal niet meer lichtblauw oogt in de zon.
+- **Hollowed opnieuw:** de cartoonzombie is vervangen door een mager menselijk lichaam in asgrijze, geschilderde tinten, met een diepe kap, een gescheurde mantel, een rafelige rok met lappen en gloeiende Veil-ogen. Ze lezen nu als gevallen Wardens.
+
+**Screenshots**
 ![Held met nieuw harnas](docs/screenshots/2026-11-13e/held_harnas.png)
+![Held met helm](docs/screenshots/2026-11-13e/held_helm.png)
+![Hollowed](docs/screenshots/2026-11-13e/hollowed.png)
 
 **Zelfcontrole**
 - Silhouet: veel dichter bij de referentie (zware schouders, goud). Zwakste deel: het hoofd en de broek komen nog van het basismodel en ogen eenvoudiger dan het harnas; de kleuren zijn in vol zonlicht nog wat licht.
